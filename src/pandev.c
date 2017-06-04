@@ -26,7 +26,7 @@ pandev_get_driver_version(int fd, unsigned *major, unsigned *minor)
 	int rc;
 
 	/* So far this seems to be the only ioctl that uses 0x80 for dir */
-	rc = ioctl(fd, _IOWR(0x80, MALI_FUNC_GET_VERSION, args), &args);
+	rc = ioctl(fd, MALI_IOCTL_GET_VERSION, &args);
 	if (rc)
 		return rc;
 

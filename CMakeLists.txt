@@ -13,5 +13,6 @@ endif()
 
 include_directories("include")
 add_subdirectory(src)
+add_subdirectory(panwrap)
 
 # vim: tabstop=4 softtabstop=4 shiftwidth=4 expandtab :
