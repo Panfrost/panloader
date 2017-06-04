@@ -12,19 +12,9 @@
  *
  */
 
-#include <stdio.h>
-#include "pandev.h"
+#ifndef __PANDEV_H__
+#define __PANDEV_H__
 
-int main(int argc, char **argv)
-{
-	int fd = pandev_open();
+int pandev_open();
 
-	if (fd < 0) {
-		printf("pandev_open() failed with rc%d\n", -fd);
-		return -fd;
-	}
-
-	printf("More to come soon :)\n");
-
-	return 0;
-}
+#endif /* __PANDEV_H__ */

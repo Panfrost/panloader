@@ -12,19 +12,15 @@
  *
  */
 
-#include <stdio.h>
-#include "pandev.h"
+/**
+ * Miscellanious utilities
+ */
 
-int main(int argc, char **argv)
-{
-	int fd = pandev_open();
+#ifndef __PANLOADER_UTIL_H__
+#define __PANLOADER_UTIL_H__
 
-	if (fd < 0) {
-		printf("pandev_open() failed with rc%d\n", -fd);
-		return -fd;
-	}
+#define ASSERT_SIZEOF_TYPE(type__, size__)       \
+	_Static_assert(sizeof(type__) == size__, \
+                       #type__ " does not match expected size " #size__)
 
-	printf("More to come soon :)\n");
-
-	return 0;
-}
+#endif /* __PANLOADER_UTIL_H__ */
