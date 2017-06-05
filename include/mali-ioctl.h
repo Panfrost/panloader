@@ -51,6 +51,91 @@ struct mali_ioctl_get_version {
 } __attribute__((packed));
 ASSERT_SIZEOF_TYPE(struct mali_ioctl_get_version, 16);
 
+struct mali_ioctl_mem_alloc {
+	union mali_ioctl_header header;
+	/* [in] */
+	uint64_t va_pages;
+	uint64_t commit_pages;
+	uint64_t extent;
+	/* [in/out] */
+	uint64_t flags;
+	/* [out] */
+	uint64_t gpu_va;
+	uint16_t va_alignment;
+
+	uint32_t :32;
+	uint16_t :16;
+} __attribute__((packed));
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_alloc, 56);
+
+struct mali_ioctl_mem_import {
+	union mali_ioctl_header header;
+	/* [in] */
+	uint64_t phandle;
+	uint32_t type;
+	uint32_t :32;
+	/* [in/out] */
+	uint64_t flags;
+	/* [out] */
+	uint64_t gpu_va;
+	uint64_t va_pages;
+} __attribute__((packed));
+/* FIXME: Size unconfirmed (haven't seen in a trace yet) */
+
+struct mali_ioctl_mem_commit {
+	union mali_ioctl_header header;
+	/* [in] */
+	uint64_t gpu_addr;
+	uint64_t pages;
+	/* [out] */
+	uint32_t result_subcode;
+	uint32_t :32;
+} __attribute__((packed));
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_commit, 32);
+
+struct mali_ioctl_mem_query {
+	union mali_ioctl_header header;
+	/* [in] */
+	uint64_t gpu_addr;
+	enum {
+		MALI_MEM_QUERY_COMMIT_SIZE = 1,
+		MALI_MEM_QUERY_VA_SIZE     = 2,
+		MALI_MEM_QUERY_FLAGS       = 3
+	} query :32;
+	uint32_t :32;
+	/* [out] */
+	uint64_t value;
+} __attribute__((packed));
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_query, 32);
+
+struct mali_ioctl_mem_free {
+	union mali_ioctl_header header;
+	uint64_t gpu_addr; /* [in] */
+} __attribute__((packed));
+/* FIXME: Size unconfirmed (haven't seen in a trace yet) */
+
+struct mali_ioctl_mem_flags_change {
+	union mali_ioctl_header header;
+	/* [in] */
+	uint64_t gpu_va;
+	uint64_t flags;
+	uint64_t mask;
+} __attribute__((packed));
+/* FIXME: Size unconfirmed (haven't seen in a trace yet) */
+
+struct mali_ioctl_mem_alias {
+	union mali_ioctl_header header;
+	/* [in/out] */
+	uint64_t flags;
+	/* [in] */
+	uint64_t stride;
+	uint64_t nents;
+	uint64_t ai;
+	/* [out] */
+	uint64_t gpu_va;
+	uint64_t va_pages;
+} __attribute__((packed));
+
 struct mali_ioctl_set_flags {
 	union mali_ioctl_header header;
 	uint32_t create_flags; /* [in] */
@@ -68,13 +153,13 @@ typedef struct {
 #define MALI_IOCTL_TYPE_MAX_OFFSET (MALI_IOCTL_TYPE_MAX - MALI_IOCTL_TYPE_BASE)
 
 #define MALI_IOCTL_GET_VERSION             (_IOWR(0x80,  0, struct mali_ioctl_get_version))
-#define MALI_IOCTL_MEM_ALLOC               (_IOWR(0x82,  0, __ioctl_placeholder))
-#define MALI_IOCTL_MEM_IMPORT              (_IOWR(0x82,  1, __ioctl_placeholder))
-#define MALI_IOCTL_MEM_COMMIT              (_IOWR(0x82,  2, __ioctl_placeholder))
-#define MALI_IOCTL_MEM_QUERY               (_IOWR(0x82,  3, __ioctl_placeholder))
-#define MALI_IOCTL_MEM_FREE                (_IOWR(0x82,  4, __ioctl_placeholder))
-#define MALI_IOCTL_MEM_FLAGS_CHANGE        (_IOWR(0x82,  5, __ioctl_placeholder))
-#define MALI_IOCTL_MEM_ALIAS               (_IOWR(0x82,  6, __ioctl_placeholder))
+#define MALI_IOCTL_MEM_ALLOC               (_IOWR(0x82,  0, struct mali_ioctl_mem_alloc))
+#define MALI_IOCTL_MEM_IMPORT              (_IOWR(0x82,  1, struct mali_ioctl_mem_import))
+#define MALI_IOCTL_MEM_COMMIT              (_IOWR(0x82,  2, struct mali_ioctl_mem_commit))
+#define MALI_IOCTL_MEM_QUERY               (_IOWR(0x82,  3, struct mali_ioctl_mem_query))
+#define MALI_IOCTL_MEM_FREE                (_IOWR(0x82,  4, struct mali_ioctl_mem_free))
+#define MALI_IOCTL_MEM_FLAGS_CHANGE        (_IOWR(0x82,  5, struct mali_ioctl_mem_flags_change))
+#define MALI_IOCTL_MEM_ALIAS               (_IOWR(0x82,  6, struct mali_ioctl_mem_alias))
 #define MALI_IOCTL_SYNC                    (_IOWR(0x82,  8, __ioctl_placeholder))
 #define MALI_IOCTL_POST_TERM               (_IOWR(0x82,  9, __ioctl_placeholder))
 #define MALI_IOCTL_HWCNT_SETUP             (_IOWR(0x82, 10, __ioctl_placeholder))

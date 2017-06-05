@@ -111,6 +111,82 @@ ioctl_get_name(unsigned long int request)
 }
 
 static void
+ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_mem_alloc *args = ptr;
+
+	LOG_PRE("\tva_pages     = %ld\n", args->va_pages);
+	LOG_PRE("\tcommit_pages = %ld\n", args->commit_pages);
+	LOG_PRE("\textent       = 0x%lx\n", args->extent);
+	LOG_PRE("\tflags        = 0x%lx\n", args->flags);
+}
+
+static void
+ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_mem_import *args = ptr;
+
+	LOG_PRE("\tphandle  = 0x%lx\n", args->phandle);
+	LOG_PRE("\ttype     = 0x%x\n", args->type);
+	LOG_PRE("\tflags    = 0x%lx\n", args->flags);
+}
+
+static void
+ioctl_decode_pre_mem_commit(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_mem_commit *args = ptr;
+
+	LOG_PRE("\tgpu_addr = 0x%lx\n", args->gpu_addr);
+	LOG_PRE("\tpages    = %ld\n", args->pages);
+}
+
+static void
+ioctl_decode_pre_mem_query(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_mem_query *args = ptr;
+	char *query_name;
+
+	switch (args->query) {
+	case MALI_MEM_QUERY_COMMIT_SIZE: query_name = "Commit size"; break;
+	case MALI_MEM_QUERY_VA_SIZE:     query_name = "VA size"; break;
+	case MALI_MEM_QUERY_FLAGS:       query_name = "Flags"; break;
+	default:                         query_name = "???"; break;
+	}
+
+	LOG_PRE("\tgpu_addr = 0x%lx\n", args->gpu_addr);
+	LOG_PRE("\tquery    = %d (%s)\n", args->query, query_name);
+}
+
+static void
+ioctl_decode_pre_mem_free(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_mem_free *args = ptr;
+
+	LOG_PRE("\tgpu_addr = 0x%lx\n", args->gpu_addr);
+}
+
+static void
+ioctl_decode_pre_mem_flags_change(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_mem_flags_change *args = ptr;
+
+	LOG_PRE("\tgpu_va = 0x%lx\n", args->gpu_va);
+	LOG_PRE("\tflags  = 0x%lx\n", args->flags);
+	LOG_PRE("\tmask   = 0x%lx\n", args->mask);
+}
+
+static void
+ioctl_decode_pre_mem_alias(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_mem_alias *args = ptr;
+
+	LOG_PRE("\tflags    = 0x%lx\n", args->flags);
+	LOG_PRE("\tstride   = %ld\n", args->stride);
+	LOG_PRE("\tnents    = %ld\n", args->nents);
+	LOG_PRE("\tai       = 0x%lx\n", args->ai);
+}
+
+static void
 ioctl_decode_pre_set_flags(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_set_flags *args = ptr;
@@ -122,6 +198,27 @@ static void
 ioctl_decode_pre(unsigned long int request, void *ptr)
 {
 	switch (IOCTL_MAP(request)) {
+	case IOCTL_MAP(MALI_IOCTL_MEM_ALLOC):
+		ioctl_decode_pre_mem_alloc(request, ptr);
+		break;
+	case IOCTL_MAP(MALI_IOCTL_MEM_IMPORT):
+		ioctl_decode_pre_mem_import(request, ptr);
+		break;
+	case IOCTL_MAP(MALI_IOCTL_MEM_COMMIT):
+		ioctl_decode_pre_mem_commit(request, ptr);
+		break;
+	case IOCTL_MAP(MALI_IOCTL_MEM_QUERY):
+		ioctl_decode_pre_mem_query(request, ptr);
+		break;
+	case IOCTL_MAP(MALI_IOCTL_MEM_FREE):
+		ioctl_decode_pre_mem_free(request, ptr);
+		break;
+	case IOCTL_MAP(MALI_IOCTL_MEM_FLAGS_CHANGE):
+		ioctl_decode_pre_mem_flags_change(request, ptr);
+		break;
+	case IOCTL_MAP(MALI_IOCTL_MEM_ALIAS):
+		ioctl_decode_pre_mem_alias(request, ptr);
+		break;
 	case IOCTL_MAP(MALI_IOCTL_SET_FLAGS):
 		ioctl_decode_pre_set_flags(request, ptr);
 		break;
@@ -140,12 +237,71 @@ ioctl_decode_post_get_version(unsigned long int request, void *ptr)
 }
 
 static void
+ioctl_decode_post_mem_alloc(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_mem_alloc *args = ptr;
+
+	LOG_POST("\tgpu_va       = 0x%lx\n", args->gpu_va);
+	LOG_POST("\tva_alignment = %d\n", args->va_alignment);
+}
+
+static void
+ioctl_decode_post_mem_import(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_mem_import *args = ptr;
+
+	LOG_POST("\tgpu_va   = 0x%lx\n", args->gpu_va);
+	LOG_POST("\tva_pages = %ld\n", args->va_pages);
+	LOG_POST("\tflags    = 0x%lx\n", args->flags);
+}
+
+static void
+ioctl_decode_post_mem_commit(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_mem_commit *args = ptr;
+
+	LOG_POST("\tresult_subcode = %d\n", args->result_subcode);
+}
+
+static void
+ioctl_decode_post_mem_query(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_mem_query *args = ptr;
+
+	LOG_POST("\tvalue    = 0x%lx\n", args->value);
+}
+
+static void
+ioctl_decode_post_mem_alias(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_mem_alias *args = ptr;
+
+	LOG_POST("\tgpu_va   = 0x%lx\n", args->gpu_va);
+	LOG_POST("\tva_pages = %ld\n", args->va_pages);
+}
+
+static void
 ioctl_decode_post(unsigned long int request, void *ptr)
 {
 	switch (IOCTL_MAP(request)) {
 	case IOCTL_MAP(MALI_IOCTL_GET_VERSION):
 	case IOCTL_MAP(MALI_IOCTL_GET_VERSION_NEW):
 		ioctl_decode_post_get_version(request, ptr);
+		break;
+	case IOCTL_MAP(MALI_IOCTL_MEM_ALLOC):
+		ioctl_decode_post_mem_alloc(request, ptr);
+		break;
+	case IOCTL_MAP(MALI_IOCTL_MEM_IMPORT):
+		ioctl_decode_post_mem_import(request, ptr);
+		break;
+	case IOCTL_MAP(MALI_IOCTL_MEM_COMMIT):
+		ioctl_decode_post_mem_commit(request, ptr);
+		break;
+	case IOCTL_MAP(MALI_IOCTL_MEM_QUERY):
+		ioctl_decode_post_mem_query(request, ptr);
+		break;
+	case IOCTL_MAP(MALI_IOCTL_MEM_ALIAS):
+		ioctl_decode_post_mem_alias(request, ptr);
 		break;
 	default:
 		break;
