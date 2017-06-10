@@ -29,6 +29,43 @@
  * check each struct's size against the arg length you see in strace.
  */
 
+enum mali_ioctl_mem_flags {
+	/* IN */
+	MALI_MEM_PROT_CPU_RD = (1U << 0),      /**< Read access CPU side */
+	MALI_MEM_PROT_CPU_WR = (1U << 1),      /**< Write access CPU side */
+	MALI_MEM_PROT_GPU_RD = (1U << 2),      /**< Read access GPU side */
+	MALI_MEM_PROT_GPU_WR = (1U << 3),      /**< Write access GPU side */
+	MALI_MEM_PROT_GPU_EX = (1U << 4),      /**< Execute allowed on the GPU
+						    side */
+
+	MALI_MEM_GROW_ON_GPF = (1U << 9),      /**< Grow backing store on GPU
+						    Page Fault */
+
+	MALI_MEM_COHERENT_SYSTEM = (1U << 10), /**< Page coherence Outer
+						    shareable, if available */
+	MALI_MEM_COHERENT_LOCAL = (1U << 11),  /**< Page coherence Inner
+						    shareable */
+	MALI_MEM_CACHED_CPU = (1U << 12),      /**< Should be cached on the
+						    CPU */
+
+	/* IN/OUT */
+	MALI_MEM_SAME_VA = (1U << 13), /**< Must have same VA on both the GPU
+					    and the CPU */
+	/* OUT */
+	MALI_MEM_NEED_MMAP = (1U << 14), /**< Must call mmap to acquire a GPU
+					     address for the alloc */
+	/* IN */
+	MALI_MEM_COHERENT_SYSTEM_REQUIRED = (1U << 15), /**< Page coherence
+					     Outer shareable, required. */
+	MALI_MEM_SECURE = (1U << 16),          /**< Secure memory */
+	MALI_MEM_DONT_NEED = (1U << 17),       /**< Not needed physical
+						    memory */
+	MALI_MEM_IMPORT_SHARED = (1U << 18),   /**< Must use shared CPU/GPU zone
+						    (SAME_VA zone) but doesn't
+						    require the addresses to
+						    be the same */
+};
+
 /**
  * Header used by all ioctls
  */

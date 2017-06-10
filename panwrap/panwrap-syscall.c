@@ -107,6 +107,27 @@ ioctl_get_info(unsigned long int request)
 
 static int mali_fd = 0;
 
+#define FLAG_INFO(flag) { MALI_MEM_##flag, #flag }
+static const struct panwrap_flag_info mem_flag_info[] = {
+	FLAG_INFO(PROT_CPU_RD),
+	FLAG_INFO(PROT_CPU_WR),
+	FLAG_INFO(PROT_GPU_RD),
+	FLAG_INFO(PROT_GPU_WR),
+	FLAG_INFO(PROT_GPU_EX),
+	FLAG_INFO(GROW_ON_GPF),
+	FLAG_INFO(COHERENT_SYSTEM),
+	FLAG_INFO(COHERENT_LOCAL),
+	FLAG_INFO(CACHED_CPU),
+	FLAG_INFO(SAME_VA),
+	FLAG_INFO(NEED_MMAP),
+	FLAG_INFO(COHERENT_SYSTEM_REQUIRED),
+	FLAG_INFO(SECURE),
+	FLAG_INFO(DONT_NEED),
+	FLAG_INFO(IMPORT_SHARED),
+	{}
+};
+#undef FLAG_INFO
+
 static void
 ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
 {
@@ -115,7 +136,10 @@ ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
 	LOG_PRE("\tva_pages     = %ld\n", args->va_pages);
 	LOG_PRE("\tcommit_pages = %ld\n", args->commit_pages);
 	LOG_PRE("\textent       = 0x%lx\n", args->extent);
-	LOG_PRE("\tflags        = 0x%lx\n", args->flags);
+
+	LOG_PRE("\tflags        = ");
+	panwrap_print_decoded_flags(mem_flag_info, args->flags);
+	printf("\n");
 }
 
 static void
@@ -125,7 +149,10 @@ ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 
 	LOG_PRE("\tphandle  = 0x%lx\n", args->phandle);
 	LOG_PRE("\ttype     = 0x%x\n", args->type);
-	LOG_PRE("\tflags    = 0x%lx\n", args->flags);
+
+	LOG_PRE("\tflags    = ");
+	panwrap_print_decoded_flags(mem_flag_info, args->flags);
+	printf("\n");
 }
 
 static void
@@ -168,7 +195,9 @@ ioctl_decode_pre_mem_flags_change(unsigned long int request, void *ptr)
 	const struct mali_ioctl_mem_flags_change *args = ptr;
 
 	LOG_PRE("\tgpu_va = 0x%lx\n", args->gpu_va);
-	LOG_PRE("\tflags  = 0x%lx\n", args->flags);
+	LOG_PRE("\tflags  = ");
+	panwrap_print_decoded_flags(mem_flag_info, args->flags);
+	printf("\n");
 	LOG_PRE("\tmask   = 0x%lx\n", args->mask);
 }
 
@@ -177,7 +206,9 @@ ioctl_decode_pre_mem_alias(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alias *args = ptr;
 
-	LOG_PRE("\tflags    = 0x%lx\n", args->flags);
+	LOG_PRE("\tflags    = ");
+	panwrap_print_decoded_flags(mem_flag_info, args->flags);
+	printf("\n");
 	LOG_PRE("\tstride   = %ld\n", args->stride);
 	LOG_PRE("\tnents    = %ld\n", args->nents);
 	LOG_PRE("\tai       = 0x%lx\n", args->ai);
@@ -249,7 +280,9 @@ ioctl_decode_post_mem_import(unsigned long int request, void *ptr)
 
 	LOG_POST("\tgpu_va   = 0x%lx\n", args->gpu_va);
 	LOG_POST("\tva_pages = %ld\n", args->va_pages);
-	LOG_POST("\tflags    = 0x%lx\n", args->flags);
+	LOG_POST("\tflags    = ");
+	panwrap_print_decoded_flags(mem_flag_info, args->flags);
+	printf("\n");
 }
 
 static void

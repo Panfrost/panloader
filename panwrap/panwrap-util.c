@@ -14,7 +14,40 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "panwrap.h"
+
+void
+panwrap_print_decoded_flags(const struct panwrap_flag_info *flag_info,
+			    u64 flags)
+{
+	bool print_bitwise_or = false;
+	u64 undecoded_flags = flags;
+
+	if (!flags) {
+		printf("0x000000000");
+		return;
+	}
+
+	printf("0x%010lx (", flags);
+
+	for (int i = 0; flag_info[i].flag; i++) {
+		if (!(flags & flag_info[i].flag))
+			continue;
+
+		printf("%s%s",
+		       print_bitwise_or ? " | " : "", flag_info[i].name);
+
+		print_bitwise_or = true;
+		undecoded_flags &= ~flag_info[i].flag;
+	}
+
+	if (undecoded_flags)
+		printf("%s0x%lx",
+		       print_bitwise_or ? " | " : "", undecoded_flags);
+
+	printf(")");
+}
 
 /**
  * Grab the location of a symbol from the system's libc instead of our

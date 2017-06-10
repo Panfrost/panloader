@@ -21,6 +21,15 @@
 #define __WRAP_H__
 
 #include <dlfcn.h>
+#include <panloader-util.h>
+
+struct panwrap_flag_info {
+	u64 flag;
+	const char *name;
+};
+
+void panwrap_print_decoded_flags(const struct panwrap_flag_info *flag_info,
+				 u64 flags);
 
 void * __rd_dlsym_helper(const char *name);
 
