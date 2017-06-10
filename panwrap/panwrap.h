@@ -28,11 +28,6 @@ struct panwrap_flag_info {
 	const char *name;
 };
 
-void panwrap_print_decoded_flags(const struct panwrap_flag_info *flag_info,
-				 u64 flags);
-
-void * __rd_dlsym_helper(const char *name);
-
 #define PROLOG(func) 					\
 	static typeof(func) *orig_##func = NULL;	\
 	if (!orig_##func)				\
@@ -40,5 +35,10 @@ void * __rd_dlsym_helper(const char *name);
 
 #define LOG(format, ...) \
 	printf("%s" format, "panwrap: ", ## __VA_ARGS__)
+
+void panwrap_print_decoded_flags(const struct panwrap_flag_info *flag_info,
+				 u64 flags);
+
+void * __rd_dlsym_helper(const char *name);
 
 #endif /* __WRAP_H__ */
