@@ -20,7 +20,6 @@
 #ifndef __MALI_IOCTL_H__
 #define __MALI_IOCTL_H__
 
-#include <inttypes.h>
 #include <panloader-util.h>
 
 /**
@@ -35,111 +34,111 @@
  */
 union mali_ioctl_header {
 	/* [in] The ID of the UK function being called */
-	uint32_t id :32;
+	u32 id :32;
 	/* [out] The return value of the UK function that was called */
-	uint32_t rc :32;
+	u32 rc :32;
 
-	uint64_t :64;
+	u64 :64;
 } __attribute__((packed));
 ASSERT_SIZEOF_TYPE(union mali_ioctl_header, 8);
 
 struct mali_ioctl_get_version {
 	union mali_ioctl_header header;
-	uint16_t major; /* [out] */
-	uint16_t minor; /* [out] */
-	uint32_t :32;
+	u16 major; /* [out] */
+	u16 minor; /* [out] */
+	u32 :32;
 } __attribute__((packed));
 ASSERT_SIZEOF_TYPE(struct mali_ioctl_get_version, 16);
 
 struct mali_ioctl_mem_alloc {
 	union mali_ioctl_header header;
 	/* [in] */
-	uint64_t va_pages;
-	uint64_t commit_pages;
-	uint64_t extent;
+	u64 va_pages;
+	u64 commit_pages;
+	u64 extent;
 	/* [in/out] */
-	uint64_t flags;
+	u64 flags;
 	/* [out] */
-	uint64_t gpu_va;
-	uint16_t va_alignment;
+	u64 gpu_va;
+	u16 va_alignment;
 
-	uint32_t :32;
-	uint16_t :16;
+	u32 :32;
+	u16 :16;
 } __attribute__((packed));
 ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_alloc, 56);
 
 struct mali_ioctl_mem_import {
 	union mali_ioctl_header header;
 	/* [in] */
-	uint64_t phandle;
-	uint32_t type;
-	uint32_t :32;
+	u64 phandle;
+	u32 type;
+	u32 :32;
 	/* [in/out] */
-	uint64_t flags;
+	u64 flags;
 	/* [out] */
-	uint64_t gpu_va;
-	uint64_t va_pages;
+	u64 gpu_va;
+	u64 va_pages;
 } __attribute__((packed));
 /* FIXME: Size unconfirmed (haven't seen in a trace yet) */
 
 struct mali_ioctl_mem_commit {
 	union mali_ioctl_header header;
 	/* [in] */
-	uint64_t gpu_addr;
-	uint64_t pages;
+	u64 gpu_addr;
+	u64 pages;
 	/* [out] */
-	uint32_t result_subcode;
-	uint32_t :32;
+	u32 result_subcode;
+	u32 :32;
 } __attribute__((packed));
 ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_commit, 32);
 
 struct mali_ioctl_mem_query {
 	union mali_ioctl_header header;
 	/* [in] */
-	uint64_t gpu_addr;
+	u64 gpu_addr;
 	enum {
 		MALI_MEM_QUERY_COMMIT_SIZE = 1,
 		MALI_MEM_QUERY_VA_SIZE     = 2,
 		MALI_MEM_QUERY_FLAGS       = 3
 	} query :32;
-	uint32_t :32;
+	u32 :32;
 	/* [out] */
-	uint64_t value;
+	u64 value;
 } __attribute__((packed));
 ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_query, 32);
 
 struct mali_ioctl_mem_free {
 	union mali_ioctl_header header;
-	uint64_t gpu_addr; /* [in] */
+	u64 gpu_addr; /* [in] */
 } __attribute__((packed));
 /* FIXME: Size unconfirmed (haven't seen in a trace yet) */
 
 struct mali_ioctl_mem_flags_change {
 	union mali_ioctl_header header;
 	/* [in] */
-	uint64_t gpu_va;
-	uint64_t flags;
-	uint64_t mask;
+	u64 gpu_va;
+	u64 flags;
+	u64 mask;
 } __attribute__((packed));
 /* FIXME: Size unconfirmed (haven't seen in a trace yet) */
 
 struct mali_ioctl_mem_alias {
 	union mali_ioctl_header header;
 	/* [in/out] */
-	uint64_t flags;
+	u64 flags;
 	/* [in] */
-	uint64_t stride;
-	uint64_t nents;
-	uint64_t ai;
+	u64 stride;
+	u64 nents;
+	u64 ai;
 	/* [out] */
-	uint64_t gpu_va;
-	uint64_t va_pages;
+	u64 gpu_va;
+	u64 va_pages;
 } __attribute__((packed));
 
 struct mali_ioctl_set_flags {
 	union mali_ioctl_header header;
-	uint32_t create_flags; /* [in] */
-	uint32_t :32;
+	u32 create_flags; /* [in] */
+	u32 :32;
 } __attribute__((packed));
 ASSERT_SIZEOF_TYPE(struct mali_ioctl_set_flags, 16);
 

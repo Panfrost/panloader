@@ -19,6 +19,18 @@
 #ifndef __PANLOADER_UTIL_H__
 #define __PANLOADER_UTIL_H__
 
+#include <inttypes.h>
+
+typedef uint8_t  u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+
+typedef int8_t  s8;
+typedef int16_t s16;
+typedef int32_t s32;
+typedef int64_t s64;
+
 #define ASSERT_SIZEOF_TYPE(type__, size__)       \
 	_Static_assert(sizeof(type__) == size__, \
                        #type__ " does not match expected size " #size__)
