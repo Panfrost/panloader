@@ -148,9 +148,9 @@ typedef struct {
 	union mali_ioctl_header header;
 } __ioctl_placeholder;
 
-#define MALI_IOCTL_TYPE_BASE       0x80
-#define MALI_IOCTL_TYPE_MAX        0x82
-#define MALI_IOCTL_TYPE_MAX_OFFSET (MALI_IOCTL_TYPE_MAX - MALI_IOCTL_TYPE_BASE)
+#define MALI_IOCTL_TYPE_BASE  0x80
+#define MALI_IOCTL_TYPE_MAX   0x82
+#define MALI_IOCTL_TYPE_COUNT (MALI_IOCTL_TYPE_MAX - MALI_IOCTL_TYPE_BASE + 1)
 
 #define MALI_IOCTL_GET_VERSION             (_IOWR(0x80,  0, struct mali_ioctl_get_version))
 #define MALI_IOCTL_MEM_ALLOC               (_IOWR(0x82,  0, struct mali_ioctl_mem_alloc))

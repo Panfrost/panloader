@@ -33,82 +33,79 @@ static pthread_mutex_t l = PTHREAD_MUTEX_INITIALIZER;
 #define LOG_POST(format, ...) \
 	LOG("%s" format, "POST ", ## __VA_ARGS__)
 
-struct device_info {
+#define IOCTL_CASE(request) (_IOWR(_IOC_TYPE(request), _IOC_NR(request), \
+				   _IOC_SIZE(request)))
+
+struct ioctl_info {
 	const char *name;
-	struct {
-		const char *name;
-	} ioctl_info[_IOC_NR(0xffffffff) + MALI_IOCTL_TYPE_MAX_OFFSET];
 };
 
-/* Every type of ioctl has a unique nr except for GET_VERSION. While
- * GET_VERSION has a different dir then all of the other ioctl's, it
- * unfortunately shares the same nr as MEM_ALLOC. So in order to ensure that
- * we can have multiple ioctl's with the same nr so long as their dirs differ,
- * we combine the type of the ioctl with the nr and map each ioctl with that
- * instead
- */
-#define IOCTL_MAP(request) (_IOC_NR(request) + (_IOC_TYPE(request) - \
-						MALI_IOCTL_TYPE_BASE))
+struct device_info {
+	const char *name;
+	const struct ioctl_info info[MALI_IOCTL_TYPE_COUNT][_IOC_NR(0xffffffff)];
+};
 
-#define IOCTL_INFO(n) \
-		[IOCTL_MAP(MALI_IOCTL_##n)] = { .name = #n }
+#define IOCTL_TYPE(type) [type - MALI_IOCTL_TYPE_BASE] =
+#define IOCTL_INFO(n) [_IOC_NR(MALI_IOCTL_##n)] = { .name = #n }
+
 static struct device_info mali_info = {
 	.name = "mali",
-	.ioctl_info = {
-		IOCTL_INFO(GET_VERSION),
-		IOCTL_INFO(MEM_ALLOC),
-		IOCTL_INFO(MEM_IMPORT),
-		IOCTL_INFO(MEM_COMMIT),
-		IOCTL_INFO(MEM_QUERY),
-		IOCTL_INFO(MEM_FREE),
-		IOCTL_INFO(MEM_FLAGS_CHANGE),
-		IOCTL_INFO(MEM_ALIAS),
-		IOCTL_INFO(SYNC),
-		IOCTL_INFO(POST_TERM),
-		IOCTL_INFO(HWCNT_SETUP),
-		IOCTL_INFO(HWCNT_DUMP),
-		IOCTL_INFO(HWCNT_CLEAR),
-		IOCTL_INFO(GPU_PROPS_REG_DUMP),
-		IOCTL_INFO(FIND_CPU_OFFSET),
-		IOCTL_INFO(GET_VERSION_NEW),
-		IOCTL_INFO(SET_FLAGS),
-		IOCTL_INFO(SET_TEST_DATA),
-		IOCTL_INFO(INJECT_ERROR),
-		IOCTL_INFO(MODEL_CONTROL),
-		IOCTL_INFO(KEEP_GPU_POWERED),
-		IOCTL_INFO(FENCE_VALIDATE),
-		IOCTL_INFO(STREAM_CREATE),
-		IOCTL_INFO(GET_PROFILING_CONTROLS),
-		IOCTL_INFO(SET_PROFILING_CONTROLS),
-		IOCTL_INFO(DEBUGFS_MEM_PROFILE_ADD),
-		IOCTL_INFO(JOB_SUBMIT),
-		IOCTL_INFO(DISJOINT_QUERY),
-		IOCTL_INFO(GET_CONTEXT_ID),
-		IOCTL_INFO(TLSTREAM_ACQUIRE_V10_4),
-		IOCTL_INFO(TLSTREAM_TEST),
-		IOCTL_INFO(TLSTREAM_STATS),
-		IOCTL_INFO(TLSTREAM_FLUSH),
-		IOCTL_INFO(HWCNT_READER_SETUP),
-		IOCTL_INFO(SET_PRFCNT_VALUES),
-		IOCTL_INFO(SOFT_EVENT_UPDATE),
-		IOCTL_INFO(MEM_JIT_INIT),
-		IOCTL_INFO(TLSTREAM_ACQUIRE),
+	.info = {
+		IOCTL_TYPE(0x80) {
+			IOCTL_INFO(GET_VERSION),
+		},
+		IOCTL_TYPE(0x82) {
+			IOCTL_INFO(MEM_ALLOC),
+			IOCTL_INFO(MEM_IMPORT),
+			IOCTL_INFO(MEM_COMMIT),
+			IOCTL_INFO(MEM_QUERY),
+			IOCTL_INFO(MEM_FREE),
+			IOCTL_INFO(MEM_FLAGS_CHANGE),
+			IOCTL_INFO(MEM_ALIAS),
+			IOCTL_INFO(SYNC),
+			IOCTL_INFO(POST_TERM),
+			IOCTL_INFO(HWCNT_SETUP),
+			IOCTL_INFO(HWCNT_DUMP),
+			IOCTL_INFO(HWCNT_CLEAR),
+			IOCTL_INFO(GPU_PROPS_REG_DUMP),
+			IOCTL_INFO(FIND_CPU_OFFSET),
+			IOCTL_INFO(GET_VERSION_NEW),
+			IOCTL_INFO(SET_FLAGS),
+			IOCTL_INFO(SET_TEST_DATA),
+			IOCTL_INFO(INJECT_ERROR),
+			IOCTL_INFO(MODEL_CONTROL),
+			IOCTL_INFO(KEEP_GPU_POWERED),
+			IOCTL_INFO(FENCE_VALIDATE),
+			IOCTL_INFO(STREAM_CREATE),
+			IOCTL_INFO(GET_PROFILING_CONTROLS),
+			IOCTL_INFO(SET_PROFILING_CONTROLS),
+			IOCTL_INFO(DEBUGFS_MEM_PROFILE_ADD),
+			IOCTL_INFO(JOB_SUBMIT),
+			IOCTL_INFO(DISJOINT_QUERY),
+			IOCTL_INFO(GET_CONTEXT_ID),
+			IOCTL_INFO(TLSTREAM_ACQUIRE_V10_4),
+			IOCTL_INFO(TLSTREAM_TEST),
+			IOCTL_INFO(TLSTREAM_STATS),
+			IOCTL_INFO(TLSTREAM_FLUSH),
+			IOCTL_INFO(HWCNT_READER_SETUP),
+			IOCTL_INFO(SET_PRFCNT_VALUES),
+			IOCTL_INFO(SOFT_EVENT_UPDATE),
+			IOCTL_INFO(MEM_JIT_INIT),
+			IOCTL_INFO(TLSTREAM_ACQUIRE),
+		},
 	},
 };
 #undef IOCTL_INFO
+#undef IOCTL_TYPE
+
+static inline const struct ioctl_info *
+ioctl_get_info(unsigned long int request)
+{
+	return &mali_info.info[_IOC_TYPE(request) - MALI_IOCTL_TYPE_BASE]
+	                      [_IOC_NR(request)];
+}
 
 static int mali_fd = 0;
-
-static inline const char *
-ioctl_get_name(unsigned long int request)
-{
-	const char *name = mali_info.ioctl_info[IOCTL_MAP(request)].name;
-
-	if (name)
-		return name;
-	else
-		return "???";
-}
 
 static void
 ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
@@ -197,29 +194,29 @@ ioctl_decode_pre_set_flags(unsigned long int request, void *ptr)
 static void
 ioctl_decode_pre(unsigned long int request, void *ptr)
 {
-	switch (IOCTL_MAP(request)) {
-	case IOCTL_MAP(MALI_IOCTL_MEM_ALLOC):
+	switch (IOCTL_CASE(request)) {
+	case IOCTL_CASE(MALI_IOCTL_MEM_ALLOC):
 		ioctl_decode_pre_mem_alloc(request, ptr);
 		break;
-	case IOCTL_MAP(MALI_IOCTL_MEM_IMPORT):
+	case IOCTL_CASE(MALI_IOCTL_MEM_IMPORT):
 		ioctl_decode_pre_mem_import(request, ptr);
 		break;
-	case IOCTL_MAP(MALI_IOCTL_MEM_COMMIT):
+	case IOCTL_CASE(MALI_IOCTL_MEM_COMMIT):
 		ioctl_decode_pre_mem_commit(request, ptr);
 		break;
-	case IOCTL_MAP(MALI_IOCTL_MEM_QUERY):
+	case IOCTL_CASE(MALI_IOCTL_MEM_QUERY):
 		ioctl_decode_pre_mem_query(request, ptr);
 		break;
-	case IOCTL_MAP(MALI_IOCTL_MEM_FREE):
+	case IOCTL_CASE(MALI_IOCTL_MEM_FREE):
 		ioctl_decode_pre_mem_free(request, ptr);
 		break;
-	case IOCTL_MAP(MALI_IOCTL_MEM_FLAGS_CHANGE):
+	case IOCTL_CASE(MALI_IOCTL_MEM_FLAGS_CHANGE):
 		ioctl_decode_pre_mem_flags_change(request, ptr);
 		break;
-	case IOCTL_MAP(MALI_IOCTL_MEM_ALIAS):
+	case IOCTL_CASE(MALI_IOCTL_MEM_ALIAS):
 		ioctl_decode_pre_mem_alias(request, ptr);
 		break;
-	case IOCTL_MAP(MALI_IOCTL_SET_FLAGS):
+	case IOCTL_CASE(MALI_IOCTL_SET_FLAGS):
 		ioctl_decode_pre_set_flags(request, ptr);
 		break;
 	default:
@@ -283,24 +280,24 @@ ioctl_decode_post_mem_alias(unsigned long int request, void *ptr)
 static void
 ioctl_decode_post(unsigned long int request, void *ptr)
 {
-	switch (IOCTL_MAP(request)) {
-	case IOCTL_MAP(MALI_IOCTL_GET_VERSION):
-	case IOCTL_MAP(MALI_IOCTL_GET_VERSION_NEW):
+	switch (IOCTL_CASE(request)) {
+	case IOCTL_CASE(MALI_IOCTL_GET_VERSION):
+	case IOCTL_CASE(MALI_IOCTL_GET_VERSION_NEW):
 		ioctl_decode_post_get_version(request, ptr);
 		break;
-	case IOCTL_MAP(MALI_IOCTL_MEM_ALLOC):
+	case IOCTL_CASE(MALI_IOCTL_MEM_ALLOC):
 		ioctl_decode_post_mem_alloc(request, ptr);
 		break;
-	case IOCTL_MAP(MALI_IOCTL_MEM_IMPORT):
+	case IOCTL_CASE(MALI_IOCTL_MEM_IMPORT):
 		ioctl_decode_post_mem_import(request, ptr);
 		break;
-	case IOCTL_MAP(MALI_IOCTL_MEM_COMMIT):
+	case IOCTL_CASE(MALI_IOCTL_MEM_COMMIT):
 		ioctl_decode_post_mem_commit(request, ptr);
 		break;
-	case IOCTL_MAP(MALI_IOCTL_MEM_QUERY):
+	case IOCTL_CASE(MALI_IOCTL_MEM_QUERY):
 		ioctl_decode_post_mem_query(request, ptr);
 		break;
-	case IOCTL_MAP(MALI_IOCTL_MEM_ALIAS):
+	case IOCTL_CASE(MALI_IOCTL_MEM_ALIAS):
 		ioctl_decode_post_mem_alias(request, ptr);
 		break;
 	default:
@@ -385,7 +382,7 @@ int ioctl(int fd, int request, ...)
 		return orig_ioctl(fd, request, ptr);
 
 	LOCK();
-	name = ioctl_get_name(request);
+	name = ioctl_get_info(request)->name ?: "???";
 	header = ptr;
 
 	if (!ptr) { /* All valid mali ioctl's should have a specified arg */
