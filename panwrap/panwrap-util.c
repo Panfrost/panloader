@@ -17,8 +17,8 @@
 #include "panwrap.h"
 
 /**
- * Literally grab the location of a symbol from libc so that we can change it
- * to whatever we want
+ * Grab the location of a symbol from the system's libc instead of our
+ * preloaded one
  */
 void *
 __rd_dlsym_helper(const char *name)
