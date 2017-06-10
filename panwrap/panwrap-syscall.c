@@ -146,9 +146,17 @@ static void
 ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_import *args = ptr;
+	const char *type;
+
+	switch (args->type) {
+	case MALI_MEM_IMPORT_TYPE_UMP:         type = "UMP"; break;
+	case MALI_MEM_IMPORT_TYPE_UMM:         type = "UMM"; break;
+	case MALI_MEM_IMPORT_TYPE_USER_BUFFER: type = "User buffer"; break;
+	default:                               type = "Invalid"; break;
+	}
 
 	LOG_PRE("\tphandle  = 0x%lx\n", args->phandle);
-	LOG_PRE("\ttype     = 0x%x\n", args->type);
+	LOG_PRE("\ttype     = %d (%s)\n", args->type, type);
 
 	LOG_PRE("\tflags    = ");
 	panwrap_print_decoded_flags(mem_flag_info, args->flags);

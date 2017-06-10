@@ -108,7 +108,12 @@ struct mali_ioctl_mem_import {
 	union mali_ioctl_header header;
 	/* [in] */
 	u64 phandle;
-	u32 type;
+	enum {
+		MALI_MEM_IMPORT_TYPE_INVALID = 0,
+		MALI_MEM_IMPORT_TYPE_UMP = 1,
+		MALI_MEM_IMPORT_TYPE_UMM = 2,
+		MALI_MEM_IMPORT_TYPE_USER_BUFFER = 3,
+	} type :32;
 	u32 :32;
 	/* [in/out] */
 	u64 flags;
