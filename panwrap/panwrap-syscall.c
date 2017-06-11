@@ -419,7 +419,7 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 		 args->coherency_info.num_core_groups);
 	LOG_POST("\t\tFeatures: 0x%x\n", args->coherency_info.coherency);
 	LOG_POST("\t\tGroups:\n");
-	for (int i = 0; i < args->coherency_info.num_core_groups; i++) {
+	for (int i = 0; i < args->coherency_info.num_groups; i++) {
 		LOG_POST("\t\t\t- Core mask: %010lx\n",
 			 args->coherency_info.group[i].core_mask);
 		LOG_POST("\t\t\t  Number of cores: %d\n",
