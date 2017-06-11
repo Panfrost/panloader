@@ -35,4 +35,8 @@ typedef int64_t s64;
 	_Static_assert(sizeof(type__) == size__, \
                        #type__ " does not match expected size " #size__)
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+
+#define YES_NO(b) ((b) ? "Yes" : "No")
+
 #endif /* __PANLOADER_UTIL_H__ */

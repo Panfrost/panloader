@@ -19,6 +19,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include <linux/ioctl.h>
+#include <math.h>
 
 #include <mali-ioctl.h>
 #include "panwrap.h"
@@ -127,6 +128,17 @@ static const struct panwrap_flag_info mem_flag_info[] = {
 	{}
 };
 #undef FLAG_INFO
+
+static inline const char *
+ioctl_decode_coherency_mode(enum mali_ioctl_coherency_mode mode)
+{
+	switch (mode) {
+	case COHERENCY_ACE_LITE: return "ACE_LITE";
+	case COHERENCY_ACE:      return "ACE";
+	case COHERENCY_NONE:     return "None";
+	default:                 return "???";
+	}
+}
 
 static void
 ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
@@ -319,6 +331,103 @@ ioctl_decode_post_mem_alias(unsigned long int request, void *ptr)
 }
 
 static void
+ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_gpu_props_reg_dump *args = ptr;
+	const char *implementation;
+
+	switch (args->thread.impl_tech) {
+	case MALI_GPU_IMPLEMENTATION_UNKNOWN: implementation = "Unknown"; break;
+	case MALI_GPU_IMPLEMENTATION_SILICON: implementation = "Silicon"; break;
+	case MALI_GPU_IMPLEMENTATION_FPGA:    implementation = "FPGA"; break;
+	case MALI_GPU_IMPLEMENTATION_SW:      implementation = "Software"; break;
+	}
+
+	LOG_POST("\tcore:\n");
+	LOG_POST("\t\tProduct ID: %d\n", args->core.product_id);
+	LOG_POST("\t\tVersion status: %d\n", args->core.version_status);
+	LOG_POST("\t\tMinor revision: %d\n", args->core.minor_revision);
+	LOG_POST("\t\tMajor revision: %d\n", args->core.major_revision);
+	LOG_POST("\t\tGPU speed: %dMHz\n", args->core.gpu_speed_mhz);
+	LOG_POST("\t\tGPU frequencies: %dKHz-%dKHz\n",
+		 args->core.gpu_freq_khz_min, args->core.gpu_freq_khz_max);
+	LOG_POST("\t\tShader program counter size: %.lf MB\n",
+		 pow(2, args->core.log2_program_counter_size) / 1024 / 1024);
+
+	LOG_POST("\t\tTexture features:\n");
+	for (int i = 0; i < ARRAY_SIZE(args->core.texture_features); i++)
+		LOG_POST("\t\t\t%010x\n", args->core.texture_features[i]);
+
+	LOG_POST("\t\tAvailable memory: %ld bytes\n",
+		 args->core.gpu_available_memory_size);
+
+	LOG_POST("\tL2 cache:\n");
+	LOG_POST("\t\tLine size: %.lf (bytes, words?)\n",
+		 pow(2, args->l2.log2_line_size));
+	LOG_POST("\t\tCache size: %.lf KB\n",
+		 pow(2, args->l2.log2_cache_size) / 1024);
+	LOG_POST("\t\tL2 slice count: %d\n", args->l2.num_l2_slices);
+
+	LOG_POST("\tTiler:\n");
+	LOG_POST("\t\tBinary size: %d bytes\n", args->tiler.bin_size_bytes);
+	LOG_POST("\t\tMax active levels: %d\n", args->tiler.max_active_levels);
+
+	LOG_POST("\tThreads:\n");
+	LOG_POST("\t\tMax threads: %d\n", args->thread.max_threads);
+	LOG_POST("\t\tMax threads per workgroup: %d\n",
+		 args->thread.max_workgroup_size);
+	LOG_POST("\t\tMax threads allowed for synchronizing on simple barrier: %d\n",
+		 args->thread.max_barrier_size);
+	LOG_POST("\t\tMax registers available per-core: %d\n",
+		 args->thread.max_registers);
+	LOG_POST("\t\tMax tasks that can be sent to a core before blocking: %d\n",
+		 args->thread.max_task_queue);
+	LOG_POST("\t\tMax allowed thread group split value: %d\n",
+		 args->thread.max_thread_group_split);
+	LOG_POST("\t\tImplementation type: %d (%s)\n",
+		 args->thread.impl_tech, implementation);
+
+	LOG_POST("\tRaw props:\n");
+	LOG_POST("\t\tShader present? %s\n", YES_NO(args->raw.shader_present));
+	LOG_POST("\t\tTiler present? %s\n", YES_NO(args->raw.tiler_present));
+	LOG_POST("\t\tL2 present? %s\n", YES_NO(args->raw.l2_present));
+	LOG_POST("\t\tStack present? %s\n", YES_NO(args->raw.stack_present));
+	LOG_POST("\t\tL2 features: 0x%010x\n", args->raw.l2_features);
+	LOG_POST("\t\tSuspend size: %d\n", args->raw.suspend_size);
+	LOG_POST("\t\tMemory features: 0x%010x\n", args->raw.mem_features);
+	LOG_POST("\t\tMMU features: 0x%010x\n", args->raw.mmu_features);
+	LOG_POST("\t\tAS (what is this?) present? %s\n",
+		 YES_NO(args->raw.as_present));
+
+	LOG_POST("\t\tJS (what is this?) present? %s\n",
+		 YES_NO(args->raw.js_present));
+	LOG_POST("\t\tJS features:\n");
+	for (int i = 0; i < ARRAY_SIZE(args->raw.js_features); i++)
+		LOG_POST("\t\t\t%010x\n", args->raw.js_features[i]);
+
+	LOG_POST("\t\tTiler features: %010x\n", args->raw.tiler_features);
+
+	LOG_POST("\t\tGPU ID: 0x%x\n", args->raw.gpu_id);
+	LOG_POST("\t\tThread features: 0x%x\n", args->raw.thread_features);
+	LOG_POST("\t\tCoherency mode: 0x%x (%s)\n",
+		 args->raw.coherency_mode,
+		 ioctl_decode_coherency_mode(args->raw.coherency_mode));
+
+	LOG_POST("\tCoherency info:\n");
+	LOG_POST("\t\tNumber of groups: %d\n", args->coherency_info.num_groups);
+	LOG_POST("\t\tNumber of core groups (coherent or not): %d\n",
+		 args->coherency_info.num_core_groups);
+	LOG_POST("\t\tFeatures: 0x%x\n", args->coherency_info.coherency);
+	LOG_POST("\t\tGroups:\n");
+	for (int i = 0; i < args->coherency_info.num_core_groups; i++) {
+		LOG_POST("\t\t\t- Core mask: %010lx\n",
+			 args->coherency_info.group[i].core_mask);
+		LOG_POST("\t\t\t  Number of cores: %d\n",
+			 args->coherency_info.group[i].num_cores);
+	}
+}
+
+static void
 ioctl_decode_post(unsigned long int request, void *ptr)
 {
 	switch (IOCTL_CASE(request)) {
@@ -340,6 +449,9 @@ ioctl_decode_post(unsigned long int request, void *ptr)
 		break;
 	case IOCTL_CASE(MALI_IOCTL_MEM_ALIAS):
 		ioctl_decode_post_mem_alias(request, ptr);
+		break;
+	case IOCTL_CASE(MALI_IOCTL_GPU_PROPS_REG_DUMP):
+		ioctl_decode_post_gpu_props_reg_dump(request, ptr);
 		break;
 	default:
 		break;
