@@ -348,8 +348,8 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 	LOG_POST("\t\tVersion status: %d\n", args->core.version_status);
 	LOG_POST("\t\tMinor revision: %d\n", args->core.minor_revision);
 	LOG_POST("\t\tMajor revision: %d\n", args->core.major_revision);
-	LOG_POST("\t\tGPU speed: %dMHz\n", args->core.gpu_speed_mhz);
-	LOG_POST("\t\tGPU frequencies: %dKHz-%dKHz\n",
+	LOG_POST("\t\tGPU speed (?): %dMHz\n", args->core.gpu_speed_mhz);
+	LOG_POST("\t\tGPU frequencies (?): %dKHz-%dKHz\n",
 		 args->core.gpu_freq_khz_min, args->core.gpu_freq_khz_max);
 	LOG_POST("\t\tShader program counter size: %.lf MB\n",
 		 pow(2, args->core.log2_program_counter_size) / 1024 / 1024);
