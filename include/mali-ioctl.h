@@ -443,7 +443,7 @@ typedef struct {
 #define MALI_IOCTL_HWCNT_SETUP             (_IOWR(0x82, 10, __ioctl_placeholder))
 #define MALI_IOCTL_HWCNT_DUMP              (_IOWR(0x82, 11, __ioctl_placeholder))
 #define MALI_IOCTL_HWCNT_CLEAR             (_IOWR(0x82, 12, __ioctl_placeholder))
-#define MALI_IOCTL_GPU_PROPS_REG_DUMP      (_IOWR(0x82, 14, struct mali_gpu_thread_props))
+#define MALI_IOCTL_GPU_PROPS_REG_DUMP      (_IOWR(0x82, 14, struct mali_ioctl_gpu_props_reg_dump))
 #define MALI_IOCTL_FIND_CPU_OFFSET         (_IOWR(0x82, 15, __ioctl_placeholder))
 #define MALI_IOCTL_GET_VERSION_NEW         (_IOWR(0x82, 16, struct mali_ioctl_get_version))
 #define MALI_IOCTL_SET_FLAGS               (_IOWR(0x82, 18, struct mali_ioctl_set_flags))
