@@ -235,6 +235,24 @@ ioctl_decode_pre_mem_alias(unsigned long int request, void *ptr)
 }
 
 static void
+ioctl_decode_pre_sync(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_sync *args = ptr;
+	const char *type;
+
+	switch (args->type) {
+	case MALI_SYNC_TO_DEVICE: type = "device <- cpu"; break;
+	case MALI_SYNC_TO_CPU:    type = "device -> cpu"; break;
+	default:                  type = "???"; break;
+	}
+
+	LOG_PRE("\thandle = 0x%.10lx\n", args->handle);
+	LOG_PRE("\tuser_addr = 0x%.10lx\n", args->user_addr);
+	LOG_PRE("\tsize = %ld\n", args->size);
+	LOG_PRE("\ttype = %d (%s)\n", args->type, type);
+}
+
+static void
 ioctl_decode_pre_set_flags(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_set_flags *args = ptr;
@@ -266,6 +284,9 @@ ioctl_decode_pre(unsigned long int request, void *ptr)
 		break;
 	case IOCTL_CASE(MALI_IOCTL_MEM_ALIAS):
 		ioctl_decode_pre_mem_alias(request, ptr);
+		break;
+	case IOCTL_CASE(MALI_IOCTL_SYNC):
+		ioctl_decode_pre_sync(request, ptr);
 		break;
 	case IOCTL_CASE(MALI_IOCTL_SET_FLAGS):
 		ioctl_decode_pre_set_flags(request, ptr);

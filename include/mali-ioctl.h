@@ -399,6 +399,19 @@ struct mali_ioctl_mem_alias {
 	u64 va_pages;
 } __attribute__((packed));
 
+struct mali_ioctl_sync {
+	union mali_ioctl_header header;
+	u64 handle;
+	u64 user_addr;
+	u64 size;
+	enum {
+		MALI_SYNC_TO_DEVICE = 0,
+		MALI_SYNC_TO_CPU = 1,
+	} type :8;
+	u64 :56;
+} __attribute__((packed));
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_sync, 40);
+
 struct mali_ioctl_gpu_props_reg_dump {
 	union mali_ioctl_header header;
 	struct mali_gpu_core_props core;
@@ -438,7 +451,7 @@ typedef struct {
 #define MALI_IOCTL_MEM_FREE                (_IOWR(0x82,  4, struct mali_ioctl_mem_free))
 #define MALI_IOCTL_MEM_FLAGS_CHANGE        (_IOWR(0x82,  5, struct mali_ioctl_mem_flags_change))
 #define MALI_IOCTL_MEM_ALIAS               (_IOWR(0x82,  6, struct mali_ioctl_mem_alias))
-#define MALI_IOCTL_SYNC                    (_IOWR(0x82,  8, __ioctl_placeholder))
+#define MALI_IOCTL_SYNC                    (_IOWR(0x82,  8, struct mali_ioctl_sync))
 #define MALI_IOCTL_POST_TERM               (_IOWR(0x82,  9, __ioctl_placeholder))
 #define MALI_IOCTL_HWCNT_SETUP             (_IOWR(0x82, 10, __ioctl_placeholder))
 #define MALI_IOCTL_HWCNT_DUMP              (_IOWR(0x82, 11, __ioctl_placeholder))
