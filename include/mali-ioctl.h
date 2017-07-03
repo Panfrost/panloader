@@ -288,6 +288,15 @@ struct mali_gpu_raw_props {
 	u32 coherency_mode;
 };
 
+/*
+ * The original mali driver from ARM has 64 bit memory pointers in most of the
+ * ioctls argument structures, regardless of whether or not the system is 32
+ * bit or 64 bit. For 32 bit systems, the upper 32 bits are ignored
+ *
+ * FIXME: confirm this actually works
+ */
+#define PAD_PTR(p) p; u32 :(8 - sizeof(void*))
+
 /**
  * Header used by all ioctls
  */
@@ -402,7 +411,7 @@ struct mali_ioctl_mem_alias {
 struct mali_ioctl_sync {
 	union mali_ioctl_header header;
 	u64 handle;
-	u64 user_addr;
+	PAD_PTR(void* user_addr);
 	u64 size;
 	enum {
 		MALI_SYNC_TO_DEVICE = 0,
@@ -433,6 +442,34 @@ struct mali_ioctl_set_flags {
 	u32 :32;
 } __attribute__((packed));
 ASSERT_SIZEOF_TYPE(struct mali_ioctl_set_flags, 16);
+
+struct mali_ioctl_stream_create {
+	union mali_ioctl_header header;
+	/* [in] */
+	char name[32];
+	/* [out] */
+	s32 fd;
+	u32 :32;
+} __attribute__((packed));
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_stream_create, 48);
+
+struct mali_ioctl_job_submit {
+	union mali_ioctl_header header;
+	/* [in] */
+	PAD_PTR(void *addr);
+	u32 nr_atoms;
+	u32 stride;
+} __attribute__((packed));
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_job_submit, 24);
+
+struct mali_ioctl_get_context_id {
+	union mali_ioctl_header header;
+	/* [out] */
+	s64 id;
+} __attribute__((packed));
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_get_context_id, 16);
+
+#undef PAD_PTR
 
 /* For ioctl's we haven't written decoding stuff for yet */
 typedef struct {
@@ -465,13 +502,13 @@ typedef struct {
 #define MALI_IOCTL_MODEL_CONTROL           (_IOWR(0x82, 21, __ioctl_placeholder))
 #define MALI_IOCTL_KEEP_GPU_POWERED        (_IOWR(0x82, 22, __ioctl_placeholder))
 #define MALI_IOCTL_FENCE_VALIDATE          (_IOWR(0x82, 23, __ioctl_placeholder))
-#define MALI_IOCTL_STREAM_CREATE           (_IOWR(0x82, 24, __ioctl_placeholder))
+#define MALI_IOCTL_STREAM_CREATE           (_IOWR(0x82, 24, struct mali_ioctl_stream_create))
 #define MALI_IOCTL_GET_PROFILING_CONTROLS  (_IOWR(0x82, 25, __ioctl_placeholder))
 #define MALI_IOCTL_SET_PROFILING_CONTROLS  (_IOWR(0x82, 26, __ioctl_placeholder))
 #define MALI_IOCTL_DEBUGFS_MEM_PROFILE_ADD (_IOWR(0x82, 27, __ioctl_placeholder))
-#define MALI_IOCTL_JOB_SUBMIT              (_IOWR(0x82, 28, __ioctl_placeholder))
+#define MALI_IOCTL_JOB_SUBMIT              (_IOWR(0x82, 28, struct mali_ioctl_job_submit))
 #define MALI_IOCTL_DISJOINT_QUERY          (_IOWR(0x82, 29, __ioctl_placeholder))
-#define MALI_IOCTL_GET_CONTEXT_ID          (_IOWR(0x82, 31, __ioctl_placeholder))
+#define MALI_IOCTL_GET_CONTEXT_ID          (_IOWR(0x82, 31, struct mali_ioctl_get_context_id))
 #define MALI_IOCTL_TLSTREAM_ACQUIRE_V10_4  (_IOWR(0x82, 32, __ioctl_placeholder))
 #define MALI_IOCTL_TLSTREAM_TEST           (_IOWR(0x82, 33, __ioctl_placeholder))
 #define MALI_IOCTL_TLSTREAM_STATS          (_IOWR(0x82, 34, __ioctl_placeholder))

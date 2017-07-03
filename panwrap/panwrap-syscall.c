@@ -234,20 +234,20 @@ ioctl_decode_pre_mem_alias(unsigned long int request, void *ptr)
 	LOG_PRE("\tai = 0x%lx\n", args->ai);
 }
 
-static void
+static inline void
 ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_sync *args = ptr;
 	const char *type;
 
 	switch (args->type) {
-	case MALI_SYNC_TO_DEVICE: type = "device <- cpu"; break;
-	case MALI_SYNC_TO_CPU:    type = "device -> cpu"; break;
+	case MALI_SYNC_TO_DEVICE: type = "device <- CPU"; break;
+	case MALI_SYNC_TO_CPU:    type = "device -> CPU"; break;
 	default:                  type = "???"; break;
 	}
 
-	LOG_PRE("\thandle = 0x%.10lx\n", args->handle);
-	LOG_PRE("\tuser_addr = 0x%.10lx\n", args->user_addr);
+	LOG_PRE("\thandle = 0x%lx\n", args->handle);
+	LOG_PRE("\tuser_addr = %p\n", args->user_addr);
 	LOG_PRE("\tsize = %ld\n", args->size);
 	LOG_PRE("\ttype = %d (%s)\n", args->type, type);
 }
@@ -258,6 +258,24 @@ ioctl_decode_pre_set_flags(unsigned long int request, void *ptr)
 	const struct mali_ioctl_set_flags *args = ptr;
 
 	LOG_PRE("\tcreate_flags = %08x\n", args->create_flags);
+}
+
+static inline void
+ioctl_decode_pre_stream_create(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_stream_create *args = ptr;
+
+	LOG_PRE("\tname = %s\n", args->name);
+}
+
+static inline void
+ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_job_submit *args = ptr;
+
+	LOG_PRE("\taddr = %p\n", args->addr);
+	LOG_PRE("\tnr_atoms = %d\n", args->nr_atoms);
+	LOG_PRE("\tstride = %d\n", args->stride);
 }
 
 static void
@@ -290,6 +308,12 @@ ioctl_decode_pre(unsigned long int request, void *ptr)
 		break;
 	case IOCTL_CASE(MALI_IOCTL_SET_FLAGS):
 		ioctl_decode_pre_set_flags(request, ptr);
+		break;
+	case IOCTL_CASE(MALI_IOCTL_STREAM_CREATE):
+		ioctl_decode_pre_stream_create(request, ptr);
+		break;
+	case IOCTL_CASE(MALI_IOCTL_JOB_SUBMIT):
+		ioctl_decode_pre_job_submit(request, ptr);
 		break;
 	default:
 		break;
@@ -448,6 +472,22 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 	}
 }
 
+static inline void
+ioctl_decode_post_stream_create(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_stream_create *args = ptr;
+
+	LOG_POST("\tfd = %d\n", args->fd);
+}
+
+static inline void
+ioctl_decode_post_get_context_id(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_get_context_id *args = ptr;
+
+	LOG_POST("\tid = %ld\n", args->id);
+}
+
 static void
 ioctl_decode_post(unsigned long int request, void *ptr)
 {
@@ -473,6 +513,12 @@ ioctl_decode_post(unsigned long int request, void *ptr)
 		break;
 	case IOCTL_CASE(MALI_IOCTL_GPU_PROPS_REG_DUMP):
 		ioctl_decode_post_gpu_props_reg_dump(request, ptr);
+		break;
+	case IOCTL_CASE(MALI_IOCTL_STREAM_CREATE):
+		ioctl_decode_post_stream_create(request, ptr);
+		break;
+	case IOCTL_CASE(MALI_IOCTL_GET_CONTEXT_ID):
+		ioctl_decode_post_get_context_id(request, ptr);
 		break;
 	default:
 		break;
