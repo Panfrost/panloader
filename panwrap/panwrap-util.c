@@ -21,6 +21,7 @@
 #include "panwrap.h"
 
 static struct timespec start_time;
+static FILE *log_output = stdout;
 
 void
 panwrap_print_decoded_flags(const struct panwrap_flag_info *flag_info,
@@ -108,10 +109,11 @@ panwrap_log(const char *format, ...)
 
 	panwrap_timestamp(&tp);
 
-	printf("panwrap [%.8lf]: ", tp.tv_sec + tp.tv_nsec / 1e+9F);
+	fprintf(log_output,
+		"panwrap [%.8lf]: ", tp.tv_sec + tp.tv_nsec / 1e+9F);
 
 	va_start(ap, format);
-	vprintf(format, ap);
+	vfprintf(log_output, format, ap);
 	va_end(ap);
 }
 
@@ -122,16 +124,35 @@ panwrap_log_cont(const char *format, ...)
 	va_list ap;
 
 	va_start(ap, format);
-	vprintf(format, ap);
+	vfprintf(log_output, format, ap);
 	va_end(ap);
 }
 
 static void __attribute__((constructor))
 panwrap_util_init()
 {
+	const char *log_output_env;
+
 	if (clock_gettime(CLOCK_MONOTONIC, &start_time)) {
 		fprintf(stderr, "Failed to call clock_gettime: %s\n",
 			strerror(errno));
 		exit(1);
+	}
+
+	log_output_env = getenv("PANWRAP_OUTPUT");
+	if (log_output_env) {
+		/* Don't try to reopen stderr or stdout, that won't work */
+		if (strcmp(log_output_env, "/dev/stderr") == 0) {
+			log_output = stderr;
+		} else if (strcmp(log_output_env, "/dev/stdout") == 0) {
+			log_output = stdout;
+		} else {
+			log_output = fopen(log_output_env, "w+");
+			if (!log_output) {
+				fprintf(stderr, "Failed to open %s: %s\n",
+					log_output_env, strerror(errno));
+				exit(1);
+			}
+		}
 	}
 }
