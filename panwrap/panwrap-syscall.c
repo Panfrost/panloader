@@ -611,8 +611,7 @@ int ioctl(int fd, int request, ...)
 
 		ret = orig_ioctl(fd, request, ptr);
 
-		LOG_POST("<%-20s> (%02d) (%08x) == %02d\n",
-			 name, _IOC_NR(request), request, ret);
+		LOG_POST("\t== %02d\n", ret);
 		goto out;
 	}
 
@@ -623,9 +622,8 @@ int ioctl(int fd, int request, ...)
 
 	ret = orig_ioctl(fd, request, ptr);
 
-	LOG_POST("<%-20s> (%02d) (%08x) (%04d) (%03d) == %02d, %02d\n",
-		 name, _IOC_NR(request), request, _IOC_SIZE(request), func, ret,
-		 header->rc);
+	LOG_POST("\t== %02d, %02d\n",
+		 ret, header->rc);
 	ioctl_decode_post(request, ptr);
 
 out:
