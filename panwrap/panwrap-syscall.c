@@ -140,13 +140,13 @@ ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alloc *args = ptr;
 
-	LOG("\tva_pages = %ld\n", args->va_pages);
-	LOG("\tcommit_pages = %ld\n", args->commit_pages);
-	LOG("\textent = 0x%lx\n", args->extent);
+	panwrap_log("\tva_pages = %ld\n", args->va_pages);
+	panwrap_log("\tcommit_pages = %ld\n", args->commit_pages);
+	panwrap_log("\textent = 0x%lx\n", args->extent);
 
-	LOG("\tflags = ");
+	panwrap_log("\tflags = ");
 	panwrap_print_decoded_flags(mem_flag_info, args->flags);
-	printf("\n");
+	panwrap_log_cont("\n");
 }
 
 static void
@@ -162,12 +162,12 @@ ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 	default:                               type = "Invalid"; break;
 	}
 
-	LOG("\tphandle = 0x%lx\n", args->phandle);
-	LOG("\ttype = %d (%s)\n", args->type, type);
+	panwrap_log("\tphandle = 0x%lx\n", args->phandle);
+	panwrap_log("\ttype = %d (%s)\n", args->type, type);
 
-	LOG("\tflags = ");
+	panwrap_log("\tflags = ");
 	panwrap_print_decoded_flags(mem_flag_info, args->flags);
-	printf("\n");
+	panwrap_log_cont("\n");
 }
 
 static void
@@ -175,8 +175,8 @@ ioctl_decode_pre_mem_commit(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_commit *args = ptr;
 
-	LOG("\tgpu_addr = 0x%lx\n", args->gpu_addr);
-	LOG("\tpages = %ld\n", args->pages);
+	panwrap_log("\tgpu_addr = 0x%lx\n", args->gpu_addr);
+	panwrap_log("\tpages = %ld\n", args->pages);
 }
 
 static void
@@ -192,8 +192,8 @@ ioctl_decode_pre_mem_query(unsigned long int request, void *ptr)
 	default:                         query_name = "???"; break;
 	}
 
-	LOG("\tgpu_addr = 0x%lx\n", args->gpu_addr);
-	LOG("\tquery = %d (%s)\n", args->query, query_name);
+	panwrap_log("\tgpu_addr = 0x%lx\n", args->gpu_addr);
+	panwrap_log("\tquery = %d (%s)\n", args->query, query_name);
 }
 
 static void
@@ -201,7 +201,7 @@ ioctl_decode_pre_mem_free(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_free *args = ptr;
 
-	LOG("\tgpu_addr = 0x%lx\n", args->gpu_addr);
+	panwrap_log("\tgpu_addr = 0x%lx\n", args->gpu_addr);
 }
 
 static void
@@ -209,11 +209,11 @@ ioctl_decode_pre_mem_flags_change(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_flags_change *args = ptr;
 
-	LOG("\tgpu_va = 0x%lx\n", args->gpu_va);
-	LOG("\tflags = ");
+	panwrap_log("\tgpu_va = 0x%lx\n", args->gpu_va);
+	panwrap_log("\tflags = ");
 	panwrap_print_decoded_flags(mem_flag_info, args->flags);
-	printf("\n");
-	LOG("\tmask = 0x%lx\n", args->mask);
+	panwrap_log_cont("\n");
+	panwrap_log("\tmask = 0x%lx\n", args->mask);
 }
 
 static void
@@ -221,12 +221,12 @@ ioctl_decode_pre_mem_alias(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alias *args = ptr;
 
-	LOG("\tflags = ");
+	panwrap_log("\tflags = ");
 	panwrap_print_decoded_flags(mem_flag_info, args->flags);
-	printf("\n");
-	LOG("\tstride = %ld\n", args->stride);
-	LOG("\tnents = %ld\n", args->nents);
-	LOG("\tai = 0x%lx\n", args->ai);
+	panwrap_log_cont("\n");
+	panwrap_log("\tstride = %ld\n", args->stride);
+	panwrap_log("\tnents = %ld\n", args->nents);
+	panwrap_log("\tai = 0x%lx\n", args->ai);
 }
 
 static inline void
@@ -241,10 +241,10 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 	default:                  type = "???"; break;
 	}
 
-	LOG("\thandle = 0x%lx\n", args->handle);
-	LOG("\tuser_addr = %p\n", args->user_addr);
-	LOG("\tsize = %ld\n", args->size);
-	LOG("\ttype = %d (%s)\n", args->type, type);
+	panwrap_log("\thandle = 0x%lx\n", args->handle);
+	panwrap_log("\tuser_addr = %p\n", args->user_addr);
+	panwrap_log("\tsize = %ld\n", args->size);
+	panwrap_log("\ttype = %d (%s)\n", args->type, type);
 }
 
 static void
@@ -252,7 +252,7 @@ ioctl_decode_pre_set_flags(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_set_flags *args = ptr;
 
-	LOG("\tcreate_flags = %08x\n", args->create_flags);
+	panwrap_log("\tcreate_flags = %08x\n", args->create_flags);
 }
 
 static inline void
@@ -260,7 +260,7 @@ ioctl_decode_pre_stream_create(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_stream_create *args = ptr;
 
-	LOG("\tname = %s\n", args->name);
+	panwrap_log("\tname = %s\n", args->name);
 }
 
 static inline void
@@ -268,9 +268,9 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_job_submit *args = ptr;
 
-	LOG("\taddr = %p\n", args->addr);
-	LOG("\tnr_atoms = %d\n", args->nr_atoms);
-	LOG("\tstride = %d\n", args->stride);
+	panwrap_log("\taddr = %p\n", args->addr);
+	panwrap_log("\tnr_atoms = %d\n", args->nr_atoms);
+	panwrap_log("\tstride = %d\n", args->stride);
 }
 
 static void
@@ -320,8 +320,8 @@ ioctl_decode_post_get_version(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_get_version *args = ptr;
 
-	LOG("\tmajor = %3d\n", args->major);
-	LOG("\tminor = %3d\n", args->minor);
+	panwrap_log("\tmajor = %3d\n", args->major);
+	panwrap_log("\tminor = %3d\n", args->minor);
 }
 
 static void
@@ -329,8 +329,8 @@ ioctl_decode_post_mem_alloc(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alloc *args = ptr;
 
-	LOG("\tgpu_va = 0x%lx\n", args->gpu_va);
-	LOG("\tva_alignment = %d\n", args->va_alignment);
+	panwrap_log("\tgpu_va = 0x%lx\n", args->gpu_va);
+	panwrap_log("\tva_alignment = %d\n", args->va_alignment);
 }
 
 static void
@@ -338,11 +338,11 @@ ioctl_decode_post_mem_import(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_import *args = ptr;
 
-	LOG("\tgpu_va = 0x%lx\n", args->gpu_va);
-	LOG("\tva_pages = %ld\n", args->va_pages);
-	LOG("\tflags = ");
+	panwrap_log("\tgpu_va = 0x%lx\n", args->gpu_va);
+	panwrap_log("\tva_pages = %ld\n", args->va_pages);
+	panwrap_log("\tflags = ");
 	panwrap_print_decoded_flags(mem_flag_info, args->flags);
-	printf("\n");
+	panwrap_log_cont("\n");
 }
 
 static void
@@ -350,7 +350,7 @@ ioctl_decode_post_mem_commit(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_commit *args = ptr;
 
-	LOG("\tresult_subcode = %d\n", args->result_subcode);
+	panwrap_log("\tresult_subcode = %d\n", args->result_subcode);
 }
 
 static void
@@ -358,7 +358,7 @@ ioctl_decode_post_mem_query(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_query *args = ptr;
 
-	LOG("\tvalue = 0x%lx\n", args->value);
+	panwrap_log("\tvalue = 0x%lx\n", args->value);
 }
 
 static void
@@ -366,8 +366,8 @@ ioctl_decode_post_mem_alias(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alias *args = ptr;
 
-	LOG("\tgpu_va = 0x%lx\n", args->gpu_va);
-	LOG("\tva_pages = %ld\n", args->va_pages);
+	panwrap_log("\tgpu_va = 0x%lx\n", args->gpu_va);
+	panwrap_log("\tva_pages = %ld\n", args->va_pages);
 }
 
 static void
@@ -383,87 +383,89 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 	case MALI_GPU_IMPLEMENTATION_SW:      implementation = "Software"; break;
 	}
 
-	LOG("\tcore:\n");
-	LOG("\t\tProduct ID: %d\n", args->core.product_id);
-	LOG("\t\tVersion status: %d\n", args->core.version_status);
-	LOG("\t\tMinor revision: %d\n", args->core.minor_revision);
-	LOG("\t\tMajor revision: %d\n", args->core.major_revision);
-	LOG("\t\tGPU speed (?): %dMHz\n", args->core.gpu_speed_mhz);
-	LOG("\t\tGPU frequencies (?): %dKHz-%dKHz\n",
-	    args->core.gpu_freq_khz_min, args->core.gpu_freq_khz_max);
-	LOG("\t\tShader program counter size: %.lf MB\n",
-	    pow(2, args->core.log2_program_counter_size) / 1024 / 1024);
+	panwrap_log("\tcore:\n");
+	panwrap_log("\t\tProduct ID: %d\n", args->core.product_id);
+	panwrap_log("\t\tVersion status: %d\n", args->core.version_status);
+	panwrap_log("\t\tMinor revision: %d\n", args->core.minor_revision);
+	panwrap_log("\t\tMajor revision: %d\n", args->core.major_revision);
+	panwrap_log("\t\tGPU speed (?): %dMHz\n", args->core.gpu_speed_mhz);
+	panwrap_log("\t\tGPU frequencies (?): %dKHz-%dKHz\n",
+		    args->core.gpu_freq_khz_min, args->core.gpu_freq_khz_max);
+	panwrap_log("\t\tShader program counter size: %.lf MB\n",
+		    pow(2, args->core.log2_program_counter_size) / 1024 / 1024);
 
-	LOG("\t\tTexture features:\n");
+	panwrap_log("\t\tTexture features:\n");
 	for (int i = 0; i < ARRAY_SIZE(args->core.texture_features); i++)
-		LOG("\t\t\t%010x\n", args->core.texture_features[i]);
+		panwrap_log("\t\t\t%010x\n", args->core.texture_features[i]);
 
-	LOG("\t\tAvailable memory: %ld bytes\n",
-		 args->core.gpu_available_memory_size);
+	panwrap_log("\t\tAvailable memory: %ld bytes\n",
+		    args->core.gpu_available_memory_size);
 
-	LOG("\tL2 cache:\n");
-	LOG("\t\tLine size: %.lf (bytes, words?)\n",
-		 pow(2, args->l2.log2_line_size));
-	LOG("\t\tCache size: %.lf KB\n",
-		 pow(2, args->l2.log2_cache_size) / 1024);
-	LOG("\t\tL2 slice count: %d\n", args->l2.num_l2_slices);
+	panwrap_log("\tL2 cache:\n");
+	panwrap_log("\t\tLine size: %.lf (bytes, words?)\n",
+		    pow(2, args->l2.log2_line_size));
+	panwrap_log("\t\tCache size: %.lf KB\n",
+		    pow(2, args->l2.log2_cache_size) / 1024);
+	panwrap_log("\t\tL2 slice count: %d\n", args->l2.num_l2_slices);
 
-	LOG("\tTiler:\n");
-	LOG("\t\tBinary size: %d bytes\n", args->tiler.bin_size_bytes);
-	LOG("\t\tMax active levels: %d\n", args->tiler.max_active_levels);
+	panwrap_log("\tTiler:\n");
+	panwrap_log("\t\tBinary size: %d bytes\n",
+		    args->tiler.bin_size_bytes);
+	panwrap_log("\t\tMax active levels: %d\n",
+		    args->tiler.max_active_levels);
 
-	LOG("\tThreads:\n");
-	LOG("\t\tMax threads: %d\n", args->thread.max_threads);
-	LOG("\t\tMax threads per workgroup: %d\n",
-	    args->thread.max_workgroup_size);
-	LOG("\t\tMax threads allowed for synchronizing on simple barrier: %d\n",
-	    args->thread.max_barrier_size);
-	LOG("\t\tMax registers available per-core: %d\n",
-	    args->thread.max_registers);
-	LOG("\t\tMax tasks that can be sent to a core before blocking: %d\n",
-	    args->thread.max_task_queue);
-	LOG("\t\tMax allowed thread group split value: %d\n",
-	    args->thread.max_thread_group_split);
-	LOG("\t\tImplementation type: %d (%s)\n",
-	    args->thread.impl_tech, implementation);
+	panwrap_log("\tThreads:\n");
+	panwrap_log("\t\tMax threads: %d\n", args->thread.max_threads);
+	panwrap_log("\t\tMax threads per workgroup: %d\n",
+		    args->thread.max_workgroup_size);
+	panwrap_log("\t\tMax threads allowed for synchronizing on simple barrier: %d\n",
+		    args->thread.max_barrier_size);
+	panwrap_log("\t\tMax registers available per-core: %d\n",
+		    args->thread.max_registers);
+	panwrap_log("\t\tMax tasks that can be sent to a core before blocking: %d\n",
+		    args->thread.max_task_queue);
+	panwrap_log("\t\tMax allowed thread group split value: %d\n",
+		    args->thread.max_thread_group_split);
+	panwrap_log("\t\tImplementation type: %d (%s)\n",
+		    args->thread.impl_tech, implementation);
 
-	LOG("\tRaw props:\n");
-	LOG("\t\tShader present? %s\n", YES_NO(args->raw.shader_present));
-	LOG("\t\tTiler present? %s\n", YES_NO(args->raw.tiler_present));
-	LOG("\t\tL2 present? %s\n", YES_NO(args->raw.l2_present));
-	LOG("\t\tStack present? %s\n", YES_NO(args->raw.stack_present));
-	LOG("\t\tL2 features: 0x%010x\n", args->raw.l2_features);
-	LOG("\t\tSuspend size: %d\n", args->raw.suspend_size);
-	LOG("\t\tMemory features: 0x%010x\n", args->raw.mem_features);
-	LOG("\t\tMMU features: 0x%010x\n", args->raw.mmu_features);
-	LOG("\t\tAS (what is this?) present? %s\n",
-	    YES_NO(args->raw.as_present));
+	panwrap_log("\tRaw props:\n");
+	panwrap_log("\t\tShader present? %s\n", YES_NO(args->raw.shader_present));
+	panwrap_log("\t\tTiler present? %s\n", YES_NO(args->raw.tiler_present));
+	panwrap_log("\t\tL2 present? %s\n", YES_NO(args->raw.l2_present));
+	panwrap_log("\t\tStack present? %s\n", YES_NO(args->raw.stack_present));
+	panwrap_log("\t\tL2 features: 0x%010x\n", args->raw.l2_features);
+	panwrap_log("\t\tSuspend size: %d\n", args->raw.suspend_size);
+	panwrap_log("\t\tMemory features: 0x%010x\n", args->raw.mem_features);
+	panwrap_log("\t\tMMU features: 0x%010x\n", args->raw.mmu_features);
+	panwrap_log("\t\tAS (what is this?) present? %s\n",
+		    YES_NO(args->raw.as_present));
 
-	LOG("\t\tJS (what is this?) present? %s\n",
-	    YES_NO(args->raw.js_present));
-	LOG("\t\tJS features:\n");
+	panwrap_log("\t\tJS (what is this?) present? %s\n",
+		    YES_NO(args->raw.js_present));
+	panwrap_log("\t\tJS features:\n");
 	for (int i = 0; i < ARRAY_SIZE(args->raw.js_features); i++)
-		LOG("\t\t\t%010x\n", args->raw.js_features[i]);
+		panwrap_log("\t\t\t%010x\n", args->raw.js_features[i]);
 
-	LOG("\t\tTiler features: %010x\n", args->raw.tiler_features);
+	panwrap_log("\t\tTiler features: %010x\n", args->raw.tiler_features);
 
-	LOG("\t\tGPU ID: 0x%x\n", args->raw.gpu_id);
-	LOG("\t\tThread features: 0x%x\n", args->raw.thread_features);
-	LOG("\t\tCoherency mode: 0x%x (%s)\n",
-	    args->raw.coherency_mode,
-	    ioctl_decode_coherency_mode(args->raw.coherency_mode));
+	panwrap_log("\t\tGPU ID: 0x%x\n", args->raw.gpu_id);
+	panwrap_log("\t\tThread features: 0x%x\n", args->raw.thread_features);
+	panwrap_log("\t\tCoherency mode: 0x%x (%s)\n",
+		    args->raw.coherency_mode,
+		    ioctl_decode_coherency_mode(args->raw.coherency_mode));
 
-	LOG("\tCoherency info:\n");
-	LOG("\t\tNumber of groups: %d\n", args->coherency_info.num_groups);
-	LOG("\t\tNumber of core groups (coherent or not): %d\n",
-	    args->coherency_info.num_core_groups);
-	LOG("\t\tFeatures: 0x%x\n", args->coherency_info.coherency);
-	LOG("\t\tGroups:\n");
+	panwrap_log("\tCoherency info:\n");
+	panwrap_log("\t\tNumber of groups: %d\n", args->coherency_info.num_groups);
+	panwrap_log("\t\tNumber of core groups (coherent or not): %d\n",
+		    args->coherency_info.num_core_groups);
+	panwrap_log("\t\tFeatures: 0x%x\n", args->coherency_info.coherency);
+	panwrap_log("\t\tGroups:\n");
 	for (int i = 0; i < args->coherency_info.num_groups; i++) {
-		LOG("\t\t\t- Core mask: %010lx\n",
-		    args->coherency_info.group[i].core_mask);
-		LOG("\t\t\t  Number of cores: %d\n",
-		    args->coherency_info.group[i].num_cores);
+		panwrap_log("\t\t\t- Core mask: %010lx\n",
+			    args->coherency_info.group[i].core_mask);
+		panwrap_log("\t\t\t  Number of cores: %d\n",
+			    args->coherency_info.group[i].num_cores);
 	}
 }
 
@@ -472,7 +474,7 @@ ioctl_decode_post_stream_create(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_stream_create *args = ptr;
 
-	LOG("\tfd = %d\n", args->fd);
+	panwrap_log("\tfd = %d\n", args->fd);
 }
 
 static inline void
@@ -480,7 +482,7 @@ ioctl_decode_post_get_context_id(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_get_context_id *args = ptr;
 
-	LOG("\tid = %ld\n", args->id);
+	panwrap_log("\tid = %ld\n", args->id);
 }
 
 static void
@@ -545,11 +547,11 @@ open(const char *path, int flags, ...)
 	LOCK();
 	if (ret != -1) {
 		if (strcmp(path, "/dev/mali0") == 0) {
-			LOG("/dev/mali0 fd == %d\n", ret);
+			panwrap_log("/dev/mali0 fd == %d\n", ret);
 			mali_fd = ret;
 		} else if (strstr(path, "/dev/")) {
-			LOG("Unknown device %s opened at fd %d\n",
-			    path, ret);
+			panwrap_log("Unknown device %s opened at fd %d\n",
+				    path, ret);
 		}
 	}
 	UNLOCK();
@@ -564,7 +566,7 @@ close(int fd)
 
 	LOCK();
 	if (fd > 0 && fd == mali_fd) {
-		LOG("/dev/mali0 closed\n");
+		panwrap_log("/dev/mali0 closed\n");
 		mali_fd = 0;
 	}
 	UNLOCK();
@@ -601,24 +603,24 @@ int ioctl(int fd, int request, ...)
 	header = ptr;
 
 	if (!ptr) { /* All valid mali ioctl's should have a specified arg */
-		LOG("<%-20s> (%02d) (%08x), has no arguments? Cannot decode :(\n",
-		    name, _IOC_NR(request), request);
+		panwrap_log("<%-20s> (%02d) (%08x), has no arguments? Cannot decode :(\n",
+			    name, _IOC_NR(request), request);
 
 		ret = orig_ioctl(fd, request, ptr);
 
-		LOG("\t== %02d\n", ret);
+		panwrap_log("\t== %02d\n", ret);
 		goto out;
 	}
 
 	func = header->id;
-	LOG("<%-20s> (%02d) (%08x) (%04d) (%03d)\n",
-	    name, _IOC_NR(request), request, _IOC_SIZE(request), func);
+	panwrap_log("<%-20s> (%02d) (%08x) (%04d) (%03d)\n",
+		    name, _IOC_NR(request), request, _IOC_SIZE(request), func);
 	ioctl_decode_pre(request, ptr);
 
 	ret = orig_ioctl(fd, request, ptr);
 
-	LOG("\t== %02d, %02d\n",
-	    ret, header->rc);
+	panwrap_log("\t== %02d, %02d\n",
+		    ret, header->rc);
 	ioctl_decode_post(request, ptr);
 
 out:

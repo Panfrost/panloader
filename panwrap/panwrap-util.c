@@ -15,7 +15,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdarg.h>
+#include <errno.h>
+#include <time.h>
 #include "panwrap.h"
+
+static struct timespec start_time;
 
 void
 panwrap_print_decoded_flags(const struct panwrap_flag_info *flag_info,
@@ -29,24 +34,26 @@ panwrap_print_decoded_flags(const struct panwrap_flag_info *flag_info,
 		return;
 	}
 
-	printf("0x%010lx (", flags);
+	panwrap_log("0x%010lx (", flags);
 
 	for (int i = 0; flag_info[i].flag; i++) {
 		if (!(flags & flag_info[i].flag))
 			continue;
 
-		printf("%s%s",
-		       print_bitwise_or ? " | " : "", flag_info[i].name);
+		panwrap_log_cont("%s%s",
+				 print_bitwise_or ? " | " : "",
+				 flag_info[i].name);
 
 		print_bitwise_or = true;
 		undecoded_flags &= ~flag_info[i].flag;
 	}
 
 	if (undecoded_flags)
-		printf("%s0x%lx",
-		       print_bitwise_or ? " | " : "", undecoded_flags);
+		panwrap_log_cont("%s0x%lx",
+				 print_bitwise_or ? " | " : "",
+				 undecoded_flags);
 
-	printf(")");
+	panwrap_log_cont(")");
 }
 
 /**
@@ -73,4 +80,58 @@ __rd_dlsym_helper(const char *name)
 	}
 
 	return func;
+}
+
+static void
+panwrap_timestamp(struct timespec *tp)
+{
+	if (clock_gettime(CLOCK_MONOTONIC, tp)) {
+		fprintf(stderr, "Failed to call clock_gettime: %s\n",
+			strerror(errno));
+		exit(1);
+	}
+
+	tp->tv_sec -= start_time.tv_sec;
+	tp->tv_nsec -= start_time.tv_nsec;
+
+	if (tp->tv_nsec < 0) {
+		tp->tv_sec--;
+		tp->tv_nsec = 1e+9 + tp->tv_nsec;
+	}
+}
+
+void
+panwrap_log(const char *format, ...)
+{
+	struct timespec tp;
+	va_list ap;
+
+	panwrap_timestamp(&tp);
+
+	printf("panwrap [%.8lf]: ", tp.tv_sec + tp.tv_nsec / 1e+9F);
+
+	va_start(ap, format);
+	vprintf(format, ap);
+	va_end(ap);
+}
+
+/* Eventually this function might do more */
+void
+panwrap_log_cont(const char *format, ...)
+{
+	va_list ap;
+
+	va_start(ap, format);
+	vprintf(format, ap);
+	va_end(ap);
+}
+
+static void __attribute__((constructor))
+panwrap_util_init()
+{
+	if (clock_gettime(CLOCK_MONOTONIC, &start_time)) {
+		fprintf(stderr, "Failed to call clock_gettime: %s\n",
+			strerror(errno));
+		exit(1);
+	}
 }
