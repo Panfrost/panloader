@@ -31,7 +31,7 @@ panwrap_print_decoded_flags(const struct panwrap_flag_info *flag_info,
 	u64 undecoded_flags = flags;
 
 	if (!flags) {
-		printf("0x000000000");
+		panwrap_log_cont("0x000000000");
 		return;
 	}
 
