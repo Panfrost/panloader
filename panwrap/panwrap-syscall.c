@@ -15,13 +15,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <linux/ioctl.h>
 #include <math.h>
+#include <sys/mman.h>
 
 #include <mali-ioctl.h>
+#include <list.h>
 #include "panwrap.h"
 
 static pthread_mutex_t l = PTHREAD_MUTEX_INITIALIZER;
@@ -41,9 +44,24 @@ struct device_info {
 	const struct ioctl_info info[MALI_IOCTL_TYPE_COUNT][_IOC_NR(0xffffffff)];
 };
 
+struct allocated_memory {
+	u64 gpu_va;
+	struct list node;
+};
+
+struct mapped_memory {
+	size_t length;
+
+	void *addr;
+	u64 gpu_va;
+
+	struct list node;
+};
+
+typedef void* (mmap_func)(void *, size_t, int, int, int, off_t);
+
 #define IOCTL_TYPE(type) [type - MALI_IOCTL_TYPE_BASE] =
 #define IOCTL_INFO(n) [_IOC_NR(MALI_IOCTL_##n)] = { .name = #n }
-
 static struct device_info mali_info = {
 	.name = "mali",
 	.info = {
@@ -102,6 +120,8 @@ ioctl_get_info(unsigned long int request)
 }
 
 static int mali_fd = 0;
+static LIST_HEAD(allocations);
+static LIST_HEAD(mmaps);
 
 #define FLAG_INFO(flag) { MALI_MEM_##flag, #flag }
 static const struct panwrap_flag_info mem_flag_info[] = {
@@ -123,6 +143,44 @@ static const struct panwrap_flag_info mem_flag_info[] = {
 	{}
 };
 #undef FLAG_INFO
+
+#define FLAG_INFO(flag) { flag, #flag }
+static const struct panwrap_flag_info mmap_prot_flag_info[] = {
+	FLAG_INFO(PROT_EXEC),
+	FLAG_INFO(PROT_READ),
+	FLAG_INFO(PROT_WRITE),
+	{}
+};
+
+static const struct panwrap_flag_info mmap_flags_flag_info[] = {
+	FLAG_INFO(MAP_SHARED),
+	FLAG_INFO(MAP_PRIVATE),
+	FLAG_INFO(MAP_ANONYMOUS),
+	FLAG_INFO(MAP_DENYWRITE),
+	FLAG_INFO(MAP_FIXED),
+	FLAG_INFO(MAP_GROWSDOWN),
+	FLAG_INFO(MAP_HUGETLB),
+	FLAG_INFO(MAP_LOCKED),
+	FLAG_INFO(MAP_NONBLOCK),
+	FLAG_INFO(MAP_NORESERVE),
+	FLAG_INFO(MAP_POPULATE),
+	FLAG_INFO(MAP_STACK),
+	FLAG_INFO(MAP_UNINITIALIZED),
+	{}
+};
+#undef FLAG_INFO
+
+static struct mapped_memory *find_mapped_mem(void *addr)
+{
+	struct mapped_memory *pos;
+
+	list_for_each_entry(pos, &mmaps, node) {
+		if (pos->addr == addr)
+			return pos;
+	}
+
+	return NULL;
+}
 
 static inline const char *
 ioctl_decode_coherency_mode(enum mali_ioctl_coherency_mode mode)
@@ -328,9 +386,13 @@ static void
 ioctl_decode_post_mem_alloc(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alloc *args = ptr;
+	struct allocated_memory *new = malloc(sizeof(new));
 
 	panwrap_log("\tgpu_va = 0x%lx\n", args->gpu_va);
 	panwrap_log("\tva_alignment = %d\n", args->va_alignment);
+
+	new->gpu_va = args->gpu_va;
+	list_add(&new->node, &allocations);
 }
 
 static void
@@ -622,6 +684,96 @@ int ioctl(int fd, int request, ...)
 	panwrap_log("\t== %02d, %02d\n",
 		    ret, header->rc);
 	ioctl_decode_post(request, ptr);
+
+out:
+	UNLOCK();
+	return ret;
+}
+
+static void inline *panwrap_mmap_wrap(mmap_func *func,
+				      void *addr, size_t length, int prot,
+				      int flags, int fd, off_t offset)
+{
+	struct allocated_memory *pos;
+	struct mapped_memory *new;
+	void *ret;
+	bool found = false;
+
+	if (!mali_fd || fd != mali_fd)
+		return func(addr, length, prot, flags, fd, offset);
+
+	LOCK();
+	ret = func(addr, length, prot, flags, fd, offset);
+
+	new = calloc(sizeof(*new), 1);
+	new->length = length;
+	new->addr = ret;
+
+	list_for_each_entry(pos, &allocations, node) {
+		/* The kernel driver uses the offset to specify which GPU VA
+		 * we're mapping */
+		if (pos->gpu_va == offset) {
+			found = true;
+			list_del(&pos->node);
+			free(pos);
+			break;
+		}
+	}
+
+	if (found) {
+		new->gpu_va = offset;
+		panwrap_log("GPU memory 0x%lx mapped to %p-%p length=%lu\n",
+			    offset, ret, ret + length, length);
+	} else {
+		panwrap_log("Unknown memory mapping %p-%p: offset=0x%lx length=%lu prot = ",
+			    ret, ret + length, offset, length);
+		panwrap_print_decoded_flags(mmap_prot_flag_info, prot);
+		panwrap_log_cont(" flags = ");
+		panwrap_print_decoded_flags(mmap_flags_flag_info, flags);
+		panwrap_log_cont("\n");
+	}
+	list_add(&new->node, &mmaps);
+out:
+	UNLOCK();
+	return ret;
+}
+
+void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
+{
+	PROLOG(mmap);
+
+	return panwrap_mmap_wrap(orig_mmap, addr, length, prot, flags, fd,
+				 offset);
+}
+
+void *mmap64(void *addr, size_t length, int prot, int flags, int fd,
+	     off_t offset)
+{
+	PROLOG(mmap64);
+
+	return panwrap_mmap_wrap(orig_mmap64, addr, length, prot, flags, fd,
+				 offset);
+}
+
+int munmap(void *addr, size_t length)
+{
+	int ret;
+	struct mapped_memory *mem;
+	PROLOG(munmap);
+
+	LOCK();
+	ret = orig_munmap(addr, length);
+	mem = find_mapped_mem(addr);
+	if (!mem)
+		goto out;
+
+	/* Was it memory mapped from the GPU? */
+	if (mem->gpu_va)
+		panwrap_log("Unmapped GPU memory 0x%lx@%p\n",
+			    mem->gpu_va, mem->addr);
+	else
+		panwrap_log("Unmapped unknown memory %p\n",
+			    mem->addr);
 
 out:
 	UNLOCK();
