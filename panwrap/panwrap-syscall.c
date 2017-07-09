@@ -482,7 +482,7 @@ ioctl_decode_post_get_context_id(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_get_context_id *args = ptr;
 
-	panwrap_log("\tid = %ld\n", args->id);
+	panwrap_log("\tid = 0x%lx\n", args->id);
 }
 
 static void
