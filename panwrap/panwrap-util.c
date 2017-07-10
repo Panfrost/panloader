@@ -20,6 +20,7 @@
 #include <time.h>
 #include "panwrap.h"
 
+static bool enable_timestamps = false;
 static struct timespec start_time;
 static FILE *log_output = stdout;
 
@@ -107,10 +108,13 @@ panwrap_log(const char *format, ...)
 	struct timespec tp;
 	va_list ap;
 
-	panwrap_timestamp(&tp);
-
-	fprintf(log_output,
-		"panwrap [%.8lf]: ", tp.tv_sec + tp.tv_nsec / 1e+9F);
+	if (enable_timestamps) {
+		panwrap_timestamp(&tp);
+		fprintf(log_output,
+			"panwrap [%.8lf]: ", tp.tv_sec + tp.tv_nsec / 1e+9F);
+	} else {
+		fprintf(log_output, "panwrap: ");
+	}
 
 	va_start(ap, format);
 	vfprintf(log_output, format, ap);
@@ -131,12 +135,26 @@ panwrap_log_cont(const char *format, ...)
 static void __attribute__((constructor))
 panwrap_util_init()
 {
-	const char *log_output_env;
+	const char *log_output_env, *enable_timestamps_env;
 
-	if (clock_gettime(CLOCK_MONOTONIC, &start_time)) {
-		fprintf(stderr, "Failed to call clock_gettime: %s\n",
-			strerror(errno));
-		exit(1);
+	enable_timestamps_env = getenv("PANWRAP_ENABLE_TIMESTAMPS");
+	if (enable_timestamps_env) {
+		if (strcmp(enable_timestamps_env, "1") == 0) {
+			enable_timestamps = true;
+			if (clock_gettime(CLOCK_MONOTONIC, &start_time)) {
+				fprintf(stderr,
+					"Failed to call clock_gettime: %s\n",
+					strerror(errno));
+				exit(1);
+			}
+		} else if (strcmp(enable_timestamps_env, "0") != 0) {
+			fprintf(
+			    stderr,
+			    "Invalid value for PANWRAP_ENABLE_TIMESTAMPS: %s\n"
+			    "Valid values are 0 or 1\n",
+			    enable_timestamps_env);
+			exit(1);
+		}
 	}
 
 	log_output_env = getenv("PANWRAP_OUTPUT");
