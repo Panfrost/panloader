@@ -144,6 +144,28 @@ static const struct panwrap_flag_info mem_flag_info[] = {
 };
 #undef FLAG_INFO
 
+#define FLAG_INFO(flag) { MALI_JD_REQ_##flag, #flag }
+static const struct panwrap_flag_info jd_req_flag_info[] = {
+	FLAG_INFO(FS),
+	FLAG_INFO(CS),
+	FLAG_INFO(T),
+	FLAG_INFO(CF),
+	FLAG_INFO(V),
+	FLAG_INFO(FS_AFBC),
+	FLAG_INFO(EVENT_COALESCE),
+	FLAG_INFO(COHERENT_GROUP),
+	FLAG_INFO(PERMON),
+	FLAG_INFO(EXTERNAL_RESOURCES),
+	FLAG_INFO(ONLY_COMPUTE),
+	FLAG_INFO(SPECIFIC_COHERENT_GROUP),
+	FLAG_INFO(EVENT_ONLY_ON_FAILURE),
+	FLAG_INFO(EVENT_NEVER),
+	FLAG_INFO(SKIP_CACHE_START),
+	FLAG_INFO(SKIP_CACHE_END),
+	{}
+};
+#undef FLAG_INFO
+
 #define FLAG_INFO(flag) { flag, #flag }
 static const struct panwrap_flag_info mmap_prot_flag_info[] = {
 	FLAG_INFO(PROT_EXEC),
@@ -166,6 +188,18 @@ static const struct panwrap_flag_info mmap_flags_flag_info[] = {
 	FLAG_INFO(MAP_POPULATE),
 	FLAG_INFO(MAP_STACK),
 	FLAG_INFO(MAP_UNINITIALIZED),
+	{}
+};
+
+static const struct panwrap_flag_info external_resources_access_flag_info[] = {
+	FLAG_INFO(MALI_EXT_RES_ACCESS_SHARED),
+	FLAG_INFO(MALI_EXT_RES_ACCESS_EXCLUSIVE),
+	{}
+};
+
+static const struct panwrap_flag_info mali_jd_dep_type_flag_info[] = {
+	FLAG_INFO(MALI_JD_DEP_TYPE_DATA),
+	FLAG_INFO(MALI_JD_DEP_TYPE_ORDER),
 	{}
 };
 #undef FLAG_INFO
@@ -192,6 +226,48 @@ ioctl_decode_coherency_mode(enum mali_ioctl_coherency_mode mode)
 	default:                 return "???";
 	}
 }
+
+static inline const char *
+ioctl_decode_jd_prio(mali_jd_prio prio)
+{
+	switch (prio) {
+	case MALI_JD_PRIO_LOW:    return "Low";
+	case MALI_JD_PRIO_MEDIUM: return "Medium";
+	case MALI_JD_PRIO_HIGH:   return "High";
+	default:                  return "???";
+	}
+}
+
+#define SOFT_FLAG(flag)                                  \
+	case MALI_JD_REQ_SOFT_##flag:                    \
+		panwrap_log_cont("%s)", "SOFT_" #flag); \
+		break
+static inline void
+ioctl_log_decoded_jd_core_req(mali_jd_core_req req)
+{
+	if (req & MALI_JD_REQ_SOFT_JOB) {
+		panwrap_log_cont("0x%010x (", req);
+
+		switch (req) {
+		SOFT_FLAG(DUMP_CPU_GPU_TIME);
+		SOFT_FLAG(FENCE_TRIGGER);
+		SOFT_FLAG(FENCE_WAIT);
+		SOFT_FLAG(REPLAY);
+		SOFT_FLAG(EVENT_WAIT);
+		SOFT_FLAG(EVENT_SET);
+		SOFT_FLAG(EVENT_RESET);
+		SOFT_FLAG(DEBUG_COPY);
+		SOFT_FLAG(JIT_ALLOC);
+		SOFT_FLAG(JIT_FREE);
+		SOFT_FLAG(EXT_RES_MAP);
+		SOFT_FLAG(EXT_RES_UNMAP);
+		default: panwrap_log_cont("???" ")"); break;
+		}
+	} else {
+		panwrap_print_decoded_flags(jd_req_flag_info, req);
+	}
+}
+#undef SOFT_FLAG
 
 static void
 ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
@@ -325,10 +401,70 @@ static inline void
 ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_job_submit *args = ptr;
+	const struct mali_jd_atom_v2 *atoms = args->addr;
 
 	panwrap_log("\taddr = %p\n", args->addr);
 	panwrap_log("\tnr_atoms = %d\n", args->nr_atoms);
 	panwrap_log("\tstride = %d\n", args->stride);
+
+	/* The stride should be equivalent to the length of the structure,
+	 * if it isn't then it's possible we're somehow tracing one of the
+	 * legacy job formats
+	 */
+	if (args->stride != sizeof(*atoms)) {
+		panwrap_log("\tSIZE MISMATCH (stride should be %ld, was %d)\n",
+			    sizeof(*atoms), args->stride);
+		panwrap_log("\tCannot dump atoms :(, maybe it's a legacy job format?\n");
+		return;
+	}
+
+	panwrap_log("\tAtoms:\n");
+	for (int i = 0; i < args->nr_atoms; i++) {
+		const struct mali_jd_atom_v2 *a = &atoms[i];
+
+		panwrap_log("\t\tjc == 0x%lx\n", a->jc);
+		panwrap_log("\t\tudata == [0x%lx, 0x%lx]\n",
+			    a->udata.blob[0], a->udata.blob[1]);
+		panwrap_log("\t\tnr_ext_res == %d\n", a->nr_ext_res);
+
+		if (a->ext_res_list) {
+			panwrap_log("\t\text_res_list.count == %ld\n",
+				    a->ext_res_list->count);
+			panwrap_log("\t\tExternal resources:\n");
+
+			for (int j = 0; j < a->nr_ext_res; j++)
+			{
+				panwrap_log("\t\t\t");
+				panwrap_print_decoded_flags(
+					external_resources_access_flag_info,
+					a->ext_res_list[j].ext_resource[0]);
+				panwrap_log_cont("\n");
+			}
+		} else {
+			panwrap_log("\t\t<no external resources>\n");
+		}
+
+		panwrap_log("\t\tcompat_core_req = 0x%x\n", a->compat_core_req);
+
+		panwrap_log("\t\tPre-dependencies:\n");
+		for (int j = 0; j < ARRAY_SIZE(a->pre_dep); j++) {
+			panwrap_log("\t\t\tatom_id == %d flags == ",
+				    a->pre_dep[i].atom_id);
+			panwrap_print_decoded_flags(
+			    mali_jd_dep_type_flag_info,
+			    a->pre_dep[i].dependency_type);
+			panwrap_log_cont("\n");
+		}
+
+		panwrap_log("\t\tatom_number == %d\n", a->atom_number);
+		panwrap_log("\t\tprio == %d (%s)\n",
+			    a->prio, ioctl_decode_jd_prio(a->prio));
+		panwrap_log("\t\tdevice_nr == %d\n", a->device_nr);
+
+		panwrap_log("\t\tcore_req = ");
+		ioctl_log_decoded_jd_core_req(a->core_req);
+		panwrap_log_cont("\n");
+	}
 }
 
 static void
