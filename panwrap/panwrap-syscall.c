@@ -376,7 +376,8 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 	}
 
 	panwrap_log("\thandle = 0x%lx\n", args->handle);
-	panwrap_log("\tuser_addr = %p\n", args->user_addr);
+	panwrap_log("\tuser_addr = %p - %p\n",
+		    args->user_addr, args->user_addr + args->size);
 	panwrap_log("\tsize = %ld\n", args->size);
 	panwrap_log("\ttype = %d (%s)\n", args->type, type);
 }
