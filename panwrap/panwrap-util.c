@@ -123,7 +123,7 @@ panwrap_log_hexdump_trimmed(const void *data, size_t size, const char *indent)
 		goto out;
 
 	/*
-	 * Find the first byte of the memory region that looks initialized,
+	 * Find the last byte of the memory region that looks initialized,
 	 * starting from the end
 	 */
 	for (trim_offset = size - 1; trim_offset != -1; trim_offset--) {
