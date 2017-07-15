@@ -911,6 +911,8 @@ int munmap(void *addr, size_t length)
 		panwrap_log("Unmapped unknown memory %p\n",
 			    mem->addr);
 
+	list_del(&mem->node);
+	free(mem);
 out:
 	UNLOCK();
 	return ret;
