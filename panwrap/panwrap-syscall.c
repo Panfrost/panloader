@@ -216,6 +216,18 @@ static struct mapped_memory *find_mapped_mem(void *addr)
 	return NULL;
 }
 
+static struct mapped_memory *find_mapped_mem_containing(void *addr)
+{
+	struct mapped_memory *pos;
+
+	list_for_each_entry(pos, &mmaps, node) {
+		if (addr >= pos->addr && addr <= pos->addr + pos->length)
+			return pos;
+	}
+
+	return NULL;
+}
+
 static inline const char *
 ioctl_decode_coherency_mode(enum mali_ioctl_coherency_mode mode)
 {
@@ -368,6 +380,7 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_sync *args = ptr;
 	const char *type;
+	struct mapped_memory *mem = find_mapped_mem((void*)args->handle);
 
 	switch (args->type) {
 	case MALI_SYNC_TO_DEVICE: type = "device <- CPU"; break;
@@ -375,11 +388,27 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 	default:                  type = "???"; break;
 	}
 
-	panwrap_log("\thandle = 0x%lx\n", args->handle);
-	panwrap_log("\tuser_addr = %p - %p\n",
-		    args->user_addr, args->user_addr + args->size);
+	if (mem) {
+		panwrap_log("\thandle = %p (end=%p, len=%lu)\n",
+			    (void*)args->handle,
+			    (void*)args->handle + mem->length,
+			    mem->length);
+		panwrap_log("\tuser_addr = %p - %p (offset=%lu)\n",
+			    args->user_addr, args->user_addr + args->size,
+			    args->user_addr - (void*)args->handle);
+	} else {
+		panwrap_log("\tERROR! Unknown handle specified\n");
+		panwrap_log("\thandle = 0x%p\n", (void*)args->handle);
+		panwrap_log("\tuser_addr = %p - %p\n",
+			    args->user_addr, args->user_addr + args->size);
+	}
 	panwrap_log("\tsize = %ld\n", args->size);
 	panwrap_log("\ttype = %d (%s)\n", args->type, type);
+
+	if (args->type == MALI_SYNC_TO_DEVICE) {
+		panwrap_log("\tDumping memory being synced to device:\n");
+		panwrap_log_hexdump(args->user_addr, args->size, "\t\t");
+	}
 }
 
 static void
@@ -422,8 +451,23 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 	panwrap_log("\tAtoms:\n");
 	for (int i = 0; i < args->nr_atoms; i++) {
 		const struct mali_jd_atom_v2 *a = &atoms[i];
+		struct mapped_memory *mem;
 
 		panwrap_log("\t\tjc == 0x%lx\n", a->jc);
+		mem = find_mapped_mem_containing((void*)a->jc);
+		if (mem) {
+			off_t offset = (void*)a->jc - mem->addr;
+
+			panwrap_log("\t\tAddress %lu bytes inside mmap %p - %p (length=%ld)\n",
+				    offset, mem->addr, mem->addr + mem->length,
+				    mem->length);
+			panwrap_log("\t\tDumping contents:\n");
+			panwrap_log_hexdump_trimmed(
+			    (void*)a->jc, mem->length - offset, "\t\t\t");
+		} else {
+			panwrap_log("\t\tERROR! jc contained in unknown memory region, cannot dump\n");
+		}
+
 		panwrap_log("\t\tudata == [0x%lx, 0x%lx]\n",
 			    a->udata.blob[0], a->udata.blob[1]);
 		panwrap_log("\t\tnr_ext_res == %d\n", a->nr_ext_res);
@@ -569,6 +613,18 @@ ioctl_decode_post_mem_alias(unsigned long int request, void *ptr)
 	panwrap_log("\tva_pages = %ld\n", args->va_pages);
 }
 
+static void inline
+ioctl_decode_post_sync(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_sync *args = ptr;
+
+	if (args->type != MALI_SYNC_TO_CPU)
+		return;
+
+	panwrap_log("\tDumping memory from device:\n");
+	panwrap_log_hexdump(args->user_addr, args->size, "\t\t");
+}
+
 static void
 ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 {
@@ -706,6 +762,9 @@ ioctl_decode_post(unsigned long int request, void *ptr)
 		break;
 	case IOCTL_CASE(MALI_IOCTL_MEM_ALIAS):
 		ioctl_decode_post_mem_alias(request, ptr);
+		break;
+	case IOCTL_CASE(MALI_IOCTL_SYNC):
+		ioctl_decode_post_sync(request, ptr);
 		break;
 	case IOCTL_CASE(MALI_IOCTL_GPU_PROPS_REG_DUMP):
 		ioctl_decode_post_gpu_props_reg_dump(request, ptr);

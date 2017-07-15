@@ -18,9 +18,14 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <time.h>
+#include <ctype.h>
 #include "panwrap.h"
 
-static bool enable_timestamps = false;
+#define HEXDUMP_COL_LEN  4
+#define HEXDUMP_ROW_LEN 16
+
+static bool enable_timestamps = false,
+	    enable_hexdump_trimming = true;
 static struct timespec start_time;
 static FILE *log_output = stdout;
 
@@ -56,6 +61,85 @@ panwrap_print_decoded_flags(const struct panwrap_flag_info *flag_info,
 				 undecoded_flags);
 
 	panwrap_log_cont(")");
+}
+
+void
+panwrap_log_hexdump(const void *data, size_t size, const char *indent)
+{
+	unsigned char *buf = (void *) data;
+	char alpha[HEXDUMP_ROW_LEN + 1];
+	int i;
+
+	for (i = 0; i < size; i++) {
+		if (!(i % HEXDUMP_ROW_LEN))
+			panwrap_log("%s%08X", indent, (unsigned int) i);
+		if (!(i % HEXDUMP_COL_LEN))
+			panwrap_log_cont(" ");
+
+		if (((void *) (buf + i)) < ((void *) data)) {
+			panwrap_log_cont("   ");
+			alpha[i % HEXDUMP_ROW_LEN] = '.';
+		} else {
+			panwrap_log_cont(" %02x", buf[i]);
+
+			if (isprint(buf[i]) && (buf[i] < 0xA0))
+				alpha[i % HEXDUMP_ROW_LEN] = buf[i];
+			else
+				alpha[i % HEXDUMP_ROW_LEN] = '.';
+		}
+
+		if ((i % HEXDUMP_ROW_LEN) == HEXDUMP_ROW_LEN - 1) {
+			alpha[HEXDUMP_ROW_LEN] = 0;
+			panwrap_log_cont("\t|%s|\n", alpha);
+		}
+	}
+
+	if (i % HEXDUMP_ROW_LEN) {
+		for (i %= HEXDUMP_ROW_LEN; i < HEXDUMP_ROW_LEN; i++) {
+			panwrap_log_cont("   ");
+			alpha[i] = '.';
+
+			if (i == HEXDUMP_ROW_LEN - 1) {
+				alpha[HEXDUMP_ROW_LEN] = 0;
+				panwrap_log_cont("\t|%s|\n", alpha);
+			}
+		}
+	}
+}
+
+/**
+ * Same as panwrap_log_hexdump, but trims off sections of the memory that look
+ * empty
+ */
+void
+panwrap_log_hexdump_trimmed(const void *data, size_t size, const char *indent)
+{
+	const char *d = data;
+	off_t trim_offset;
+	size_t trim_size = size;
+	bool trimming = false;
+
+	if (!enable_hexdump_trimming)
+		goto out;
+
+	/*
+	 * Find the first byte of the memory region that looks initialized,
+	 * starting from the end
+	 */
+	for (trim_offset = size - 1; trim_offset != -1; trim_offset--) {
+		if (d[trim_offset] != 0)
+			break;
+	}
+	if (trim_offset < 0)
+		goto out;
+
+	trimming = true;
+	trim_size = trim_offset;
+out:
+	panwrap_log_hexdump(data, trim_size, indent);
+	if (trimming)
+		panwrap_log("%s<0 repeating %lu times>\n",
+			    indent, size - trim_size);
 }
 
 /**
@@ -132,43 +216,56 @@ panwrap_log_cont(const char *format, ...)
 	va_end(ap);
 }
 
+static bool
+parse_env_bool(const char *env, bool def)
+{
+	const char *val = getenv(env);
+
+	if (!val)
+		return def;
+
+	if (strcmp(val, "1") == 0)
+		return true;
+	else if (strcmp(val, "0") == 0)
+		return false;
+
+	fprintf(stderr,
+		"Invalid value for %s: %s\n"
+		"Valid values are 0 or 1\n",
+		env, val);
+	exit(1);
+}
+
 static void __attribute__((constructor))
 panwrap_util_init()
 {
-	const char *log_output_env, *enable_timestamps_env;
+	const char *env;
 
-	enable_timestamps_env = getenv("PANWRAP_ENABLE_TIMESTAMPS");
-	if (enable_timestamps_env) {
-		if (strcmp(enable_timestamps_env, "1") == 0) {
-			enable_timestamps = true;
-			if (clock_gettime(CLOCK_MONOTONIC, &start_time)) {
-				fprintf(stderr,
-					"Failed to call clock_gettime: %s\n",
-					strerror(errno));
-				exit(1);
-			}
-		} else if (strcmp(enable_timestamps_env, "0") != 0) {
-			fprintf(
-			    stderr,
-			    "Invalid value for PANWRAP_ENABLE_TIMESTAMPS: %s\n"
-			    "Valid values are 0 or 1\n",
-			    enable_timestamps_env);
+	if (parse_env_bool("PANWRAP_ENABLE_TIMESTAMPS", false)) {
+		enable_timestamps = true;
+		if (clock_gettime(CLOCK_MONOTONIC, &start_time)) {
+			fprintf(stderr,
+				"Failed to call clock_gettime: %s\n",
+				strerror(errno));
 			exit(1);
 		}
 	}
 
-	log_output_env = getenv("PANWRAP_OUTPUT");
-	if (log_output_env) {
+	enable_hexdump_trimming = parse_env_bool("PANWRAP_ENABLE_HEXDUMP_TRIM",
+						 true);
+
+	env = getenv("PANWRAP_OUTPUT");
+	if (env) {
 		/* Don't try to reopen stderr or stdout, that won't work */
-		if (strcmp(log_output_env, "/dev/stderr") == 0) {
+		if (strcmp(env, "/dev/stderr") == 0) {
 			log_output = stderr;
-		} else if (strcmp(log_output_env, "/dev/stdout") == 0) {
+		} else if (strcmp(env, "/dev/stdout") == 0) {
 			log_output = stdout;
 		} else {
-			log_output = fopen(log_output_env, "w+");
+			log_output = fopen(env, "w+");
 			if (!log_output) {
 				fprintf(stderr, "Failed to open %s: %s\n",
-					log_output_env, strerror(errno));
+					env, strerror(errno));
 				exit(1);
 			}
 		}
