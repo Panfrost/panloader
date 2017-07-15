@@ -859,10 +859,10 @@ static void inline *panwrap_mmap_wrap(mmap_func *func,
 
 	if (found) {
 		new->gpu_va = offset;
-		panwrap_log("GPU memory 0x%lx mapped to %p-%p length=%lu\n",
+		panwrap_log("GPU memory 0x%lx mapped to %p - %p length=%lu\n",
 			    offset, ret, ret + length, length);
 	} else {
-		panwrap_log("Unknown memory mapping %p-%p: offset=0x%lx length=%lu prot = ",
+		panwrap_log("Unknown memory mapping %p - %p: offset=0x%lx length=%lu prot = ",
 			    ret, ret + length, offset, length);
 		panwrap_print_decoded_flags(mmap_prot_flag_info, prot);
 		panwrap_log_cont(" flags = ");
