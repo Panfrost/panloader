@@ -137,7 +137,7 @@ panwrap_log_hexdump_trimmed(const void *data, size_t size, const char *indent)
 		goto out;
 
 	trimming = true;
-	trim_size = trim_offset;
+	trim_size = trim_offset + 1;
 out:
 	panwrap_log_hexdump(data, trim_size, indent);
 	if (trimming)
