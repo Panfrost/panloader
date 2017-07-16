@@ -36,34 +36,32 @@ void
 panwrap_print_decoded_flags(const struct panwrap_flag_info *flag_info,
 			    u64 flags)
 {
-	bool print_bitwise_or = false;
-	u64 undecoded_flags = flags;
+	bool decodable_flags_found = false;
 
-	if (!flags) {
-		panwrap_log_cont("0x000000000");
-		return;
-	}
-
-	panwrap_log_cont("0x%010lx (", flags);
+	panwrap_log_cont("0x%lx", flags);
 
 	for (int i = 0; flag_info[i].name; i++) {
 		if ((flags & flag_info[i].flag) != flag_info[i].flag)
 			continue;
 
-		panwrap_log_cont("%s%s",
-				 print_bitwise_or ? " | " : "",
-				 flag_info[i].name);
+		if (!decodable_flags_found) {
+			decodable_flags_found = true;
+			panwrap_log_cont(" (");
+		} else {
+			panwrap_log_cont(" | ");
+		}
 
-		print_bitwise_or = true;
-		undecoded_flags &= ~flag_info[i].flag;
+		panwrap_log_cont("%s", flag_info[i].name);
+
+		flags &= ~flag_info[i].flag;
 	}
 
-	if (undecoded_flags)
-		panwrap_log_cont("%s0x%lx",
-				 print_bitwise_or ? " | " : "",
-				 undecoded_flags);
+	if (decodable_flags_found) {
+		if (flags)
+			panwrap_log_cont(" | 0x%lx", flags);
 
-	panwrap_log_cont(")");
+		panwrap_log_cont(")");
+	}
 }
 
 void
