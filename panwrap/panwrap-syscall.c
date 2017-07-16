@@ -276,7 +276,7 @@ ioctl_log_decoded_jd_core_req(mali_jd_core_req req)
 		default: panwrap_log_cont("???" ")"); break;
 		}
 	} else {
-		panwrap_print_decoded_flags(jd_req_flag_info, req);
+		panwrap_log_decoded_flags(jd_req_flag_info, req);
 	}
 }
 #undef SOFT_FLAG
@@ -291,7 +291,7 @@ ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
 	panwrap_log("\textent = 0x%lx\n", args->extent);
 
 	panwrap_log("\tflags = ");
-	panwrap_print_decoded_flags(mem_flag_info, args->flags);
+	panwrap_log_decoded_flags(mem_flag_info, args->flags);
 	panwrap_log_cont("\n");
 }
 
@@ -312,7 +312,7 @@ ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 	panwrap_log("\ttype = %d (%s)\n", args->type, type);
 
 	panwrap_log("\tflags = ");
-	panwrap_print_decoded_flags(mem_flag_info, args->flags);
+	panwrap_log_decoded_flags(mem_flag_info, args->flags);
 	panwrap_log_cont("\n");
 }
 
@@ -357,7 +357,7 @@ ioctl_decode_pre_mem_flags_change(unsigned long int request, void *ptr)
 
 	panwrap_log("\tgpu_va = 0x%lx\n", args->gpu_va);
 	panwrap_log("\tflags = ");
-	panwrap_print_decoded_flags(mem_flag_info, args->flags);
+	panwrap_log_decoded_flags(mem_flag_info, args->flags);
 	panwrap_log_cont("\n");
 	panwrap_log("\tmask = 0x%lx\n", args->mask);
 }
@@ -368,7 +368,7 @@ ioctl_decode_pre_mem_alias(unsigned long int request, void *ptr)
 	const struct mali_ioctl_mem_alias *args = ptr;
 
 	panwrap_log("\tflags = ");
-	panwrap_print_decoded_flags(mem_flag_info, args->flags);
+	panwrap_log_decoded_flags(mem_flag_info, args->flags);
 	panwrap_log_cont("\n");
 	panwrap_log("\tstride = %ld\n", args->stride);
 	panwrap_log("\tnents = %ld\n", args->nents);
@@ -480,7 +480,7 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 			for (int j = 0; j < a->nr_ext_res; j++)
 			{
 				panwrap_log("\t\t\t");
-				panwrap_print_decoded_flags(
+				panwrap_log_decoded_flags(
 					external_resources_access_flag_info,
 					a->ext_res_list[j].ext_resource[0]);
 				panwrap_log_cont("\n");
@@ -495,7 +495,7 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 		for (int j = 0; j < ARRAY_SIZE(a->pre_dep); j++) {
 			panwrap_log("\t\t\tatom_id = %d flags == ",
 				    a->pre_dep[i].atom_id);
-			panwrap_print_decoded_flags(
+			panwrap_log_decoded_flags(
 			    mali_jd_dep_type_flag_info,
 			    a->pre_dep[i].dependency_type);
 			panwrap_log_cont("\n");
@@ -584,7 +584,7 @@ ioctl_decode_post_mem_import(unsigned long int request, void *ptr)
 	panwrap_log("\tgpu_va = 0x%lx\n", args->gpu_va);
 	panwrap_log("\tva_pages = %ld\n", args->va_pages);
 	panwrap_log("\tflags = ");
-	panwrap_print_decoded_flags(mem_flag_info, args->flags);
+	panwrap_log_decoded_flags(mem_flag_info, args->flags);
 	panwrap_log_cont("\n");
 }
 
@@ -931,9 +931,9 @@ static void inline *panwrap_mmap_wrap(mmap_func *func,
 	} else {
 		panwrap_log("Unknown memory mapping %p - %p: offset=0x%lx length=%lu prot = ",
 			    ret, ret + length, offset, length);
-		panwrap_print_decoded_flags(mmap_prot_flag_info, prot);
+		panwrap_log_decoded_flags(mmap_prot_flag_info, prot);
 		panwrap_log_cont(" flags = ");
-		panwrap_print_decoded_flags(mmap_flags_flag_info, flags);
+		panwrap_log_decoded_flags(mmap_flags_flag_info, flags);
 		panwrap_log_cont("\n");
 	}
 	list_add(&new->node, &mmaps);

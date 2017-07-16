@@ -33,8 +33,8 @@ static struct timespec total_time_frozen, start_freeze_time, frozen_timestamp;
 static FILE *log_output = stdout;
 
 void
-panwrap_print_decoded_flags(const struct panwrap_flag_info *flag_info,
-			    u64 flags)
+panwrap_log_decoded_flags(const struct panwrap_flag_info *flag_info,
+			  u64 flags)
 {
 	bool decodable_flags_found = false;
 
