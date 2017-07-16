@@ -453,7 +453,7 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 		const struct mali_jd_atom_v2 *a = &atoms[i];
 		struct mapped_memory *mem;
 
-		panwrap_log("\t\tjc == 0x%lx\n", a->jc);
+		panwrap_log("\t\tjc = 0x%lx\n", a->jc);
 		mem = find_mapped_mem_containing((void*)a->jc);
 		if (mem) {
 			off_t offset = (void*)a->jc - mem->addr;
@@ -468,12 +468,12 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 			panwrap_log("\t\tERROR! jc contained in unknown memory region, cannot dump\n");
 		}
 
-		panwrap_log("\t\tudata == [0x%lx, 0x%lx]\n",
+		panwrap_log("\t\tudata = [0x%lx, 0x%lx]\n",
 			    a->udata.blob[0], a->udata.blob[1]);
-		panwrap_log("\t\tnr_ext_res == %d\n", a->nr_ext_res);
+		panwrap_log("\t\tnr_ext_res = %d\n", a->nr_ext_res);
 
 		if (a->ext_res_list) {
-			panwrap_log("\t\text_res_list.count == %ld\n",
+			panwrap_log("\t\text_res_list.count = %ld\n",
 				    a->ext_res_list->count);
 			panwrap_log("\t\tExternal resources:\n");
 
@@ -493,7 +493,7 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 
 		panwrap_log("\t\tPre-dependencies:\n");
 		for (int j = 0; j < ARRAY_SIZE(a->pre_dep); j++) {
-			panwrap_log("\t\t\tatom_id == %d flags == ",
+			panwrap_log("\t\t\tatom_id = %d flags == ",
 				    a->pre_dep[i].atom_id);
 			panwrap_print_decoded_flags(
 			    mali_jd_dep_type_flag_info,
@@ -501,10 +501,10 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 			panwrap_log_cont("\n");
 		}
 
-		panwrap_log("\t\tatom_number == %d\n", a->atom_number);
-		panwrap_log("\t\tprio == %d (%s)\n",
+		panwrap_log("\t\tatom_number = %d\n", a->atom_number);
+		panwrap_log("\t\tprio = %d (%s)\n",
 			    a->prio, ioctl_decode_jd_prio(a->prio));
-		panwrap_log("\t\tdevice_nr == %d\n", a->device_nr);
+		panwrap_log("\t\tdevice_nr = %d\n", a->device_nr);
 
 		panwrap_log("\t\tcore_req = ");
 		ioctl_log_decoded_jd_core_req(a->core_req);
@@ -869,7 +869,7 @@ int ioctl(int fd, int request, ...)
 		ret = orig_ioctl(fd, request, ptr);
 		panwrap_freeze_time();
 
-		panwrap_log("\t== %02d\n", ret);
+		panwrap_log("\t= %02d\n", ret);
 		goto out;
 	}
 
@@ -882,7 +882,7 @@ int ioctl(int fd, int request, ...)
 	ret = orig_ioctl(fd, request, ptr);
 	panwrap_freeze_time();
 
-	panwrap_log("\t== %02d, %02d\n",
+	panwrap_log("\t= %02d, %02d\n",
 		    ret, header->rc);
 	ioctl_decode_post(request, ptr);
 
