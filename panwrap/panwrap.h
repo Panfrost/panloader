@@ -36,6 +36,9 @@ struct panwrap_flag_info {
 void __attribute__((format (printf, 1, 2))) panwrap_log(const char *format, ...);
 void __attribute__((format (printf, 1, 2))) panwrap_log_cont(const char *format, ...);
 
+void panwrap_freeze_time();
+void panwrap_unfreeze_time();
+
 void panwrap_print_decoded_flags(const struct panwrap_flag_info *flag_info,
 				 u64 flags);
 void panwrap_log_hexdump(const void *data, size_t size, const char *indent);

@@ -857,6 +857,7 @@ int ioctl(int fd, int request, ...)
 		return orig_ioctl(fd, request, ptr);
 
 	LOCK();
+	panwrap_freeze_time();
 	name = ioctl_get_info(request)->name ?: "???";
 	header = ptr;
 
@@ -864,7 +865,9 @@ int ioctl(int fd, int request, ...)
 		panwrap_log("<%-20s> (%02d) (%08x), has no arguments? Cannot decode :(\n",
 			    name, _IOC_NR(request), request);
 
+		panwrap_unfreeze_time();
 		ret = orig_ioctl(fd, request, ptr);
+		panwrap_freeze_time();
 
 		panwrap_log("\t== %02d\n", ret);
 		goto out;
@@ -875,13 +878,16 @@ int ioctl(int fd, int request, ...)
 		    name, _IOC_NR(request), request, _IOC_SIZE(request), func);
 	ioctl_decode_pre(request, ptr);
 
+	panwrap_unfreeze_time();
 	ret = orig_ioctl(fd, request, ptr);
+	panwrap_freeze_time();
 
 	panwrap_log("\t== %02d, %02d\n",
 		    ret, header->rc);
 	ioctl_decode_post(request, ptr);
 
 out:
+	panwrap_unfreeze_time();
 	UNLOCK();
 	return ret;
 }
@@ -900,6 +906,8 @@ static void inline *panwrap_mmap_wrap(mmap_func *func,
 
 	LOCK();
 	ret = func(addr, length, prot, flags, fd, offset);
+
+	panwrap_freeze_time();
 
 	new = calloc(sizeof(*new), 1);
 	new->length = length;
@@ -930,6 +938,7 @@ static void inline *panwrap_mmap_wrap(mmap_func *func,
 	}
 	list_add(&new->node, &mmaps);
 out:
+	panwrap_unfreeze_time();
 	UNLOCK();
 	return ret;
 }
@@ -959,6 +968,9 @@ int munmap(void *addr, size_t length)
 
 	LOCK();
 	ret = orig_munmap(addr, length);
+
+	panwrap_freeze_time();
+
 	mem = find_mapped_mem(addr);
 	if (!mem)
 		goto out;
@@ -974,6 +986,7 @@ int munmap(void *addr, size_t length)
 	list_del(&mem->node);
 	free(mem);
 out:
+	panwrap_unfreeze_time();
 	UNLOCK();
 	return ret;
 }

@@ -26,7 +26,10 @@
 
 static bool enable_timestamps = false,
 	    enable_hexdump_trimming = true;
+
+static bool time_is_frozen = false;
 static struct timespec start_time;
+static struct timespec total_time_frozen, start_freeze_time, frozen_timestamp;
 static FILE *log_output = stdout;
 
 void
@@ -169,21 +172,97 @@ __rd_dlsym_helper(const char *name)
 }
 
 static void
-panwrap_timestamp(struct timespec *tp)
+timespec_add(struct timespec *tp, const struct timespec *value)
 {
-	if (clock_gettime(CLOCK_MONOTONIC, tp)) {
-		fprintf(stderr, "Failed to call clock_gettime: %s\n",
-			strerror(errno));
-		exit(1);
-	}
+	tp->tv_sec += value->tv_sec;
+	tp->tv_nsec += value->tv_nsec;
 
-	tp->tv_sec -= start_time.tv_sec;
-	tp->tv_nsec -= start_time.tv_nsec;
+	if (tp->tv_nsec >= 1e+9) {
+		tp->tv_sec++;
+		tp->tv_nsec -= 1e+9;
+	}
+}
+
+static void
+timespec_subtract(struct timespec *tp, const struct timespec *value)
+{
+	tp->tv_sec -= value->tv_sec;
+	tp->tv_nsec -= value->tv_nsec;
 
 	if (tp->tv_nsec < 0) {
 		tp->tv_sec--;
 		tp->tv_nsec = 1e+9 + tp->tv_nsec;
 	}
+}
+
+static inline void
+__get_monotonic_time(const char *file, int line, struct timespec *tp)
+{
+	if (clock_gettime(CLOCK_MONOTONIC, tp)) {
+		fprintf(stderr, "%s:%d:Failed to call clock_gettime: %s\n",
+			file, line, strerror(errno));
+		exit(1);
+	}
+}
+#define get_monotonic_time(tp) __get_monotonic_time(__FILE__, __LINE__, tp);
+
+/*
+ * When logging information to the console (or whatever our output is), we
+ * obviously spend a good bit of time just outputting logs.  The offsets in
+ * timestamps that can be caused by this can cause the time difference between
+ * one operation the driver performed and another to be rather misleading.
+ *
+ * So, in order to avoid this we "freeze time" whenever we have panwrap code
+ * executing with a overhead that's noticeable between logging lines, so that
+ * our timestamps never reflect the amount of time an application spent in
+ * panwrap's code.
+ *
+ * tl;dr: any time that passes while frozen is removed from timestamps
+ */
+void
+panwrap_freeze_time()
+{
+	if (!enable_timestamps)
+		return;
+
+	get_monotonic_time(&start_freeze_time);
+	time_is_frozen = true;
+
+	/*
+	 * Calculate the actual timestamp using the time where we first froze,
+	 * since we know it won't change until we unfreeze time
+	 */
+	frozen_timestamp = start_freeze_time;
+	timespec_subtract(&frozen_timestamp, &start_time);
+	timespec_subtract(&frozen_timestamp, &total_time_frozen);
+}
+
+void
+panwrap_unfreeze_time()
+{
+	struct timespec time_spent_frozen;
+
+	if (!enable_timestamps || !time_is_frozen)
+		return;
+
+	time_is_frozen = false;
+	get_monotonic_time(&time_spent_frozen);
+
+	timespec_subtract(&time_spent_frozen, &start_freeze_time);
+	timespec_add(&total_time_frozen, &time_spent_frozen);
+}
+
+static void inline
+timestamp_get(struct timespec *tp)
+{
+	if (time_is_frozen) {
+		*tp = frozen_timestamp;
+		return;
+	}
+
+	get_monotonic_time(tp);
+	timespec_subtract(tp, &start_time);
+	timespec_subtract(tp, &total_time_frozen);
 }
 
 void
@@ -193,7 +272,7 @@ panwrap_log(const char *format, ...)
 	va_list ap;
 
 	if (enable_timestamps) {
-		panwrap_timestamp(&tp);
+		timestamp_get(&tp);
 		fprintf(log_output,
 			"panwrap [%.8lf]: ", tp.tv_sec + tp.tv_nsec / 1e+9F);
 	} else {
