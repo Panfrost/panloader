@@ -46,7 +46,7 @@ panwrap_print_decoded_flags(const struct panwrap_flag_info *flag_info,
 
 	panwrap_log_cont("0x%010lx (", flags);
 
-	for (int i = 0; flag_info[i].flag; i++) {
+	for (int i = 0; flag_info[i].name; i++) {
 		if ((flags & flag_info[i].flag) != flag_info[i].flag)
 			continue;
 
