@@ -929,7 +929,7 @@ static void inline *panwrap_mmap_wrap(mmap_func *func,
 		panwrap_log("GPU memory 0x%lx mapped to %p - %p length=%lu\n",
 			    offset, ret, ret + length, length);
 	} else {
-		panwrap_log("Unknown memory mapping %p - %p: offset=0x%lx length=%lu prot = ",
+		panwrap_log("Unknown memory mapping %p - %p: offset=%ld length=%lu prot = ",
 			    ret, ret + length, offset, length);
 		panwrap_log_decoded_flags(mmap_prot_flag_info, prot);
 		panwrap_log_cont(" flags = ");
