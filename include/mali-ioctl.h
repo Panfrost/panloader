@@ -818,8 +818,8 @@ struct mali_ioctl_sync {
 	PAD_PTR(void* user_addr);
 	u64 size;
 	enum {
-		MALI_SYNC_TO_DEVICE = 0,
-		MALI_SYNC_TO_CPU = 1,
+		MALI_SYNC_TO_CPU = 0,
+		MALI_SYNC_TO_DEVICE = 1,
 	} type :8;
 	u64 :56;
 } __attribute__((packed));
