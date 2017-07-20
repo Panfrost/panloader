@@ -250,10 +250,45 @@ ioctl_decode_jd_prio(mali_jd_prio prio)
 	}
 }
 
+/*
+ * Decodes the jd_core_req flags and their real meanings
+ * See mali_kbase_jd.c
+ */
+static inline const char *
+ioctl_get_job_type_from_jd_core_req(mali_jd_core_req req)
+{
+	if (req & MALI_JD_REQ_SOFT_JOB)
+		return "Soft job";
+	if (req & MALI_JD_REQ_ONLY_COMPUTE)
+		return "Compute Shader Job";
+
+	switch (req & (MALI_JD_REQ_FS | MALI_JD_REQ_CS | MALI_JD_REQ_T)) {
+	case MALI_JD_REQ_DEP:
+		return "Dependency only job";
+	case MALI_JD_REQ_FS:
+		return "Fragment shader job";
+	case MALI_JD_REQ_CS:
+		return "Vertex/Geometry shader job";
+	case MALI_JD_REQ_T:
+		return "Tiler job";
+	case (MALI_JD_REQ_FS | MALI_JD_REQ_CS):
+		return "Fragment shader + vertex/geometry shader job";
+	case (MALI_JD_REQ_FS | MALI_JD_REQ_T):
+		return "Fragment shader + tiler job";
+	case (MALI_JD_REQ_CS | MALI_JD_REQ_T):
+		return "Vertex/geometry shader job + tiler job";
+	case (MALI_JD_REQ_FS | MALI_JD_REQ_CS | MALI_JD_REQ_T):
+		return "Fragment shader + vertex/geometry shader job + tiler job";
+	}
+
+	return "???";
+}
+
 #define SOFT_FLAG(flag)                                  \
 	case MALI_JD_REQ_SOFT_##flag:                    \
 		panwrap_log_cont("%s)", "SOFT_" #flag); \
 		break
+/* Decodes the actual jd_core_req flags, but not their meanings */
 static inline void
 ioctl_log_decoded_jd_core_req(mali_jd_core_req req)
 {
@@ -506,6 +541,8 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 			    a->prio, ioctl_decode_jd_prio(a->prio));
 		panwrap_log("\t\tdevice_nr = %d\n", a->device_nr);
 
+		panwrap_log("\t\tJob type = %s\n",
+			    ioctl_get_job_type_from_jd_core_req(a->core_req));
 		panwrap_log("\t\tcore_req = ");
 		ioctl_log_decoded_jd_core_req(a->core_req);
 		panwrap_log_cont("\n");
