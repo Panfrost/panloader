@@ -30,7 +30,7 @@ static bool enable_timestamps = false,
 static bool time_is_frozen = false;
 static struct timespec start_time;
 static struct timespec total_time_frozen, start_freeze_time, frozen_timestamp;
-static FILE *log_output = stdout;
+static FILE *log_output;
 
 void
 panwrap_log_decoded_flags(const struct panwrap_flag_info *flag_info,
@@ -346,5 +346,7 @@ panwrap_util_init()
 				exit(1);
 			}
 		}
+	} else {
+		log_output = stdout;
 	}
 }
