@@ -29,6 +29,10 @@ common_dep = [
     m_dep,
 ]
 
+if not cc.has_argument('-Werror=attributes')
+    error('Compiler does not support -Werror=attributes')
+endif
+
 test_c_srcs = [
     ['__attribute__((packed))',
      'struct s { int a; } __attribute__((packed));'],
@@ -42,8 +46,7 @@ test_c_srcs = [
 foreach t: test_c_srcs
     _feat = t[0]
     _src = t[1]
-    message('Checking if compiler supports ' + _feat + '...')
-    if not cc.compiles(_src, args: '-Werror=attributes')
+    if not cc.compiles(_src, name: _feat + ' test', args: '-Werror=attributes')
         error('Compiler does not support ' + _feat)
     endif
 endforeach
