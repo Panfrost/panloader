@@ -29,17 +29,22 @@ common_dep = [
     m_dep,
 ]
 
-test_c_attrs = [
-    ['packed', 'struct s { int a; } __attribute__((packed)); main;'],
-    ['constructor', 'void __attribute__((constructor)) f(){}main;'],
-    ['format', 'void __attribute__((format (printf, 1, 2))) f(const char *, ...);main;'],
+test_c_srcs = [
+    ['__attribute__((packed))',
+     'struct s { int a; } __attribute__((packed)); main;'],
+    ['__attribute__((constructor))',
+     'void __attribute__((constructor)) f(){}main;'],
+    ['__attribute__((format))',
+     'void __attribute__((format (printf, 1, 2))) f(const char *, ...);main;'],
+    ['__builtin_offsetof()',
+     'struct s { int a; }; int o = __builtin_offsetof(struct s, a);'],
 ]
-foreach t: test_c_attrs
-    _attr = t[0]
+foreach t: test_c_srcs
+    _feat = t[0]
     _src = t[1]
-    message('Checking if compiler supports __attribute__((' + _attr + '))...')
+    message('Checking if compiler supports ' + _feat + '...')
     if not cc.compiles(_src)
-        error('Compiler does not support __attribute__((' + _attr + '))')
+        error('Compiler does not support ' + _feat)
     endif
 endforeach
 

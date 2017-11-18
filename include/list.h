@@ -79,10 +79,7 @@ list_is_empty(struct list *head)
     return head->next == head;
 }
 
-#ifndef container_of
-#define container_of(ptr, type, member) \
-    (type *)((char *)(ptr) - (char *) &((type *)0)->member)
-#endif
+#define container_of(ptr, type, member) ptr - __builtin_offsetof(type, member)
 
 #define list_entry(ptr, type, member) \
     container_of(ptr, type, member)
@@ -90,19 +87,15 @@ list_is_empty(struct list *head)
 #define list_first_entry(ptr, type, member) \
     list_entry((ptr)->next, type, member)
 
-#define __container_of(ptr, sample, member)				\
-    (void *)((char *)(ptr)						\
-	     - ((char *)&(sample)->member - (char *)(sample)))
+#define list_for_each_entry(pos, head, member)                          \
+    for (pos = (void*)container_of((head)->next, typeof(*pos), member); \
+         &pos->member != (head);                                        \
+         pos = (void*)container_of(pos->member.next, typeof(*pos), member))
 
-#define list_for_each_entry(pos, head, member)				\
-    for (pos = __container_of((head)->next, pos, member);		\
-	 &pos->member != (head);					\
-	 pos = __container_of(pos->member.next, pos, member))
-
-#define list_for_each_entry_safe(pos, tmp, head, member)		\
-    for (pos = __container_of((head)->next, pos, member),		\
-	 tmp = __container_of(pos->member.next, pos, member);		\
-	 &pos->member != (head);					\
-	 pos = tmp, tmp = __container_of(pos->member.next, tmp, member))
+#define list_for_each_entry_safe(pos, tmp, head, member)                    \
+    for (pos = (void*)container_of((head)->next, typeof(*pos), member),     \
+	     tmp = (void*)container_of(pos->member.next, typeof(*pos), member); \
+	     &pos->member != (head);                                            \
+	     pos = tmp, tmp = (void*)container_of(pos->member.next, typeof(*tmp), member))
 
 #endif
