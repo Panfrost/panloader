@@ -43,7 +43,7 @@ foreach t: test_c_srcs
     _feat = t[0]
     _src = t[1]
     message('Checking if compiler supports ' + _feat + '...')
-    if not cc.compiles(_src)
+    if not cc.compiles(_src, args: '-Werror=attributes')
         error('Compiler does not support ' + _feat)
     endif
 endforeach
