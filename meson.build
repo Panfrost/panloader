@@ -6,6 +6,7 @@ if get_option('c_std') != 'gnu11'
 endif
 
 cc = meson.get_compiler('c')
+is_android = cc.get_define('__ANDROID__') == '1'
 
 test_cc_flags = [
     '-Werror-implicit-function-declaration',
@@ -15,6 +16,12 @@ foreach flag: test_cc_flags
         add_global_arguments(flag, language: 'c')
     endif
 endforeach
+
+# Android only runs pie binaries
+common_exec_largs = []
+if is_android
+    common_exec_largs += ['-pie']
+endif
 
 m_dep = cc.find_library('m', required: true)
 
