@@ -31,11 +31,11 @@ common_dep = [
 
 test_c_srcs = [
     ['__attribute__((packed))',
-     'struct s { int a; } __attribute__((packed)); main;'],
+     'struct s { int a; } __attribute__((packed));'],
     ['__attribute__((constructor))',
-     'void __attribute__((constructor)) f(){}main;'],
+     'void __attribute__((constructor)) f(){}'],
     ['__attribute__((format))',
-     'void __attribute__((format (printf, 1, 2))) f(const char *, ...);main;'],
+     'void __attribute__((format (printf, 1, 2))) f(const char *, ...);'],
     ['__builtin_offsetof()',
      'struct s { int a; }; int o = __builtin_offsetof(struct s, a);'],
 ]
