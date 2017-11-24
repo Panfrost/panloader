@@ -859,8 +859,13 @@ close(int fd)
 {
 	PROLOG(close);
 
+        /* Intentionally racy: prevents us from trying to hold the global mutex
+         * in calls from system libraries */
+        if (fd <= 0 || !mali_fd || fd != mali_fd)
+                return orig_close(fd);
+
 	LOCK();
-	if (fd > 0 && fd == mali_fd) {
+	if (mali_fd && fd == mali_fd) {
 		panwrap_log("/dev/mali0 closed\n");
 		mali_fd = 0;
 	}
