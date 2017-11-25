@@ -36,47 +36,45 @@ struct list {
 #define LIST_HEAD(name) \
 	struct list name = LIST_HEAD_INIT(name)
 
-static void
+static inline void
 list_init(struct list *list)
 {
-    list->next = list->prev = list;
+	list->next = list->prev = list;
 }
 
 static inline void
-__list_add(struct list *entry,
-	    struct list *prev,
-	    struct list *next)
+__list_add(struct list *entry, struct list *prev, struct list *next)
 {
-    next->prev = entry;
-    entry->next = next;
-    entry->prev = prev;
-    prev->next = entry;
+	next->prev = entry;
+	entry->next = next;
+	entry->prev = prev;
+	prev->next = entry;
 }
 
 static inline void
 list_add(struct list *entry, struct list *head)
 {
-    __list_add(entry, head, head->next);
+	__list_add(entry, head, head->next);
 }
 
 static inline void
 __list_del(struct list *prev, struct list *next)
 {
-    next->prev = prev;
-    prev->next = next;
+	next->prev = prev;
+	prev->next = next;
 }
 
 static inline void
 list_del(struct list *entry)
 {
-    __list_del(entry->prev, entry->next);
-    list_init(entry);
+	__list_del(entry->prev, entry->next);
+	list_init(entry);
 }
 
 static inline int
 list_is_empty(struct list *head)
 {
-    return head->next == head;
+	return head->next == head;
 }
 
 #define container_of(ptr, type, member) ptr - __builtin_offsetof(type, member)
