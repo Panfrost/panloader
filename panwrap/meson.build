@@ -1,6 +1,7 @@
 srcs = [
     'panwrap-syscall.c',
     'panwrap-util.c',
+    'panwrap-mmap.c',
 ]
 
 shared_library(

@@ -44,20 +44,6 @@ struct device_info {
 	const struct ioctl_info info[MALI_IOCTL_TYPE_COUNT][_IOC_NR(0xffffffff)];
 };
 
-struct allocated_memory {
-	u64 gpu_va;
-	struct list node;
-};
-
-struct mapped_memory {
-	size_t length;
-
-	void *addr;
-	u64 gpu_va;
-
-	struct list node;
-};
-
 typedef void* (mmap_func)(void *, size_t, int, int, int, off_t);
 
 #define IOCTL_TYPE(type) [type - MALI_IOCTL_TYPE_BASE] =
@@ -167,30 +153,6 @@ static const struct panwrap_flag_info jd_req_flag_info[] = {
 #undef FLAG_INFO
 
 #define FLAG_INFO(flag) { flag, #flag }
-static const struct panwrap_flag_info mmap_prot_flag_info[] = {
-	FLAG_INFO(PROT_EXEC),
-	FLAG_INFO(PROT_READ),
-	FLAG_INFO(PROT_WRITE),
-	{}
-};
-
-static const struct panwrap_flag_info mmap_flags_flag_info[] = {
-	FLAG_INFO(MAP_SHARED),
-	FLAG_INFO(MAP_PRIVATE),
-	FLAG_INFO(MAP_ANONYMOUS),
-	FLAG_INFO(MAP_DENYWRITE),
-	FLAG_INFO(MAP_FIXED),
-	FLAG_INFO(MAP_GROWSDOWN),
-	FLAG_INFO(MAP_HUGETLB),
-	FLAG_INFO(MAP_LOCKED),
-	FLAG_INFO(MAP_NONBLOCK),
-	FLAG_INFO(MAP_NORESERVE),
-	FLAG_INFO(MAP_POPULATE),
-	FLAG_INFO(MAP_STACK),
-	FLAG_INFO(MAP_UNINITIALIZED),
-	{}
-};
-
 static const struct panwrap_flag_info external_resources_access_flag_info[] = {
 	FLAG_INFO(MALI_EXT_RES_ACCESS_SHARED),
 	FLAG_INFO(MALI_EXT_RES_ACCESS_EXCLUSIVE),
@@ -203,30 +165,6 @@ static const struct panwrap_flag_info mali_jd_dep_type_flag_info[] = {
 	{}
 };
 #undef FLAG_INFO
-
-static struct mapped_memory *find_mapped_mem(void *addr)
-{
-	struct mapped_memory *pos;
-
-	list_for_each_entry(pos, &mmaps, node) {
-		if (pos->addr == addr)
-			return pos;
-	}
-
-	return NULL;
-}
-
-static struct mapped_memory *find_mapped_mem_containing(void *addr)
-{
-	struct mapped_memory *pos;
-
-	list_for_each_entry(pos, &mmaps, node) {
-		if (addr >= pos->addr && addr <= pos->addr + pos->length)
-			return pos;
-	}
-
-	return NULL;
-}
 
 static inline const char *
 ioctl_decode_coherency_mode(enum mali_ioctl_coherency_mode mode)
@@ -415,7 +353,8 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_sync *args = ptr;
 	const char *type;
-	struct mapped_memory *mem = find_mapped_mem((void*)args->handle);
+	struct panwrap_mapped_memory *mem =
+		panwrap_find_mapped_mem((void*)args->handle);
 
 	switch (args->type) {
 	case MALI_SYNC_TO_DEVICE: type = "device <- CPU"; break;
@@ -486,10 +425,10 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 	panwrap_log("\tAtoms:\n");
 	for (int i = 0; i < args->nr_atoms; i++) {
 		const struct mali_jd_atom_v2 *a = &atoms[i];
-		struct mapped_memory *mem;
+		struct panwrap_mapped_memory *mem;
 
 		panwrap_log("\t\tjc = 0x%lx\n", a->jc);
-		mem = find_mapped_mem_containing((void*)a->jc);
+		mem = panwrap_find_mapped_mem_containing((void*)a->jc);
 		if (mem) {
 			off_t offset = (void*)a->jc - mem->addr;
 
@@ -604,13 +543,11 @@ static void
 ioctl_decode_post_mem_alloc(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alloc *args = ptr;
-	struct allocated_memory *new = malloc(sizeof(new));
 
 	panwrap_log("\tgpu_va = 0x%lx\n", args->gpu_va);
 	panwrap_log("\tva_alignment = %d\n", args->va_alignment);
 
-	new->gpu_va = args->gpu_va;
-	list_add(&new->node, &allocations);
+	panwrap_track_allocation(args->gpu_va);
 }
 
 static void
@@ -938,10 +875,7 @@ static void inline *panwrap_mmap_wrap(mmap_func *func,
 				      void *addr, size_t length, int prot,
 				      int flags, int fd, off_t offset)
 {
-	struct allocated_memory *pos;
-	struct mapped_memory *new;
 	void *ret;
-	bool found = false;
 
 	if (!mali_fd || fd != mali_fd)
 		return func(addr, length, prot, flags, fd, offset);
@@ -950,37 +884,10 @@ static void inline *panwrap_mmap_wrap(mmap_func *func,
 	ret = func(addr, length, prot, flags, fd, offset);
 
 	panwrap_freeze_time();
-
-	new = calloc(sizeof(*new), 1);
-	new->length = length;
-	new->addr = ret;
-
-	list_for_each_entry(pos, &allocations, node) {
-		/* The kernel driver uses the offset to specify which GPU VA
-		 * we're mapping */
-		if (pos->gpu_va == offset) {
-			found = true;
-			list_del(&pos->node);
-			free(pos);
-			break;
-		}
-	}
-
-	if (found) {
-		new->gpu_va = offset;
-		panwrap_log("GPU memory 0x%lx mapped to %p - %p length=%lu\n",
-			    offset, ret, ret + length, length);
-	} else {
-		panwrap_log("Unknown memory mapping %p - %p: offset=%ld length=%lu prot = ",
-			    ret, ret + length, offset, length);
-		panwrap_log_decoded_flags(mmap_prot_flag_info, prot);
-		panwrap_log_cont(" flags = ");
-		panwrap_log_decoded_flags(mmap_flags_flag_info, flags);
-		panwrap_log_cont("\n");
-	}
-	list_add(&new->node, &mmaps);
-out:
+	/* offset == gpu_va */
+	panwrap_track_mmap(offset, ret, length, prot, flags);
 	panwrap_unfreeze_time();
+
 	UNLOCK();
 	return ret;
 }
@@ -1005,7 +912,7 @@ void *mmap64(void *addr, size_t length, int prot, int flags, int fd,
 int munmap(void *addr, size_t length)
 {
 	int ret;
-	struct mapped_memory *mem;
+	struct panwrap_mapped_memory *mem;
 	PROLOG(munmap);
 
 	LOCK();
@@ -1013,7 +920,7 @@ int munmap(void *addr, size_t length)
 
 	panwrap_freeze_time();
 
-	mem = find_mapped_mem(addr);
+	mem = panwrap_find_mapped_mem(addr);
 	if (!mem)
 		goto out;
 
