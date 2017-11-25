@@ -909,14 +909,6 @@ static void inline *panwrap_mmap_wrap(mmap_func *func,
 	return ret;
 }
 
-void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
-{
-	PROLOG(mmap);
-
-	return panwrap_mmap_wrap(orig_mmap, addr, length, prot, flags, fd,
-				 offset);
-}
-
 void *mmap64(void *addr, size_t length, int prot, int flags, int fd,
 	     off_t offset)
 {
@@ -925,6 +917,20 @@ void *mmap64(void *addr, size_t length, int prot, int flags, int fd,
 	return panwrap_mmap_wrap(orig_mmap64, addr, length, prot, flags, fd,
 				 offset);
 }
+
+#ifdef IS_MMAP64_SEPERATE_SYMBOL
+void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
+{
+#ifdef IS_64_BIT
+	PROLOG(mmap);
+
+	return panwrap_mmap_wrap(orig_mmap, addr, length, prot, flags, fd,
+				 offset);
+#else
+	return mmap64(addr, length, prot, flags, fd, (loff_t) offset);
+#endif
+}
+#endif
 
 int munmap(void *addr, size_t length)
 {
