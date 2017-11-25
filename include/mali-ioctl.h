@@ -21,6 +21,7 @@
 #define __MALI_IOCTL_H__
 
 #include <panloader-util.h>
+#include <config.h>
 
 #define MALI_GPU_NUM_TEXTURE_FEATURES_REGISTERS 3
 #define MALI_GPU_MAX_JOB_SLOTS 16
@@ -622,13 +623,30 @@ struct mali_gpu_raw_props {
 
 
 /*
- * The original mali driver from ARM has 64 bit memory pointers in most of the
- * ioctls argument structures, regardless of whether or not the system is 32
- * bit or 64 bit. For 32 bit systems, the upper 32 bits are ignored
+ * The original mali driver from ARM has two different representations of
+ * pointers depending on which kind of structure we're looking at:
  *
- * FIXME: confirm this actually works
+ * - "Padded pointers" (as I've taken to calling them), which will always take
+ *   up at least 64 bits of space regardless of whether the system is 32 or 64
+ *   bit. When the system is 32 bit, the other half of the data is just
+ *   padding.
+ * - Variable length pointers, the length of which is equivalent to the native
+ *   length of a pointer on the host system.
+ *
+ * For normal ioctls, padded pointers are used. For actual job submissions,
+ * variable length is used.
  */
-#define PAD_PTR(p) p; u32 :(8 - sizeof(void*))
+#ifdef IS_64_BIT
+#define PAD_PTR(p) p
+typedef u64 mali_gpu_ptr;
+#define MALI_GPU_PTR_FORMAT "0x%lx"
+
+#else
+
+#define PAD_PTR(p) p; u32 :32
+typedef u32 mali_gpu_ptr;
+#define MALI_GPU_PTR_FORMAT "0x%x"
+#endif
 
 /* FIXME: Again, they don't specify any of these as packed structs. However,
  * looking at these structs I'm worried that there is already spots where the

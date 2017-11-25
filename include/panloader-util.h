@@ -20,6 +20,7 @@
 #define __PANLOADER_UTIL_H__
 
 #include <inttypes.h>
+#include <config.h>
 
 typedef uint8_t  u8;
 typedef uint16_t u16;
@@ -31,9 +32,16 @@ typedef int16_t s16;
 typedef int32_t s32;
 typedef int64_t s64;
 
+#ifdef IS_64_BIT
 #define ASSERT_SIZEOF_TYPE(type__, size__)       \
 	_Static_assert(sizeof(type__) == size__, \
                        #type__ " does not match expected size " #size__)
+#else
+/* FIXME: We haven't confirmed the size of most of the structs in 32 bit mode,
+ * so for now we do nothing
+ */
+#define ASSERT_SIZEOF_TYPE(type__, size__)
+#endif
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
