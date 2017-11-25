@@ -22,7 +22,7 @@
 static int
 pandev_get_driver_version(int fd, unsigned *major, unsigned *minor)
 {
-	struct mali_ioctl_get_version args = {0};
+	struct mali_ioctl_get_version args = {};
 	int rc;
 
 	/* So far this seems to be the only ioctl that uses 0x80 for dir */
