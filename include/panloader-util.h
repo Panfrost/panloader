@@ -32,15 +32,25 @@ typedef int16_t s16;
 typedef int32_t s32;
 typedef int64_t s64;
 
-#ifdef IS_64_BIT
-#define ASSERT_SIZEOF_TYPE(type__, size__)       \
-	_Static_assert(sizeof(type__) == size__, \
-                       #type__ " does not match expected size " #size__)
-#else
-/* FIXME: We haven't confirmed the size of most of the structs in 32 bit mode,
- * so for now we do nothing
+/* ASSERT_SIZEOF_TYPE:
+ *
+ * Forces compilation to fail if the size of the struct differs from the given
+ * arch-specific size that was observed during tracing. A size of 0 indicates
+ * that the ioctl has not been observed in a trace yet, and thus it's size is
+ * unconfirmed.
+ *
+ * Useful for preventing mistakenly extending the length of an ioctl struct and
+ * thus, causing all members part of said extension to be located at incorrect
+ * memory locations.
  */
-#define ASSERT_SIZEOF_TYPE(type__, size__)
+#ifdef IS_64_BIT
+#define ASSERT_SIZEOF_TYPE(type__, size32__, size64__)              \
+	_Static_assert(size64__ == 0 || sizeof(type__) == size64__, \
+                       #type__ " does not match expected size " #size64__)
+#else
+#define ASSERT_SIZEOF_TYPE(type__, size32__, size64__) \
+	_Static_assert(size32__ == 0 || sizeof(type__) == size32__, \
+		       #type__ " does not match expected size " #size32__)
 #endif
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))

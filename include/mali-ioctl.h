@@ -717,7 +717,7 @@ struct mali_jd_atom_v2 {
 	u8 :8;
 	mali_jd_core_req core_req;          /**< core requirements */
 } __attribute__((packed));
-ASSERT_SIZEOF_TYPE(struct mali_jd_atom_v2, 48);
+ASSERT_SIZEOF_TYPE(struct mali_jd_atom_v2, 48, 48);
 
 /**
  * Header used by all ioctls
@@ -730,7 +730,7 @@ union mali_ioctl_header {
 
 	u64 :64;
 } __attribute__((packed));
-ASSERT_SIZEOF_TYPE(union mali_ioctl_header, 8);
+ASSERT_SIZEOF_TYPE(union mali_ioctl_header, 8, 8);
 
 struct mali_ioctl_get_version {
 	union mali_ioctl_header header;
@@ -738,7 +738,7 @@ struct mali_ioctl_get_version {
 	u16 minor; /* [out] */
 	u32 :32;
 } __attribute__((packed));
-ASSERT_SIZEOF_TYPE(struct mali_ioctl_get_version, 16);
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_get_version, 16, 16);
 
 struct mali_ioctl_mem_alloc {
 	union mali_ioctl_header header;
@@ -755,7 +755,7 @@ struct mali_ioctl_mem_alloc {
 	u32 :32;
 	u16 :16;
 } __attribute__((packed));
-ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_alloc, 56);
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_alloc, 56, 56);
 
 struct mali_ioctl_mem_import {
 	union mali_ioctl_header header;
@@ -785,7 +785,7 @@ struct mali_ioctl_mem_commit {
 	u32 result_subcode;
 	u32 :32;
 } __attribute__((packed));
-ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_commit, 0, 32);
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_commit, 32, 32);
 
 struct mali_ioctl_mem_query {
 	union mali_ioctl_header header;
@@ -800,7 +800,7 @@ struct mali_ioctl_mem_query {
 	/* [out] */
 	u64 value;
 } __attribute__((packed));
-ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_query, 0, 32);
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_query, 32, 32);
 
 struct mali_ioctl_mem_free {
 	union mali_ioctl_header header;
@@ -841,7 +841,7 @@ struct mali_ioctl_sync {
 	} type :8;
 	u64 :56;
 } __attribute__((packed));
-ASSERT_SIZEOF_TYPE(struct mali_ioctl_sync, 40);
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_sync, 40, 40);
 
 struct mali_ioctl_gpu_props_reg_dump {
 	union mali_ioctl_header header;
@@ -856,14 +856,14 @@ struct mali_ioctl_gpu_props_reg_dump {
 	/** This must be last member of the structure */
 	struct mali_gpu_coherent_group_info coherency_info;
 } __attribute__((packed));
-ASSERT_SIZEOF_TYPE(struct mali_ioctl_gpu_props_reg_dump, 536);
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_gpu_props_reg_dump, 536, 536);
 
 struct mali_ioctl_set_flags {
 	union mali_ioctl_header header;
 	u32 create_flags; /* [in] */
 	u32 :32;
 } __attribute__((packed));
-ASSERT_SIZEOF_TYPE(struct mali_ioctl_set_flags, 16);
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_set_flags, 16, 16);
 
 struct mali_ioctl_stream_create {
 	union mali_ioctl_header header;
@@ -873,7 +873,7 @@ struct mali_ioctl_stream_create {
 	s32 fd;
 	u32 :32;
 } __attribute__((packed));
-ASSERT_SIZEOF_TYPE(struct mali_ioctl_stream_create, 48);
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_stream_create, 48, 48);
 
 struct mali_ioctl_job_submit {
 	union mali_ioctl_header header;
@@ -882,14 +882,14 @@ struct mali_ioctl_job_submit {
 	u32 nr_atoms;
 	u32 stride;
 } __attribute__((packed));
-ASSERT_SIZEOF_TYPE(struct mali_ioctl_job_submit, 24);
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_job_submit, 24, 24);
 
 struct mali_ioctl_get_context_id {
 	union mali_ioctl_header header;
 	/* [out] */
 	s64 id;
 } __attribute__((packed));
-ASSERT_SIZEOF_TYPE(struct mali_ioctl_get_context_id, 16);
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_get_context_id, 16, 16);
 
 #undef PAD_PTR
 
