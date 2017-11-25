@@ -39,7 +39,7 @@ panwrap_log_decoded_flags(const struct panwrap_flag_info *flag_info,
 {
 	bool decodable_flags_found = false;
 
-	panwrap_log_cont("0x%lx", flags);
+	panwrap_log_cont("0x%" PRIx64, flags);
 
 	for (int i = 0; flag_info[i].name; i++) {
 		if ((flags & flag_info[i].flag) != flag_info[i].flag)
@@ -59,7 +59,7 @@ panwrap_log_decoded_flags(const struct panwrap_flag_info *flag_info,
 
 	if (decodable_flags_found) {
 		if (flags)
-			panwrap_log_cont(" | 0x%lx", flags);
+			panwrap_log_cont(" | 0x%" PRIx64, flags);
 
 		panwrap_log_cont(")");
 	}
@@ -140,7 +140,7 @@ panwrap_log_hexdump_trimmed(const void *data, size_t size, const char *indent)
 out:
 	panwrap_log_hexdump(data, trim_size, indent);
 	if (trimming)
-		panwrap_log("%s<0 repeating %lu times>\n",
+		panwrap_log("%s<0 repeating %zu times>\n",
 			    indent, size - trim_size);
 }
 
