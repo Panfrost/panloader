@@ -45,6 +45,7 @@ struct device_info {
 };
 
 typedef void* (mmap_func)(void *, size_t, int, int, int, off_t);
+typedef int (open_func)(const char *, int flags, ...);
 
 #define IOCTL_TYPE(type) [type - MALI_IOCTL_TYPE_BASE] =
 #define IOCTL_INFO(n) [_IOC_NR(MALI_IOCTL_##n)] = { .name = #n }
@@ -757,23 +758,17 @@ ioctl_decode_post(unsigned long int request, void *ptr)
 /**
  * Overriden libc functions start here
  */
-int
-open(const char *path, int flags, ...)
+static inline int
+panwrap_open_wrap(open_func *func, const char *path, int flags, va_list args)
 {
 	mode_t mode = 0;
 	int ret;
-	PROLOG(open);
 
 	if (flags & O_CREAT) {
-		va_list args;
-
-		va_start(args, flags);
 		mode = (mode_t) va_arg(args, int);
-		va_end(args);
-
-		ret = orig_open(path, flags, mode);
+		ret = func(path, flags, mode);
 	} else {
-		ret = orig_open(path, flags);
+		ret = func(path, flags);
 	}
 
 	LOCK();
@@ -789,6 +784,28 @@ open(const char *path, int flags, ...)
 	UNLOCK();
 
 	return ret;
+}
+
+int
+open(const char *path, int flags, ...)
+{
+	PROLOG(open);
+	va_list args;
+	va_start(args, flags);
+	int o = panwrap_open_wrap(orig_open, path, flags, args);
+	va_end(args);
+	return o;
+}
+
+int
+open64(const char *path, int flags, ...)
+{
+	PROLOG(open64);
+	va_list args;
+	va_start(args, flags);
+	int o = panwrap_open_wrap(orig_open64, path, flags, args);
+	va_end(args);
+	return o;
 }
 
 int
