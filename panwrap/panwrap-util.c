@@ -294,6 +294,12 @@ panwrap_log_cont(const char *format, ...)
 	va_end(ap);
 }
 
+void
+panwrap_log_flush()
+{
+	fflush(log_output);
+}
+
 static bool
 parse_env_bool(const char *env, bool def)
 {

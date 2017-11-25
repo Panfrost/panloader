@@ -36,6 +36,7 @@ struct panwrap_flag_info {
 
 void __attribute__((format (printf, 1, 2))) panwrap_log(const char *format, ...);
 void __attribute__((format (printf, 1, 2))) panwrap_log_cont(const char *format, ...);
+void panwrap_log_flush();
 
 void panwrap_freeze_time();
 void panwrap_unfreeze_time();
