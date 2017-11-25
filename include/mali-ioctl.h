@@ -832,7 +832,7 @@ struct mali_ioctl_mem_alias {
 
 struct mali_ioctl_sync {
 	union mali_ioctl_header header;
-	u64 handle; /* FIXME: does this change depending on arch? */
+	PAD_PTR(mali_gpu_ptr handle);
 	PAD_PTR(void* user_addr);
 	u64 size;
 	enum {

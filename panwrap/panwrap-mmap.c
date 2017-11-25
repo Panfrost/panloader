@@ -14,6 +14,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
+#include <stdatomic.h>
+#include <stdbool.h>
 #include <list.h>
 
 #include <mali-ioctl.h>
@@ -50,7 +52,7 @@ static const struct panwrap_flag_info mmap_prot_flag_info[] = {
 };
 #undef FLAG_INFO
 
-void panwrap_track_allocation(mali_gpu_ptr addr)
+void panwrap_track_allocation(mali_gpu_ptr addr, int flags)
 {
 	struct panwrap_allocated_memory *mem = malloc(sizeof(*mem));
 
@@ -58,6 +60,7 @@ void panwrap_track_allocation(mali_gpu_ptr addr)
 		    addr);
 	list_init(&mem->node);
 	mem->gpu_va = addr;
+	mem->flags = flags;
 
 	list_add(&mem->node, &allocations);
 }
@@ -94,7 +97,7 @@ void panwrap_track_mmap(mali_gpu_ptr gpu_va, void *addr, size_t length,
 	mapped_mem->length = length;
 	mapped_mem->addr = addr;
 	mapped_mem->prot = prot;
-	mapped_mem->flags = flags;
+	mapped_mem->flags = mem->flags;
 
 	list_add(&mapped_mem->node, &mmaps);
 
@@ -133,24 +136,50 @@ struct panwrap_mapped_memory *panwrap_find_mapped_mem(void *addr)
 	return NULL;
 }
 
-struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem(mali_gpu_ptr addr)
-{
-	struct panwrap_mapped_memory *pos;
-
-	list_for_each_entry(pos, &mmaps, node) {
-		if (pos->gpu_va == addr)
-			return pos;
-	}
-
-	return NULL;
-}
-
 struct panwrap_mapped_memory *panwrap_find_mapped_mem_containing(void *addr)
 {
 	struct panwrap_mapped_memory *pos;
 
 	list_for_each_entry(pos, &mmaps, node) {
 		if (addr >= pos->addr && addr <= pos->addr + pos->length)
+			return pos;
+	}
+
+	return NULL;
+}
+
+struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem(mali_gpu_ptr addr)
+{
+	struct panwrap_mapped_memory *pos;
+
+	list_for_each_entry(pos, &mmaps, node) {
+		mali_gpu_ptr cmp_addr;
+
+		if (pos->flags & MALI_MEM_SAME_VA)
+			cmp_addr = (mali_gpu_ptr)pos->addr;
+		else
+			cmp_addr = pos->gpu_va;
+
+		if (cmp_addr == addr)
+			return pos;
+	}
+
+	return NULL;
+}
+
+struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem_containing(mali_gpu_ptr addr)
+{
+	struct panwrap_mapped_memory *pos;
+
+	list_for_each_entry(pos, &mmaps, node) {
+		mali_gpu_ptr cmp_addr;
+
+		if (pos->flags & MALI_MEM_SAME_VA)
+			cmp_addr = (mali_gpu_ptr)pos->addr;
+		else
+			cmp_addr = pos->gpu_va;
+
+		if (addr >= cmp_addr && addr <= cmp_addr + pos->length)
 			return pos;
 	}
 

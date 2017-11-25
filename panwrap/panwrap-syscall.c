@@ -355,7 +355,7 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 	const struct mali_ioctl_sync *args = ptr;
 	const char *type;
 	struct panwrap_mapped_memory *mem =
-		panwrap_find_mapped_mem((void*)args->handle);
+		panwrap_find_mapped_gpu_mem(args->handle);
 
 	switch (args->type) {
 	case MALI_SYNC_TO_DEVICE: type = "device <- CPU"; break;
@@ -364,16 +364,15 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 	}
 
 	if (mem) {
-		panwrap_log("\thandle = %p (end=%p, len=%zu)\n",
-			    (void*)args->handle,
-			    (void*)args->handle + mem->length,
+		panwrap_log("\thandle = " MALI_GPU_PTR_FORMAT " (end=" MALI_GPU_PTR_FORMAT ", len=%zu)\n",
+			    args->handle, args->handle + mem->length,
 			    mem->length);
 		panwrap_log("\tuser_addr = %p - %p (offset=%zu)\n",
 			    args->user_addr, args->user_addr + args->size,
-			    args->user_addr - (void*)args->handle);
+			    args->user_addr - mem->addr);
 	} else {
 		panwrap_log("\tERROR! Unknown handle specified\n");
-		panwrap_log("\thandle = 0x%p\n", (void*)args->handle);
+		panwrap_log("\thandle = " MALI_GPU_PTR_FORMAT "\n", args->handle);
 		panwrap_log("\tuser_addr = %p - %p\n",
 			    args->user_addr, args->user_addr + args->size);
 	}
@@ -429,16 +428,16 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 		struct panwrap_mapped_memory *mem;
 
 		panwrap_log("\t\tjc = " MALI_GPU_PTR_FORMAT "\n", a->jc);
-		mem = panwrap_find_mapped_mem_containing((void*)a->jc);
+		mem = panwrap_find_mapped_gpu_mem_containing(a->jc);
 		if (mem) {
-			off_t offset = (void*)a->jc - mem->addr;
+			void *jc = panwrap_deref_gpu_mem(mem, a->jc);
+			off_t offset = jc - mem->addr;
 
 			panwrap_log("\t\tAddress %" PRIu64 " bytes inside mmap %p - %p (length=%zu)\n",
 				    offset, mem->addr, mem->addr + mem->length,
 				    mem->length);
 			panwrap_log("\t\tDumping contents:\n");
-			panwrap_log_hexdump_trimmed(
-			    (void*)a->jc, mem->length - offset, "\t\t\t");
+			panwrap_log_hexdump_trimmed(jc, mem->length - offset, "\t\t\t");
 		} else {
 			panwrap_log("\t\tERROR! jc contained in unknown memory region, cannot dump\n");
 		}
@@ -548,7 +547,7 @@ ioctl_decode_post_mem_alloc(unsigned long int request, void *ptr)
 	panwrap_log("\tgpu_va = " MALI_GPU_PTR_FORMAT "\n", args->gpu_va);
 	panwrap_log("\tva_alignment = %d\n", args->va_alignment);
 
-	panwrap_track_allocation(args->gpu_va);
+	panwrap_track_allocation(args->gpu_va, args->flags);
 }
 
 static void
