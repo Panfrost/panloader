@@ -608,7 +608,7 @@ ioctl_decode_post_sync(unsigned long int request, void *ptr)
 
 	panwrap_log("Dumping memory from device:\n");
 	panwrap_indent++;
-	panwrap_log_hexdump(args->user_addr, args->size);
+	panwrap_log_hexdump_trimmed(args->user_addr, args->size);
 	panwrap_indent--;
 }
 
