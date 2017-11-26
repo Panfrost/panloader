@@ -19,6 +19,7 @@
 #include <list.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include "panwrap.h"
 
 struct panwrap_allocated_memory {
 	mali_gpu_ptr gpu_va;
@@ -47,11 +48,24 @@ struct panwrap_mapped_memory *panwrap_find_mapped_mem(void *addr);
 struct panwrap_mapped_memory *panwrap_find_mapped_mem_containing(void *addr);
 struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem(mali_gpu_ptr addr);
 struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem_containing(mali_gpu_ptr addr);
+
+void __attribute__((noreturn))
+__panwrap_deref_mem_err(const struct panwrap_mapped_memory *mem,
+			mali_gpu_ptr gpu_va, size_t size,
+			int line, const char *filename);
+
 static inline void * __attribute__((nonnull(1)))
-panwrap_deref_gpu_mem(const struct panwrap_mapped_memory *mem,
-		      mali_gpu_ptr gpu_va)
+__panwrap_deref_gpu_mem(const struct panwrap_mapped_memory *mem,
+			mali_gpu_ptr gpu_va, size_t size,
+			int line, const char *filename)
 {
+	if (size + (gpu_va - mem->gpu_va) > mem->length)
+		__panwrap_deref_mem_err(mem, gpu_va, size, line, filename);
+
 	return (void*)gpu_va + (ptrdiff_t)((void*)mem->gpu_va - mem->addr);
 }
+
+#define panwrap_deref_gpu_mem(mem, gpu_va, size) \
+	__panwrap_deref_gpu_mem(mem, gpu_va, size, __LINE__, __FILE__)
 
 #endif /* __MMAP_TRACE_H__ */

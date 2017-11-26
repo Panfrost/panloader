@@ -42,6 +42,8 @@ test_c_srcs = [
      'void __attribute__((format (printf, 1, 2))) f(const char *, ...);'],
     ['__attribute__((nonnull))',
      'void __attribute__((nonnull(1))) f(void *);'],
+    ['__attribute__((noreturn))',
+     'void __attribute__((noreturn)) f(void);'],
     ['__builtin_offsetof()',
      'struct s { int a; }; int o = __builtin_offsetof(struct s, a);'],
 ]

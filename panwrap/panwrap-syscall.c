@@ -365,7 +365,8 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 
 	if (mem) {
 		panwrap_log("handle = " MALI_GPU_PTR_FORMAT " (end=" MALI_GPU_PTR_FORMAT ", len=%zu)\n",
-			    args->handle, args->handle + mem->length,
+			    args->handle,
+			    (mali_gpu_ptr)(args->handle + mem->length),
 			    mem->length);
 		panwrap_log("user_addr = %p - %p (offset=%zu)\n",
 			    args->user_addr, args->user_addr + args->size,
@@ -433,7 +434,7 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 		panwrap_log("jc = " MALI_GPU_PTR_FORMAT "\n", a->jc);
 		mem = panwrap_find_mapped_gpu_mem_containing(a->jc);
 		if (mem) {
-			void *jc = panwrap_deref_gpu_mem(mem, a->jc);
+			void *jc = panwrap_deref_gpu_mem(mem, a->jc, 0);
 			off_t offset = jc - mem->addr;
 
 			panwrap_log("Address %" PRIu64 " bytes inside mmap %p - %p (length=%zu)\n",
