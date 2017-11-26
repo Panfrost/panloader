@@ -32,6 +32,7 @@ static bool time_is_frozen = false;
 static struct timespec start_time;
 static struct timespec total_time_frozen, start_freeze_time, frozen_timestamp;
 static FILE *log_output;
+short panwrap_indent = 0;
 
 void
 panwrap_log_decoded_flags(const struct panwrap_flag_info *flag_info,
@@ -66,7 +67,7 @@ panwrap_log_decoded_flags(const struct panwrap_flag_info *flag_info,
 }
 
 void
-panwrap_log_hexdump(const void *data, size_t size, const char *indent)
+panwrap_log_hexdump(const void *data, size_t size)
 {
 	unsigned char *buf = (void *) data;
 	char alpha[HEXDUMP_ROW_LEN + 1];
@@ -74,7 +75,7 @@ panwrap_log_hexdump(const void *data, size_t size, const char *indent)
 
 	for (i = 0; i < size; i++) {
 		if (!(i % HEXDUMP_ROW_LEN))
-			panwrap_log("%s%08X", indent, (unsigned int) i);
+			panwrap_log("%08X", (unsigned int) i);
 		if (!(i % HEXDUMP_COL_LEN))
 			panwrap_log_cont(" ");
 
@@ -114,7 +115,7 @@ panwrap_log_hexdump(const void *data, size_t size, const char *indent)
  * empty
  */
 void
-panwrap_log_hexdump_trimmed(const void *data, size_t size, const char *indent)
+panwrap_log_hexdump_trimmed(const void *data, size_t size)
 {
 	const char *d = data;
 	off_t trim_offset;
@@ -138,10 +139,9 @@ panwrap_log_hexdump_trimmed(const void *data, size_t size, const char *indent)
 	trimming = true;
 	trim_size = trim_offset + 1;
 out:
-	panwrap_log_hexdump(data, trim_size, indent);
+	panwrap_log_hexdump(data, trim_size);
 	if (trimming)
-		panwrap_log("%s<0 repeating %zu times>\n",
-			    indent, size - trim_size);
+		panwrap_log("<0 repeating %zu times>\n", size - trim_size);
 }
 
 /**
@@ -277,6 +277,9 @@ panwrap_log(const char *format, ...)
 	} else {
 		fprintf(log_output, "panwrap: ");
 	}
+
+	for (int i = 0; i < panwrap_indent; i++)
+		fputc('\t', log_output);
 
 	va_start(ap, format);
 	vfprintf(log_output, format, ap);

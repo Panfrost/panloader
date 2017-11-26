@@ -43,8 +43,10 @@ void panwrap_unfreeze_time();
 
 void panwrap_log_decoded_flags(const struct panwrap_flag_info *flag_info,
 			       u64 flags);
-void panwrap_log_hexdump(const void *data, size_t size, const char *indent);
-void panwrap_log_hexdump_trimmed(const void *data, size_t size, const char *ident);
+void panwrap_log_hexdump(const void *data, size_t size);
+void panwrap_log_hexdump_trimmed(const void *data, size_t size);
+
+extern short panwrap_indent;
 
 void * __rd_dlsym_helper(const char *name);
 
