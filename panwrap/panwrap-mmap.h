@@ -51,9 +51,6 @@ static inline void * __attribute__((nonnull(1)))
 panwrap_deref_gpu_mem(const struct panwrap_mapped_memory *mem,
 		      mali_gpu_ptr gpu_va)
 {
-	if (mem->flags & MALI_MEM_SAME_VA)
-		return (void*)gpu_va;
-
 	return (void*)gpu_va + (ptrdiff_t)((void*)mem->gpu_va - mem->addr);
 }
 

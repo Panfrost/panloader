@@ -93,7 +93,8 @@ void panwrap_track_mmap(mali_gpu_ptr gpu_va, void *addr, size_t length,
 
 	mapped_mem = malloc(sizeof(*mapped_mem));
 	list_init(&mapped_mem->node);
-	mapped_mem->gpu_va = gpu_va;
+	mapped_mem->gpu_va =
+		mem->flags & MALI_MEM_SAME_VA ? (mali_gpu_ptr)addr : gpu_va;
 	mapped_mem->length = length;
 	mapped_mem->addr = addr;
 	mapped_mem->prot = prot;
@@ -105,7 +106,7 @@ void panwrap_track_mmap(mali_gpu_ptr gpu_va, void *addr, size_t length,
 	free(mem);
 
 	panwrap_log("GPU VA " MALI_GPU_PTR_FORMAT " mapped to %p - %p (length == %zu)\n",
-		    gpu_va, addr, addr + length, length);
+		    mapped_mem->gpu_va, addr, addr + length, length);
 }
 
 void panwrap_track_munmap(void *addr)
@@ -153,14 +154,7 @@ struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem(mali_gpu_ptr addr)
 	struct panwrap_mapped_memory *pos;
 
 	list_for_each_entry(pos, &mmaps, node) {
-		mali_gpu_ptr cmp_addr;
-
-		if (pos->flags & MALI_MEM_SAME_VA)
-			cmp_addr = (mali_gpu_ptr)pos->addr;
-		else
-			cmp_addr = pos->gpu_va;
-
-		if (cmp_addr == addr)
+		if (pos->gpu_va == addr)
 			return pos;
 	}
 
@@ -172,14 +166,7 @@ struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem_containing(mali_gpu_pt
 	struct panwrap_mapped_memory *pos;
 
 	list_for_each_entry(pos, &mmaps, node) {
-		mali_gpu_ptr cmp_addr;
-
-		if (pos->flags & MALI_MEM_SAME_VA)
-			cmp_addr = (mali_gpu_ptr)pos->addr;
-		else
-			cmp_addr = pos->gpu_va;
-
-		if (addr >= cmp_addr && addr <= cmp_addr + pos->length)
+		if (addr >= pos->gpu_va && addr <= pos->gpu_va + pos->length)
 			return pos;
 	}
 
