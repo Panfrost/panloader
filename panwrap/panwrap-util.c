@@ -278,8 +278,9 @@ panwrap_log(const char *format, ...)
 		fprintf(log_output, "panwrap: ");
 	}
 
-	for (int i = 0; i < panwrap_indent; i++)
-		fputc('\t', log_output);
+	for (int i = 0; i < panwrap_indent; i++) {
+		fputs("  ", log_output);
+	}
 
 	va_start(ap, format);
 	vfprintf(log_output, format, ap);
