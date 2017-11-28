@@ -22,7 +22,7 @@
 #include "panwrap.h"
 
 struct panwrap_allocated_memory {
-	mali_gpu_ptr gpu_va;
+	mali_ptr gpu_va;
 	int flags;
 
 	struct list node;
@@ -32,31 +32,31 @@ struct panwrap_mapped_memory {
 	size_t length;
 
 	void *addr;
-	mali_gpu_ptr gpu_va;
+	mali_ptr gpu_va;
 	int prot;
         int flags;
 
 	struct list node;
 };
 
-void panwrap_track_allocation(mali_gpu_ptr gpu_va, int flags);
-void panwrap_track_mmap(mali_gpu_ptr gpu_va, void *addr, size_t length,
+void panwrap_track_allocation(mali_ptr gpu_va, int flags);
+void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
                         int prot, int flags);
 void panwrap_track_munmap(void *addr);
 
 struct panwrap_mapped_memory *panwrap_find_mapped_mem(void *addr);
 struct panwrap_mapped_memory *panwrap_find_mapped_mem_containing(void *addr);
-struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem(mali_gpu_ptr addr);
-struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem_containing(mali_gpu_ptr addr);
+struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem(mali_ptr addr);
+struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem_containing(mali_ptr addr);
 
 void __attribute__((noreturn))
 __panwrap_deref_mem_err(const struct panwrap_mapped_memory *mem,
-			mali_gpu_ptr gpu_va, size_t size,
+			mali_ptr gpu_va, size_t size,
 			int line, const char *filename);
 
 static inline void * __attribute__((nonnull(1)))
 __panwrap_deref_gpu_mem(const struct panwrap_mapped_memory *mem,
-			mali_gpu_ptr gpu_va, size_t size,
+			mali_ptr gpu_va, size_t size,
 			int line, const char *filename)
 {
 	if (size + (gpu_va - mem->gpu_va) > mem->length)

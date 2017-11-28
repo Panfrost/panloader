@@ -638,14 +638,14 @@ struct mali_gpu_raw_props {
  */
 #ifdef IS_64_BIT
 #define PAD_PTR(p) p
-typedef u64 mali_gpu_ptr;
-#define MALI_GPU_PTR_FORMAT "0x%lx"
+typedef u64 mali_ptr;
+#define MALI_PTR_FORMAT "0x%lx"
 
 #else
 
 #define PAD_PTR(p) p; u32 :32
-typedef u32 mali_gpu_ptr;
-#define MALI_GPU_PTR_FORMAT "0x%x"
+typedef u32 mali_ptr;
+#define MALI_PTR_FORMAT "0x%x"
 #endif
 
 /* FIXME: Again, they don't specify any of these as packed structs. However,
@@ -694,7 +694,7 @@ struct mali_external_resource {
 };
 
 struct mali_jd_atom_v2 {
-	PAD_PTR(mali_gpu_ptr jc);           /**< job-chain GPU address */
+	PAD_PTR(mali_ptr jc);           /**< job-chain GPU address */
 	struct mali_jd_udata udata;	    /**< user data */
 	PAD_PTR(struct mali_external_resource *ext_res_list); /**< list of external resources */
 	u16 nr_ext_res;			    /**< nr of external resources */
@@ -749,7 +749,7 @@ struct mali_ioctl_mem_alloc {
 	/* [in/out] */
 	u64 flags;
 	/* [out] */
-	PAD_PTR(mali_gpu_ptr gpu_va);
+	PAD_PTR(mali_ptr gpu_va);
 	u16 va_alignment;
 
 	u32 :32;
@@ -771,7 +771,7 @@ struct mali_ioctl_mem_import {
 	/* [in/out] */
 	u64 flags;
 	/* [out] */
-	mali_gpu_ptr gpu_va;
+	mali_ptr gpu_va;
 	u64 va_pages;
 } __attribute__((packed));
 /* FIXME: Size unconfirmed (haven't seen in a trace yet) */
@@ -779,7 +779,7 @@ struct mali_ioctl_mem_import {
 struct mali_ioctl_mem_commit {
 	union mali_ioctl_header header;
 	/* [in] */
-	PAD_PTR(mali_gpu_ptr gpu_addr);
+	PAD_PTR(mali_ptr gpu_addr);
 	u64 pages;
 	/* [out] */
 	u32 result_subcode;
@@ -790,7 +790,7 @@ ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_commit, 32, 32);
 struct mali_ioctl_mem_query {
 	union mali_ioctl_header header;
 	/* [in] */
-	PAD_PTR(mali_gpu_ptr gpu_addr);
+	PAD_PTR(mali_ptr gpu_addr);
 	enum {
 		MALI_MEM_QUERY_COMMIT_SIZE = 1,
 		MALI_MEM_QUERY_VA_SIZE     = 2,
@@ -804,14 +804,14 @@ ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_query, 32, 32);
 
 struct mali_ioctl_mem_free {
 	union mali_ioctl_header header;
-	PAD_PTR(mali_gpu_ptr gpu_addr); /* [in] */
+	PAD_PTR(mali_ptr gpu_addr); /* [in] */
 } __attribute__((packed));
 /* FIXME: Size unconfirmed (haven't seen in a trace yet) */
 
 struct mali_ioctl_mem_flags_change {
 	union mali_ioctl_header header;
 	/* [in] */
-	PAD_PTR(mali_gpu_ptr gpu_va);
+	PAD_PTR(mali_ptr gpu_va);
 	u64 flags;
 	u64 mask;
 } __attribute__((packed));
@@ -826,13 +826,13 @@ struct mali_ioctl_mem_alias {
 	u64 nents;
 	u64 ai;
 	/* [out] */
-	PAD_PTR(mali_gpu_ptr gpu_va);
+	PAD_PTR(mali_ptr gpu_va);
 	u64 va_pages;
 } __attribute__((packed));
 
 struct mali_ioctl_sync {
 	union mali_ioctl_header header;
-	PAD_PTR(mali_gpu_ptr handle);
+	PAD_PTR(mali_ptr handle);
 	PAD_PTR(void* user_addr);
 	u64 size;
 	enum {

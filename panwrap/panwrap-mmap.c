@@ -52,11 +52,11 @@ static const struct panwrap_flag_info mmap_prot_flag_info[] = {
 };
 #undef FLAG_INFO
 
-void panwrap_track_allocation(mali_gpu_ptr addr, int flags)
+void panwrap_track_allocation(mali_ptr addr, int flags)
 {
 	struct panwrap_allocated_memory *mem = malloc(sizeof(*mem));
 
-	panwrap_log("GPU memory allocated at GPU VA " MALI_GPU_PTR_FORMAT "\n",
+	panwrap_log("GPU memory allocated at GPU VA " MALI_PTR_FORMAT "\n",
 		    addr);
 	list_init(&mem->node);
 	mem->gpu_va = addr;
@@ -65,7 +65,7 @@ void panwrap_track_allocation(mali_gpu_ptr addr, int flags)
 	list_add(&mem->node, &allocations);
 }
 
-void panwrap_track_mmap(mali_gpu_ptr gpu_va, void *addr, size_t length,
+void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 			int prot, int flags)
 {
 	struct panwrap_mapped_memory *mapped_mem = NULL;
@@ -79,7 +79,7 @@ void panwrap_track_mmap(mali_gpu_ptr gpu_va, void *addr, size_t length,
 		}
 	}
 	if (!mem) {
-		panwrap_log("Error: Untracked gpu memory " MALI_GPU_PTR_FORMAT " mapped to %p\n",
+		panwrap_log("Error: Untracked gpu memory " MALI_PTR_FORMAT " mapped to %p\n",
 			    gpu_va, addr);
 		panwrap_log("\tprot = ");
 		panwrap_log_decoded_flags(mmap_prot_flag_info, prot);
@@ -94,7 +94,7 @@ void panwrap_track_mmap(mali_gpu_ptr gpu_va, void *addr, size_t length,
 	mapped_mem = malloc(sizeof(*mapped_mem));
 	list_init(&mapped_mem->node);
 	mapped_mem->gpu_va =
-		mem->flags & MALI_MEM_SAME_VA ? (mali_gpu_ptr)addr : gpu_va;
+		mem->flags & MALI_MEM_SAME_VA ? (mali_ptr)addr : gpu_va;
 	mapped_mem->length = length;
 	mapped_mem->addr = addr;
 	mapped_mem->prot = prot;
@@ -105,7 +105,7 @@ void panwrap_track_mmap(mali_gpu_ptr gpu_va, void *addr, size_t length,
 	list_del(&mem->node);
 	free(mem);
 
-	panwrap_log("GPU VA " MALI_GPU_PTR_FORMAT " mapped to %p - %p (length == %zu)\n",
+	panwrap_log("GPU VA " MALI_PTR_FORMAT " mapped to %p - %p (length == %zu)\n",
 		    mapped_mem->gpu_va, addr, addr + length, length);
 }
 
@@ -149,7 +149,7 @@ struct panwrap_mapped_memory *panwrap_find_mapped_mem_containing(void *addr)
 	return NULL;
 }
 
-struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem(mali_gpu_ptr addr)
+struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem(mali_ptr addr)
 {
 	struct panwrap_mapped_memory *pos;
 
@@ -161,7 +161,7 @@ struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem(mali_gpu_ptr addr)
 	return NULL;
 }
 
-struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem_containing(mali_gpu_ptr addr)
+struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem_containing(mali_ptr addr)
 {
 	struct panwrap_mapped_memory *pos;
 
@@ -175,7 +175,7 @@ struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem_containing(mali_gpu_pt
 
 void __attribute__((noreturn))
 __panwrap_deref_mem_err(const struct panwrap_mapped_memory *mem,
-			mali_gpu_ptr gpu_va, size_t size,
+			mali_ptr gpu_va, size_t size,
 			int line, const char *filename)
 {
 	panwrap_indent = 0;
@@ -187,8 +187,8 @@ __panwrap_deref_mem_err(const struct panwrap_mapped_memory *mem,
 	panwrap_indent++;
 	panwrap_log("CPU VA: %p - %p\n",
 		    mem->addr, mem->addr + mem->length);
-	panwrap_log("GPU VA: " MALI_GPU_PTR_FORMAT " - " MALI_GPU_PTR_FORMAT "\n",
-		    mem->gpu_va, (mali_gpu_ptr)(mem->gpu_va + mem->length));
+	panwrap_log("GPU VA: " MALI_PTR_FORMAT " - " MALI_PTR_FORMAT "\n",
+		    mem->gpu_va, (mali_ptr)(mem->gpu_va + mem->length));
 	panwrap_log("Length: %zu bytes\n", mem->length);
 	panwrap_indent--;
 	panwrap_log("Access length was %zu (%zu out of bounds)\n",
