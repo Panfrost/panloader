@@ -180,7 +180,9 @@ __panwrap_deref_mem_err(const struct panwrap_mapped_memory *mem,
 {
 	panwrap_indent = 0;
 	panwrap_log("\n");
-	panwrap_log("OUT OF BOUNDS GPU_VA ACCESS:\n");
+	panwrap_log("OUT OF BOUNDS GPU_VA ACCESS @"
+		    MALI_PTR_FORMAT " - " MALI_PTR_FORMAT ":\n",
+		    gpu_va, gpu_va + size);
 	panwrap_log("Occurred at line %d of %s\n",
 		    line, filename);
 	panwrap_log("Mapping information:\n");
