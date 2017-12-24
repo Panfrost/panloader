@@ -142,7 +142,7 @@ struct panwrap_mapped_memory *panwrap_find_mapped_mem_containing(void *addr)
 	struct panwrap_mapped_memory *pos;
 
 	list_for_each_entry(pos, &mmaps, node) {
-		if (addr >= pos->addr && addr <= pos->addr + pos->length)
+		if (addr >= pos->addr && addr < pos->addr + pos->length)
 			return pos;
 	}
 
@@ -166,7 +166,7 @@ struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem_containing(mali_ptr ad
 	struct panwrap_mapped_memory *pos;
 
 	list_for_each_entry(pos, &mmaps, node) {
-		if (addr >= pos->gpu_va && addr <= pos->gpu_va + pos->length)
+		if (addr >= pos->gpu_va && addr < pos->gpu_va + pos->length)
 			return pos;
 	}
 
