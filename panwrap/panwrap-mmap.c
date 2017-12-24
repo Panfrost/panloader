@@ -195,8 +195,12 @@ __panwrap_deref_mem_err(const struct panwrap_mapped_memory *mem,
 			    mem->gpu_va, (mali_ptr)(mem->gpu_va + mem->length));
 		panwrap_log("Length: %zu bytes\n", mem->length);
 		panwrap_indent--;
-		panwrap_log("Access length was %zu (%zu out of bounds)\n",
-			    size, ((gpu_va - mem->gpu_va) + size) - mem->length);
+
+		if (!(mem->prot & MALI_MEM_PROT_CPU_RD))
+			panwrap_log("Memory is only accessible from GPU\n");
+		else
+			panwrap_log("Access length was %zu (%zu out of bounds)\n",
+				    size, ((gpu_va - mem->gpu_va) + size) - mem->length);
 	} else {
 		panwrap_log("GPU memory is not contained within known GPU VA mappings\n");
 

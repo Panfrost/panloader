@@ -62,7 +62,9 @@ __panwrap_deref_gpu_mem(const struct panwrap_mapped_memory *mem,
 	if (!mem)
 		mem = panwrap_find_mapped_gpu_mem_containing(gpu_va);
 
-	if (!mem || size + (gpu_va - mem->gpu_va) > mem->length)
+	if (!mem ||
+	    size + (gpu_va - mem->gpu_va) > mem->length ||
+	    !(mem->prot & MALI_MEM_PROT_CPU_RD))
 		__panwrap_deref_mem_err(mem, gpu_va, size, line, filename);
 
 	return (void*)gpu_va + (ptrdiff_t)((void*)mem->gpu_va - mem->addr);
