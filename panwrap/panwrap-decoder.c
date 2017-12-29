@@ -119,7 +119,11 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 
 	panwrap_log("Unknown #2:\n");
 	panwrap_indent++;
-	panwrap_log_hexdump(panwrap_deref_gpu_mem(mem, mfbd->unknown2, 64), 64);
+	if (mfbd->unknown2)
+		panwrap_log_hexdump(panwrap_deref_gpu_mem(mem, mfbd->unknown2, 64),
+				    64);
+	else
+		panwrap_log("<none>\n");
 	panwrap_indent--;
 
 	/*panwrap_log("ugan */
