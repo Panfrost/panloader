@@ -73,4 +73,8 @@ __panwrap_deref_gpu_mem(const struct panwrap_mapped_memory *mem,
 #define panwrap_deref_gpu_mem(mem, gpu_va, size) \
 	__panwrap_deref_gpu_mem(mem, gpu_va, size, __LINE__, __FILE__)
 
+#define PANWRAP_PTR(mem, gpu_va, type) \
+	((type*)(__panwrap_deref_gpu_mem(mem, gpu_va, sizeof(type), \
+					 __LINE__, __FILE__)))
+
 #endif /* __MMAP_TRACE_H__ */
