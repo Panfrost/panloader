@@ -262,10 +262,10 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_log_hexdump(v->block2, sizeof(v->block2));
 	panwrap_indent--;
 
-	if (h->job_type == JOB_TYPE_TILER) {
+	if (h->job_type == JOB_TYPE_TILER && v->block1[7]) {
 		panwrap_log("GL draw mode: %s\n",
 			    panwrap_gl_mode_name(
-				*PANWRAP_PTR(attr_mem, v->block1[8], u8)));
+				*PANWRAP_PTR(attr_mem, v->block1[7], u8)));
 	}
 
 	/* TODO: Rename appropriately */
