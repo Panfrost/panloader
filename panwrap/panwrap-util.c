@@ -304,6 +304,15 @@ panwrap_log_flush()
 	fflush(log_output);
 }
 
+/* Some functions for debugging in gdb */
+void *
+panwrap_download_mem(void *p, size_t s)
+{
+	void *cpy = malloc(s);
+	memcpy(cpy, p, s);
+	return cpy;
+}
+
 static bool
 parse_env_bool(const char *env, bool def)
 {
