@@ -28,6 +28,8 @@
 #define PAD_PTR(p) p; u32 :32
 #endif
 
+#define MALI_PAYLOAD_SIZE 256
+
 enum mali_job_type {
 	JOB_NOT_STARTED	= 0,
 	JOB_TYPE_NULL = 1,

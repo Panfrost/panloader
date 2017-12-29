@@ -287,47 +287,53 @@ void panwrap_trace_hw_chain(mali_ptr jc_gpu_va)
 {
 	struct panwrap_mapped_memory *mem =
 		panwrap_find_mapped_gpu_mem_containing(jc_gpu_va);
-	struct mali_job_descriptor_header *h =
-		panwrap_deref_gpu_mem(mem, jc_gpu_va, sizeof(*h));
-	mali_ptr payload = jc_gpu_va + sizeof(*h);
+	struct mali_job_descriptor_header *h;
 
-	panwrap_log("%s job, %d-bit, status %X, incomplete %X\n",
-		    panwrap_job_type_name(h->job_type),
-		    h->job_descriptor_size ? 64 : 32,
-		    h->exception_status,
-		    h->first_incomplete_task);
-	panwrap_log("fault %" PRIX64 ", barrier %d, index %hX\n",
-		    h->fault_pointer,
-		    h->job_barrier,
-		    h->job_index);
-	panwrap_log("dependencies (%hX, %hX)\n",
-		    h->job_dependency_index_1,
-		    h->job_dependency_index_2);
+	do {
+		mali_ptr payload_ptr = jc_gpu_va + sizeof(*h);
+		void *payload;
 
-	panwrap_indent++;
+		h = PANWRAP_PTR(mem, jc_gpu_va, typeof(*h));
+		payload = panwrap_deref_gpu_mem(mem, payload_ptr,
+						MALI_PAYLOAD_SIZE);
 
-	panwrap_log("Raw payload:\n");
-	panwrap_indent++;
-	panwrap_log_hexdump(panwrap_deref_gpu_mem(mem, payload, 256), 256);
-	panwrap_indent--;
+		panwrap_log("%s job, %d-bit, status %X, incomplete %X\n",
+			    panwrap_job_type_name(h->job_type),
+			    h->job_descriptor_size ? 64 : 32,
+			    h->exception_status,
+			    h->first_incomplete_task);
+		panwrap_log("fault %" PRIX64 ", barrier %d, index %hX\n",
+			    h->fault_pointer,
+			    h->job_barrier,
+			    h->job_index);
+		panwrap_log("dependencies (%hX, %hX)\n",
+			    h->job_dependency_index_1,
+			    h->job_dependency_index_2);
 
-	switch (h->job_type) {
-	case JOB_TYPE_SET_VALUE:
-		{
-			struct mali_payload_set_value *s =
-				panwrap_deref_gpu_mem(mem, payload, sizeof(*s));
+		panwrap_indent++;
 
-			panwrap_log("set value -> %" PRIX64 " (%" PRIX64 ")\n",
-				    s->out, s->unknown);
+		panwrap_log("Raw payload:\n");
+		panwrap_indent++;
+		panwrap_log_hexdump(payload, MALI_PAYLOAD_SIZE);
+		panwrap_indent--;
+
+		switch (h->job_type) {
+		case JOB_TYPE_SET_VALUE:
+			{
+				struct mali_payload_set_value *s = payload;
+
+				panwrap_log("set value -> %" PRIX64 " (%" PRIX64 ")\n",
+					    s->out, s->unknown);
+				break;
+			}
+		case JOB_TYPE_TILER:
+		case JOB_TYPE_VERTEX:
+			panwrap_decode_vertex_or_tiler_job(h, mem, payload_ptr);
+			break;
+		default:
 			break;
 		}
-	case JOB_TYPE_TILER:
-	case JOB_TYPE_VERTEX:
-		panwrap_decode_vertex_or_tiler_job(h, mem, payload);
-		break;
-	default:
-		break;
-	}
 
-	panwrap_indent--;
+		panwrap_indent--;
+	} while ((jc_gpu_va = h->next_job));
 }
