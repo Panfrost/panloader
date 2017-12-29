@@ -49,6 +49,12 @@ struct panwrap_mapped_memory *panwrap_find_mapped_mem_containing(void *addr);
 struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem(mali_ptr addr);
 struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem_containing(mali_ptr addr);
 
+void panwrap_assert_gpu_same(const struct panwrap_mapped_memory *mem,
+			     mali_ptr gpu_va, size_t size,
+			     const unsigned char *data);
+void panwrap_assert_gpu_mem_zero(const struct panwrap_mapped_memory *mem,
+				 mali_ptr gpu_va, size_t size);
+
 void __attribute__((noreturn))
 __panwrap_deref_mem_err(const struct panwrap_mapped_memory *mem,
 			mali_ptr gpu_va, size_t size,

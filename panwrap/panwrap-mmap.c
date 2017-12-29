@@ -173,6 +173,49 @@ struct panwrap_mapped_memory *panwrap_find_mapped_gpu_mem_containing(mali_ptr ad
 	return NULL;
 }
 
+void
+panwrap_assert_gpu_same(const struct panwrap_mapped_memory *mem,
+			mali_ptr gpu_va, size_t size,
+			const unsigned char *data)
+{
+	const char *buffer = panwrap_deref_gpu_mem(mem, gpu_va, size);
+
+	for (size_t i = 0; i < size; i++) {
+		if (buffer[i] != data[i]) {
+			panwrap_log("At " MALI_PTR_FORMAT ", expected:\n",
+				    gpu_va);
+			panwrap_indent++;
+			panwrap_log_hexdump_trimmed(data, size);
+			panwrap_indent--;
+			panwrap_log("Instead got:\n");
+			panwrap_indent++;
+			panwrap_log_hexdump_trimmed(buffer, size);
+			panwrap_indent--;
+
+			abort();
+		}
+	}
+}
+
+void
+panwrap_assert_gpu_mem_zero(const struct panwrap_mapped_memory *mem,
+			    mali_ptr gpu_va, size_t size)
+{
+	const char *buffer = panwrap_deref_gpu_mem(mem, gpu_va, size);
+
+	for (size_t i = 0; i < size; i++) {
+		if (buffer[i] != '\0') {
+			panwrap_log("At " MALI_PTR_FORMAT ", expected all 0 but got:\n",
+				    gpu_va);
+			panwrap_indent++;
+			panwrap_log_hexdump_trimmed(buffer, size);
+			panwrap_indent--;
+
+			abort();
+		}
+	}
+}
+
 void __attribute__((noreturn))
 __panwrap_deref_mem_err(const struct panwrap_mapped_memory *mem,
 			mali_ptr gpu_va, size_t size,
