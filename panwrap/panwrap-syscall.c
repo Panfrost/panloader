@@ -255,7 +255,7 @@ ioctl_log_decoded_jd_core_req(mali_jd_core_req req)
 }
 #undef SOFT_FLAG
 
-static void
+static inline void
 ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alloc *args = ptr;
@@ -269,7 +269,7 @@ ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
 	panwrap_log_cont("\n");
 }
 
-static void
+static inline void
 ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_import *args = ptr;
@@ -290,7 +290,7 @@ ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 	panwrap_log_cont("\n");
 }
 
-static void
+static inline void
 ioctl_decode_pre_mem_commit(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_commit *args = ptr;
@@ -299,7 +299,7 @@ ioctl_decode_pre_mem_commit(unsigned long int request, void *ptr)
 	panwrap_log("pages = %" PRId64 "\n", args->pages);
 }
 
-static void
+static inline void
 ioctl_decode_pre_mem_query(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_query *args = ptr;
@@ -316,7 +316,7 @@ ioctl_decode_pre_mem_query(unsigned long int request, void *ptr)
 	panwrap_log("query = %d (%s)\n", args->query, query_name);
 }
 
-static void
+static inline void
 ioctl_decode_pre_mem_free(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_free *args = ptr;
@@ -324,7 +324,7 @@ ioctl_decode_pre_mem_free(unsigned long int request, void *ptr)
 	panwrap_log("gpu_addr = " MALI_PTR_FORMAT "\n", args->gpu_addr);
 }
 
-static void
+static inline void
 ioctl_decode_pre_mem_flags_change(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_flags_change *args = ptr;
@@ -336,7 +336,7 @@ ioctl_decode_pre_mem_flags_change(unsigned long int request, void *ptr)
 	panwrap_log("mask = 0x%" PRIx64 "\n", args->mask);
 }
 
-static void
+static inline void
 ioctl_decode_pre_mem_alias(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alias *args = ptr;
@@ -388,7 +388,7 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 	}
 }
 
-static void
+static inline void
 ioctl_decode_pre_set_flags(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_set_flags *args = ptr;
@@ -491,7 +491,7 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 	panwrap_indent--;
 }
 
-static void
+static inline void
 ioctl_decode_pre(unsigned long int request, void *ptr)
 {
 	switch (IOCTL_CASE(request)) {
@@ -533,7 +533,7 @@ ioctl_decode_pre(unsigned long int request, void *ptr)
 	}
 }
 
-static void
+static inline void
 ioctl_decode_post_get_version(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_get_version *args = ptr;
@@ -542,7 +542,7 @@ ioctl_decode_post_get_version(unsigned long int request, void *ptr)
 	panwrap_log("minor = %3d\n", args->minor);
 }
 
-static void
+static inline void
 ioctl_decode_post_mem_alloc(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alloc *args = ptr;
@@ -553,7 +553,7 @@ ioctl_decode_post_mem_alloc(unsigned long int request, void *ptr)
 	panwrap_track_allocation(args->gpu_va, args->flags);
 }
 
-static void
+static inline void
 ioctl_decode_post_mem_import(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_import *args = ptr;
@@ -565,7 +565,7 @@ ioctl_decode_post_mem_import(unsigned long int request, void *ptr)
 	panwrap_log_cont("\n");
 }
 
-static void
+static inline void
 ioctl_decode_post_mem_commit(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_commit *args = ptr;
@@ -573,7 +573,7 @@ ioctl_decode_post_mem_commit(unsigned long int request, void *ptr)
 	panwrap_log("result_subcode = %d\n", args->result_subcode);
 }
 
-static void
+static inline void
 ioctl_decode_post_mem_query(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_query *args = ptr;
@@ -581,7 +581,7 @@ ioctl_decode_post_mem_query(unsigned long int request, void *ptr)
 	panwrap_log("value = 0x%" PRIx64 "\n", args->value);
 }
 
-static void
+static inline void
 ioctl_decode_post_mem_alias(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alias *args = ptr;
@@ -590,7 +590,7 @@ ioctl_decode_post_mem_alias(unsigned long int request, void *ptr)
 	panwrap_log("va_pages = %" PRId64 "\n", args->va_pages);
 }
 
-static void inline
+static inline void
 ioctl_decode_post_sync(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_sync *args = ptr;
@@ -604,7 +604,7 @@ ioctl_decode_post_sync(unsigned long int request, void *ptr)
 	panwrap_indent--;
 }
 
-static void
+static inline void
 ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_gpu_props_reg_dump *args = ptr;
@@ -741,7 +741,7 @@ ioctl_decode_post_get_context_id(unsigned long int request, void *ptr)
 	panwrap_log("id = 0x%" PRIx64 "\n", args->id);
 }
 
-static void
+static inline void
 ioctl_decode_post(unsigned long int request, void *ptr)
 {
 	switch (IOCTL_CASE(request)) {
