@@ -2,6 +2,7 @@ srcs = [
     'panwrap-syscall.c',
     'panwrap-util.c',
     'panwrap-mmap.c',
+    'panwrap-decoder.c',
 ]
 
 shared_library(

@@ -429,24 +429,14 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 	panwrap_indent++;
 	for (int i = 0; i < args->nr_atoms; i++) {
 		const struct mali_jd_atom_v2 *a = &atoms[i];
-		struct panwrap_mapped_memory *mem;
 
 		panwrap_log("jc = " MALI_PTR_FORMAT "\n", a->jc);
-		mem = panwrap_find_mapped_gpu_mem_containing(a->jc);
-		if (mem) {
-			void *jc = panwrap_deref_gpu_mem(mem, a->jc, 0);
-			off_t offset = jc - mem->addr;
+		panwrap_indent++;
 
-			panwrap_log("Address %" PRIu64 " bytes inside mmap %p - %p (length=%zu)\n",
-				    offset, mem->addr, mem->addr + mem->length,
-				    mem->length);
-			panwrap_log("Dumping contents:\n");
-			panwrap_indent++;
-			panwrap_log_hexdump_trimmed(jc, mem->length - offset);
-			panwrap_indent--;
-		} else {
-			panwrap_log("ERROR! jc contained in unknown memory region, cannot dump\n");
-		}
+		panwrap_log("Decoding job chain:\n");
+		panwrap_indent++;
+		panwrap_trace_hw_chain(a->jc);
+		panwrap_indent--;
 
 		panwrap_log("udata = [0x%" PRIx64 ", 0x%" PRIx64 "]\n",
 			    a->udata.blob[0], a->udata.blob[1]);
@@ -495,6 +485,8 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 		panwrap_log("core_req = ");
 		ioctl_log_decoded_jd_core_req(a->core_req);
 		panwrap_log_cont("\n");
+
+		panwrap_indent--;
 	}
 	panwrap_indent--;
 }

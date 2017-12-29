@@ -23,6 +23,7 @@
 #include <dlfcn.h>
 #include <panloader-util.h>
 #include "panwrap-mmap.h"
+#include "panwrap-decoder.h"
 
 struct panwrap_flag_info {
 	u64 flag;
