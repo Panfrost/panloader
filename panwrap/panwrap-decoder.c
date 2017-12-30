@@ -119,10 +119,23 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 
 	panwrap_log("Unknown #2:\n");
 	panwrap_indent++;
-	if (mfbd->unknown2)
-		panwrap_log_hexdump(panwrap_deref_gpu_mem(mem, mfbd->unknown2, 64),
-				    64);
-	else
+	/* Seems to sometimes be a pointer but sometimes not? Eithr way, we
+	 * can't make assumptions on this one since freedreno's test-clear demo
+	 * seems to crash this by having an invalid memory address here
+	 */
+	if (mfbd->unknown2) {
+		struct panwrap_mapped_memory *unk2_mem =
+			panwrap_find_mapped_gpu_mem_containing(mfbd->unknown2);
+
+		if (unk2_mem) {
+			panwrap_log_hexdump(
+			    panwrap_deref_gpu_mem(unk2_mem, mfbd->unknown2, 64),
+			    64);
+		} else {
+			panwrap_log("Error! unk2 has unknown address " MALI_PTR_FORMAT "\n",
+				    mfbd->unknown2);
+		}
+	} else
 		panwrap_log("<none>\n");
 	panwrap_indent--;
 
