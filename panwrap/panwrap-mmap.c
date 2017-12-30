@@ -178,7 +178,7 @@ panwrap_assert_gpu_same(const struct panwrap_mapped_memory *mem,
 			mali_ptr gpu_va, size_t size,
 			const unsigned char *data)
 {
-	const char *buffer = panwrap_deref_gpu_mem(mem, gpu_va, size);
+	const char *buffer = panwrap_fetch_gpu_mem(mem, gpu_va, size);
 
 	for (size_t i = 0; i < size; i++) {
 		if (buffer[i] != data[i]) {
@@ -201,7 +201,7 @@ void
 panwrap_assert_gpu_mem_zero(const struct panwrap_mapped_memory *mem,
 			    mali_ptr gpu_va, size_t size)
 {
-	const char *buffer = panwrap_deref_gpu_mem(mem, gpu_va, size);
+	const char *buffer = panwrap_fetch_gpu_mem(mem, gpu_va, size);
 
 	for (size_t i = 0; i < size; i++) {
 		if (buffer[i] != '\0') {
@@ -217,7 +217,7 @@ panwrap_assert_gpu_mem_zero(const struct panwrap_mapped_memory *mem,
 }
 
 void __attribute__((noreturn))
-__panwrap_deref_mem_err(const struct panwrap_mapped_memory *mem,
+__panwrap_fetch_mem_err(const struct panwrap_mapped_memory *mem,
 			mali_ptr gpu_va, size_t size,
 			int line, const char *filename)
 {

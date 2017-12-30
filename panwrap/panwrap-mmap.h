@@ -56,12 +56,12 @@ void panwrap_assert_gpu_mem_zero(const struct panwrap_mapped_memory *mem,
 				 mali_ptr gpu_va, size_t size);
 
 void __attribute__((noreturn))
-__panwrap_deref_mem_err(const struct panwrap_mapped_memory *mem,
+__panwrap_fetch_mem_err(const struct panwrap_mapped_memory *mem,
 			mali_ptr gpu_va, size_t size,
 			int line, const char *filename);
 
 static inline void *
-__panwrap_deref_gpu_mem(const struct panwrap_mapped_memory *mem,
+__panwrap_fetch_gpu_mem(const struct panwrap_mapped_memory *mem,
 			mali_ptr gpu_va, size_t size,
 			int line, const char *filename)
 {
@@ -71,16 +71,24 @@ __panwrap_deref_gpu_mem(const struct panwrap_mapped_memory *mem,
 	if (!mem ||
 	    size + (gpu_va - mem->gpu_va) > mem->length ||
 	    !(mem->prot & MALI_MEM_PROT_CPU_RD))
-		__panwrap_deref_mem_err(mem, gpu_va, size, line, filename);
+		__panwrap_fetch_mem_err(mem, gpu_va, size, line, filename);
 
 	return (void*)gpu_va + (ptrdiff_t)((void*)mem->gpu_va - mem->addr);
 }
 
-#define panwrap_deref_gpu_mem(mem, gpu_va, size) \
-	__panwrap_deref_gpu_mem(mem, gpu_va, size, __LINE__, __FILE__)
+#define panwrap_fetch_gpu_mem(mem, gpu_va, size) \
+	__panwrap_fetch_gpu_mem(mem, gpu_va, size, __LINE__, __FILE__)
 
+/* Returns a validated pointer to mapped GPU memory with the given pointer type,
+ * size automatically determined from the pointer type
+ */
 #define PANWRAP_PTR(mem, gpu_va, type) \
-	((type*)(__panwrap_deref_gpu_mem(mem, gpu_va, sizeof(type), \
+	((type*)(__panwrap_fetch_gpu_mem(mem, gpu_va, sizeof(type), \
 					 __LINE__, __FILE__)))
+
+/* Usage: <variable type> PANWRAP_PTR_VAR(name, mem, gpu_va) */
+#define PANWRAP_PTR_VAR(name, mem, gpu_va) \
+	name = __panwrap_fetch_gpu_mem(mem, gpu_va, sizeof(*name), \
+				       __LINE__, __FILE__)
 
 #endif /* __MMAP_TRACE_H__ */

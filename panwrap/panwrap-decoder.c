@@ -63,8 +63,8 @@ void panwrap_decode_attributes(const struct panwrap_mapped_memory *mem,
 			       mali_ptr addr)
 {
 	struct mali_attr *attr =
-		panwrap_deref_gpu_mem(mem, addr, sizeof(*attr));
-	float *buffer = panwrap_deref_gpu_mem(
+		panwrap_fetch_gpu_mem(mem, addr, sizeof(*attr));
+	float *buffer = panwrap_fetch_gpu_mem(
 	    mem, attr->elements_upper << 2, attr->size);
 	size_t vertex_count;
 	size_t component_count;
@@ -92,8 +92,7 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 			      u8 flags)
 {
 	mali_ptr fbd_ptr = fbd_upper << 6;
-	struct mali_tentative_mfbd *mfbd =
-		PANWRAP_PTR(mem, fbd_ptr, typeof(*mfbd));
+	struct mali_tentative_mfbd *PANWRAP_PTR_VAR(mfbd, mem, fbd_ptr);
 
 	panwrap_log("%s @ " MALI_PTR_FMT ":\n",
 		    panwrap_decode_fbd_type(type), fbd_ptr);
@@ -129,7 +128,7 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 
 		if (unk2_mem) {
 			panwrap_log_hexdump(
-			    panwrap_deref_gpu_mem(unk2_mem, mfbd->unknown2, 64),
+			    panwrap_fetch_gpu_mem(unk2_mem, mfbd->unknown2, 64),
 			    64);
 		} else {
 			panwrap_log("Error! unk2 has unknown address " MALI_PTR_FMT "\n",
@@ -181,7 +180,7 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 	panwrap_indent++;
 	if (mfbd->unknown_gpu_addressN) {
 		panwrap_log_hexdump_trimmed(
-		    panwrap_deref_gpu_mem(NULL, mfbd->unknown_gpu_addressN,
+		    panwrap_fetch_gpu_mem(NULL, mfbd->unknown_gpu_addressN,
 					  64),
 		    64);
 	} else {
@@ -208,8 +207,7 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 					const struct panwrap_mapped_memory *mem,
 					mali_ptr payload)
 {
-	struct mali_payload_vertex_tiler *v =
-		PANWRAP_PTR(mem, payload, typeof(*v));
+	struct mali_payload_vertex_tiler *PANWRAP_PTR_VAR(v, mem, payload);
 	struct mali_shader_meta *meta;
 	struct panwrap_mapped_memory *attr_mem;
 	struct mali_attr_meta *attr_meta;
@@ -235,12 +233,12 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_indent--;
 
 	if (meta_ptr) {
-		meta = panwrap_deref_gpu_mem(NULL, meta_ptr, sizeof(*meta));
+		meta = panwrap_fetch_gpu_mem(NULL, meta_ptr, sizeof(*meta));
 
 		panwrap_log("Shader blob: @ " MALI_PTR_FMT "\n", meta_ptr);
 		panwrap_indent++;
 		panwrap_log_hexdump(
-		    panwrap_deref_gpu_mem(NULL, meta->shader, 832), 832);
+		    panwrap_fetch_gpu_mem(NULL, meta->shader, 832), 832);
 		panwrap_indent--;
 	} else
 		panwrap_log("<no shader>\n");
@@ -251,7 +249,7 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		for (p = v->attribute_meta;
 		     *PANWRAP_PTR(attr_mem, p, u64) != 0;
 		     p += sizeof(u64)) {
-			attr_meta = panwrap_deref_gpu_mem(attr_mem, p,
+			attr_meta = panwrap_fetch_gpu_mem(attr_mem, p,
 							  sizeof(*attr_mem));
 
 			panwrap_log("%x:\n", attr_meta->index);
@@ -307,7 +305,7 @@ void panwrap_trace_hw_chain(mali_ptr jc_gpu_va)
 		void *payload;
 
 		h = PANWRAP_PTR(mem, jc_gpu_va, typeof(*h));
-		payload = panwrap_deref_gpu_mem(mem, payload_ptr,
+		payload = panwrap_fetch_gpu_mem(mem, payload_ptr,
 						MALI_PAYLOAD_SIZE);
 
 		panwrap_log("%s job, %d-bit, status %X, incomplete %X\n",
