@@ -72,7 +72,7 @@ void panwrap_decode_attributes(const struct panwrap_mapped_memory *mem,
 	vertex_count = attr->size / attr->stride;
 	component_count = attr->stride / sizeof(float);
 
-	panwrap_log(MALI_PTR_FORMAT " (%x):\n",
+	panwrap_log(MALI_PTR_FMT " (%x):\n",
 		    attr->elements_upper << 2, attr->flags);
 
 	panwrap_indent++;
@@ -95,7 +95,7 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 	struct mali_tentative_mfbd *mfbd =
 		PANWRAP_PTR(mem, fbd_ptr, typeof(*mfbd));
 
-	panwrap_log("%s @ " MALI_PTR_FORMAT ":\n",
+	panwrap_log("%s @ " MALI_PTR_FMT ":\n",
 		    panwrap_decode_fbd_type(type), fbd_ptr);
 	panwrap_indent++;
 
@@ -109,7 +109,7 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 	panwrap_indent--;
 
 	panwrap_log("Flags: 0x%x\n", mfbd->flags);
-	panwrap_log("Heap free address: " MALI_PTR_FORMAT "\n",
+	panwrap_log("Heap free address: " MALI_PTR_FMT "\n",
 		    mfbd->heap_free_address);
 
 	panwrap_log("Block #1:\n");
@@ -132,7 +132,7 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 			    panwrap_deref_gpu_mem(unk2_mem, mfbd->unknown2, 64),
 			    64);
 		} else {
-			panwrap_log("Error! unk2 has unknown address " MALI_PTR_FORMAT "\n",
+			panwrap_log("Error! unk2 has unknown address " MALI_PTR_FMT "\n",
 				    mfbd->unknown2);
 		}
 	} else
@@ -173,9 +173,9 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 	 * pointless.
 	 */
 
-	panwrap_log("ugaT " MALI_PTR_FORMAT ", uga " MALI_PTR_FORMAT "\n",
+	panwrap_log("ugaT " MALI_PTR_FMT ", uga " MALI_PTR_FMT "\n",
 		    mfbd->ugaT, mfbd->unknown_gpu_address);
-	panwrap_log("ugan " MALI_PTR_FORMAT "\n",
+	panwrap_log("ugan " MALI_PTR_FMT "\n",
 		    mfbd->unknown_gpu_addressN);
 
 	panwrap_indent++;
@@ -189,7 +189,7 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 	}
 	panwrap_indent--;
 
-	panwrap_log("blah = " MALI_PTR_FORMAT "\n", mfbd->blah);
+	panwrap_log("blah = " MALI_PTR_FMT "\n", mfbd->blah);
 	panwrap_log("unk1 = %" PRIx32 " unk2 = %" PRIx64 " unk3 = %" PRIx64 "\n",
 		    mfbd->unknown1, mfbd->unknown2, mfbd->unknown3);
 
@@ -223,7 +223,7 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 	attr_mem = panwrap_find_mapped_gpu_mem_containing(v->attribute_meta);
 
-	panwrap_log("%s shader @ " MALI_PTR_FORMAT " (flags 0x%x)\n",
+	panwrap_log("%s shader @ " MALI_PTR_FMT " (flags 0x%x)\n",
 		    h->job_type == JOB_TYPE_VERTEX ? "Vertex" : "Fragment",
 		    meta_ptr, v->flags);
 
@@ -237,7 +237,7 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	if (meta_ptr) {
 		meta = panwrap_deref_gpu_mem(NULL, meta_ptr, sizeof(*meta));
 
-		panwrap_log("Shader blob: @ " MALI_PTR_FORMAT "\n", meta_ptr);
+		panwrap_log("Shader blob: @ " MALI_PTR_FMT "\n", meta_ptr);
 		panwrap_indent++;
 		panwrap_log_hexdump(
 		    panwrap_deref_gpu_mem(NULL, meta->shader, 832), 832);
@@ -282,7 +282,7 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	}
 
 	/* TODO: Rename appropriately */
-	panwrap_log("nulls: " MALI_PTR_FORMAT ", " MALI_PTR_FORMAT ", " MALI_PTR_FORMAT ", " MALI_PTR_FORMAT "\n",
+	panwrap_log("nulls: " MALI_PTR_FMT ", " MALI_PTR_FMT ", " MALI_PTR_FMT ", " MALI_PTR_FMT "\n",
 		    v->null0, v->null1, v->null2, v->null4);
 
 	/* FIXME: cafe had some sort of hex dump thingy here that seemed to

@@ -295,7 +295,7 @@ ioctl_decode_pre_mem_commit(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_commit *args = ptr;
 
-	panwrap_log("gpu_addr = " MALI_PTR_FORMAT "\n", args->gpu_addr);
+	panwrap_log("gpu_addr = " MALI_PTR_FMT "\n", args->gpu_addr);
 	panwrap_log("pages = %" PRId64 "\n", args->pages);
 }
 
@@ -312,7 +312,7 @@ ioctl_decode_pre_mem_query(unsigned long int request, void *ptr)
 	default:                         query_name = "???"; break;
 	}
 
-	panwrap_log("gpu_addr = " MALI_PTR_FORMAT "\n", args->gpu_addr);
+	panwrap_log("gpu_addr = " MALI_PTR_FMT "\n", args->gpu_addr);
 	panwrap_log("query = %d (%s)\n", args->query, query_name);
 }
 
@@ -321,7 +321,7 @@ ioctl_decode_pre_mem_free(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_free *args = ptr;
 
-	panwrap_log("gpu_addr = " MALI_PTR_FORMAT "\n", args->gpu_addr);
+	panwrap_log("gpu_addr = " MALI_PTR_FMT "\n", args->gpu_addr);
 }
 
 static inline void
@@ -329,7 +329,7 @@ ioctl_decode_pre_mem_flags_change(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_flags_change *args = ptr;
 
-	panwrap_log("gpu_va = " MALI_PTR_FORMAT "\n", args->gpu_va);
+	panwrap_log("gpu_va = " MALI_PTR_FMT "\n", args->gpu_va);
 	panwrap_log("flags = ");
 	panwrap_log_decoded_flags(mem_flag_info, args->flags);
 	panwrap_log_cont("\n");
@@ -364,7 +364,7 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 	}
 
 	if (mem) {
-		panwrap_log("handle = " MALI_PTR_FORMAT " (end=" MALI_PTR_FORMAT ", len=%zu)\n",
+		panwrap_log("handle = " MALI_PTR_FMT " (end=" MALI_PTR_FMT ", len=%zu)\n",
 			    args->handle,
 			    (mali_ptr)(args->handle + mem->length),
 			    mem->length);
@@ -373,7 +373,7 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 			    args->user_addr - mem->addr);
 	} else {
 		panwrap_log("ERROR! Unknown handle specified\n");
-		panwrap_log("handle = " MALI_PTR_FORMAT "\n", args->handle);
+		panwrap_log("handle = " MALI_PTR_FMT "\n", args->handle);
 		panwrap_log("user_addr = %p - %p\n",
 			    args->user_addr, args->user_addr + args->size);
 	}
@@ -430,7 +430,7 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 	for (int i = 0; i < args->nr_atoms; i++) {
 		const struct mali_jd_atom_v2 *a = &atoms[i];
 
-		panwrap_log("jc = " MALI_PTR_FORMAT "\n", a->jc);
+		panwrap_log("jc = " MALI_PTR_FMT "\n", a->jc);
 		panwrap_indent++;
 
 		panwrap_log("Decoding job chain:\n");
@@ -547,7 +547,7 @@ ioctl_decode_post_mem_alloc(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alloc *args = ptr;
 
-	panwrap_log("gpu_va = " MALI_PTR_FORMAT "\n", args->gpu_va);
+	panwrap_log("gpu_va = " MALI_PTR_FMT "\n", args->gpu_va);
 	panwrap_log("va_alignment = %d\n", args->va_alignment);
 
 	panwrap_track_allocation(args->gpu_va, args->flags);
@@ -558,7 +558,7 @@ ioctl_decode_post_mem_import(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_import *args = ptr;
 
-	panwrap_log("gpu_va = " MALI_PTR_FORMAT "\n", args->gpu_va);
+	panwrap_log("gpu_va = " MALI_PTR_FMT "\n", args->gpu_va);
 	panwrap_log("va_pages = %" PRId64 "\n", args->va_pages);
 	panwrap_log("flags = ");
 	panwrap_log_decoded_flags(mem_flag_info, args->flags);
@@ -586,7 +586,7 @@ ioctl_decode_post_mem_alias(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alias *args = ptr;
 
-	panwrap_log("gpu_va = " MALI_PTR_FORMAT "\n", args->gpu_va);
+	panwrap_log("gpu_va = " MALI_PTR_FMT "\n", args->gpu_va);
 	panwrap_log("va_pages = %" PRId64 "\n", args->va_pages);
 }
 
@@ -971,7 +971,7 @@ int munmap(void *addr, size_t length)
 
 	/* Was it memory mapped from the GPU? */
 	if (mem->gpu_va)
-		panwrap_log("Unmapped GPU memory " MALI_PTR_FORMAT "@%p\n",
+		panwrap_log("Unmapped GPU memory " MALI_PTR_FMT "@%p\n",
 			    mem->gpu_va, mem->addr);
 	else
 		panwrap_log("Unmapped unknown memory %p\n",

@@ -639,13 +639,13 @@ struct mali_gpu_raw_props {
 #ifdef IS_64_BIT
 #define PAD_PTR(p) p
 typedef u64 mali_ptr;
-#define MALI_PTR_FORMAT "0x%lx"
+#define MALI_PTR_FMT "0x%lx"
 
 #else
 
 #define PAD_PTR(p) p; u32 :32
 typedef u32 mali_ptr;
-#define MALI_PTR_FORMAT "0x%x"
+#define MALI_PTR_FMT "0x%x"
 #endif
 
 /* FIXME: Again, they don't specify any of these as packed structs. However,

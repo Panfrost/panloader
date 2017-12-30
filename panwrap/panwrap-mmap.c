@@ -56,7 +56,7 @@ void panwrap_track_allocation(mali_ptr addr, int flags)
 {
 	struct panwrap_allocated_memory *mem = malloc(sizeof(*mem));
 
-	panwrap_log("GPU memory allocated at GPU VA " MALI_PTR_FORMAT "\n",
+	panwrap_log("GPU memory allocated at GPU VA " MALI_PTR_FMT "\n",
 		    addr);
 	list_init(&mem->node);
 	mem->gpu_va = addr;
@@ -79,7 +79,7 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 		}
 	}
 	if (!mem) {
-		panwrap_log("Error: Untracked gpu memory " MALI_PTR_FORMAT " mapped to %p\n",
+		panwrap_log("Error: Untracked gpu memory " MALI_PTR_FMT " mapped to %p\n",
 			    gpu_va, addr);
 		panwrap_log("\tprot = ");
 		panwrap_log_decoded_flags(mmap_prot_flag_info, prot);
@@ -105,7 +105,7 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 	list_del(&mem->node);
 	free(mem);
 
-	panwrap_log("GPU VA " MALI_PTR_FORMAT " mapped to %p - %p (length == %zu)\n",
+	panwrap_log("GPU VA " MALI_PTR_FMT " mapped to %p - %p (length == %zu)\n",
 		    mapped_mem->gpu_va, addr, addr + length, length);
 }
 
@@ -182,7 +182,7 @@ panwrap_assert_gpu_same(const struct panwrap_mapped_memory *mem,
 
 	for (size_t i = 0; i < size; i++) {
 		if (buffer[i] != data[i]) {
-			panwrap_log("At " MALI_PTR_FORMAT ", expected:\n",
+			panwrap_log("At " MALI_PTR_FMT ", expected:\n",
 				    gpu_va);
 			panwrap_indent++;
 			panwrap_log_hexdump_trimmed(data, size);
@@ -205,7 +205,7 @@ panwrap_assert_gpu_mem_zero(const struct panwrap_mapped_memory *mem,
 
 	for (size_t i = 0; i < size; i++) {
 		if (buffer[i] != '\0') {
-			panwrap_log("At " MALI_PTR_FORMAT ", expected all 0 but got:\n",
+			panwrap_log("At " MALI_PTR_FMT ", expected all 0 but got:\n",
 				    gpu_va);
 			panwrap_indent++;
 			panwrap_log_hexdump_trimmed(buffer, size);
@@ -225,7 +225,7 @@ __panwrap_deref_mem_err(const struct panwrap_mapped_memory *mem,
 	panwrap_log("\n");
 
 	panwrap_log("INVALID GPU MEMORY ACCESS @"
-		    MALI_PTR_FORMAT " - " MALI_PTR_FORMAT ":\n",
+		    MALI_PTR_FMT " - " MALI_PTR_FMT ":\n",
 		    gpu_va, gpu_va + size);
 	panwrap_log("Occurred at line %d of %s\n", line, filename);
 
@@ -234,7 +234,7 @@ __panwrap_deref_mem_err(const struct panwrap_mapped_memory *mem,
 		panwrap_indent++;
 		panwrap_log("CPU VA: %p - %p\n",
 			    mem->addr, mem->addr + mem->length);
-		panwrap_log("GPU VA: " MALI_PTR_FORMAT " - " MALI_PTR_FORMAT "\n",
+		panwrap_log("GPU VA: " MALI_PTR_FMT " - " MALI_PTR_FMT "\n",
 			    mem->gpu_va, (mali_ptr)(mem->gpu_va + mem->length));
 		panwrap_log("Length: %zu bytes\n", mem->length);
 		panwrap_indent--;
