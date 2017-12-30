@@ -99,6 +99,9 @@ panwrap_log_hexdump(const void *data, size_t size)
 
 	if (i % HEXDUMP_ROW_LEN) {
 		for (i %= HEXDUMP_ROW_LEN; i < HEXDUMP_ROW_LEN; i++) {
+			if (!(i % HEXDUMP_COL_LEN))
+				panwrap_log_cont(" ");
+
 			panwrap_log_cont("   ");
 			alpha[i] = '.';
 
