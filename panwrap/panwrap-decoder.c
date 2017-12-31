@@ -62,8 +62,7 @@ static inline char *panwrap_decode_fbd_type(enum mali_fbd_type type)
 void panwrap_decode_attributes(const struct panwrap_mapped_memory *mem,
 			       mali_ptr addr)
 {
-	struct mali_attr *attr =
-		panwrap_fetch_gpu_mem(mem, addr, sizeof(*attr));
+	struct mali_attr *PANWRAP_PTR_VAR(attr, mem, addr);
 	float *buffer = panwrap_fetch_gpu_mem(
 	    mem, attr->elements_upper << 2, attr->size);
 	size_t vertex_count;
