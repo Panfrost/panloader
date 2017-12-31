@@ -54,6 +54,7 @@ typedef int64_t s64;
 #endif
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+#define OFFSET_OF(type, member) __builtin_offsetof(type, member)
 
 #define YES_NO(b) ((b) ? "Yes" : "No")
 
