@@ -366,16 +366,16 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 	if (mem) {
 		panwrap_log("handle = " MALI_PTR_FMT " (end=" MALI_PTR_FMT ", len=%zu)\n",
 			    args->handle,
-			    (mali_ptr)(args->handle + mem->length),
+			    (mali_ptr)(args->handle + mem->length - 1),
 			    mem->length);
 		panwrap_log("user_addr = %p - %p (offset=%zu)\n",
-			    args->user_addr, args->user_addr + args->size,
+			    args->user_addr, args->user_addr + args->size - 1,
 			    args->user_addr - mem->addr);
 	} else {
 		panwrap_log("ERROR! Unknown handle specified\n");
 		panwrap_log("handle = " MALI_PTR_FMT "\n", args->handle);
 		panwrap_log("user_addr = %p - %p\n",
-			    args->user_addr, args->user_addr + args->size);
+			    args->user_addr, args->user_addr + args->size - 1);
 	}
 	panwrap_log("size = %" PRId64 "\n", args->size);
 	panwrap_log("type = %d (%s)\n", args->type, type);
