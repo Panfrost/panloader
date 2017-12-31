@@ -87,14 +87,20 @@ void panwrap_decode_attributes(const struct panwrap_mapped_memory *mem,
 }
 
 static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
-			      mali_ptr fbd_upper, enum mali_fbd_type type,
-			      u8 flags)
+			      const struct mali_fbd_meta *fbd_meta)
 {
-	mali_ptr fbd_ptr = fbd_upper << 6;
-	struct mali_tentative_mfbd *PANWRAP_PTR_VAR(mfbd, mem, fbd_ptr);
+	mali_ptr fbd_ptr = fbd_meta->_ptr_upper << 6;
+	struct mali_tentative_mfbd *mfbd;
+
+	if (!fbd_ptr) {
+		panwrap_log("<no fbd>\n");
+		return;
+	}
+
+	mfbd = panwrap_fetch_gpu_mem(NULL, fbd_ptr, sizeof(*mfbd));
 
 	panwrap_log("%s @ " MALI_PTR_FMT ":\n",
-		    panwrap_decode_fbd_type(type), fbd_ptr);
+		    panwrap_decode_fbd_type(fbd_meta->type), fbd_ptr);
 	panwrap_indent++;
 
 	/* XXX We're not entirely sure which parts of the fbd format that we
@@ -106,16 +112,19 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 	panwrap_log_hexdump(mfbd, sizeof(*mfbd));
 	panwrap_indent--;
 
-	panwrap_log("Flags: 0x%x\n", mfbd->flags);
-	panwrap_log("Heap free address: " MALI_PTR_FMT "\n",
-		    mfbd->heap_free_address);
-
-	panwrap_log("Block #1:\n");
+#define OFFSET(m) OFFSET_OF(struct mali_tentative_mfbd, m)
+#define END(m) OFFSET(m) + sizeof(mfbd->m) - 1
+	panwrap_log("Block #1 (+0x%zx-0x%zx):\n",
+		    OFFSET(block1), END(block1));
 	panwrap_indent++;
 	panwrap_log_hexdump(mfbd->block1, sizeof(mfbd->block1));
 	panwrap_indent--;
 
-	panwrap_log("Unknown #2:\n");
+	panwrap_log("Flags (+0x%zx): 0x%x\n", OFFSET(flags), mfbd->flags);
+	panwrap_log("Heap free address (+0x%zx): " MALI_PTR_FMT "\n",
+		    OFFSET(heap_free_address), mfbd->heap_free_address);
+
+	panwrap_log("Unknown #2 (+0x%zx):\n", OFFSET(unknown2));
 	panwrap_indent++;
 	/* Seems to sometimes be a pointer but sometimes not? Eithr way, we
 	 * can't make assumptions on this one since freedreno's test-clear demo
@@ -137,17 +146,13 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 		panwrap_log("<none>\n");
 	panwrap_indent--;
 
-	/*panwrap_log("ugan */
-	if (mfbd->unknown_gpu_addressN) {
-
-	}
-
 	/* XXX: Cafe was asserting zeroes here in block2[0] and block2[1] (in
 	 * our version since we use u8, this would be block2[8] for 64bit or
 	 * block2[4] for 32bit. It's probable that there's some sort of data
 	 * here sometimes
 	 */
-	panwrap_log("Block #2:\n");
+	panwrap_log("Block #2 (+0x%zx-0x%zx):\n",
+		    OFFSET(block1), END(block1));
 	panwrap_indent++;
 	panwrap_log_hexdump(mfbd->block2, sizeof(mfbd->block2));
 	panwrap_indent--;
@@ -171,27 +176,24 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 	 * pointless.
 	 */
 
-	panwrap_log("ugaT " MALI_PTR_FMT ", uga " MALI_PTR_FMT "\n",
-		    mfbd->ugaT, mfbd->unknown_gpu_address);
-	panwrap_log("ugan " MALI_PTR_FMT "\n",
-		    mfbd->unknown_gpu_addressN);
+	panwrap_log("ugaT (+0x%zx) = " MALI_PTR_FMT ", uga (+0x%zx) = " MALI_PTR_FMT "\n",
+		    OFFSET(ugaT), mfbd->ugaT,
+		    OFFSET(unknown_gpu_address), mfbd->unknown_gpu_address);
+	panwrap_log("ugan (+0x%zx) = " MALI_PTR_FMT "\n",
+		    OFFSET(unknown_gpu_addressN), mfbd->unknown_gpu_addressN);
 
-	panwrap_indent++;
-	if (mfbd->unknown_gpu_addressN) {
-		panwrap_log_hexdump_trimmed(
-		    panwrap_fetch_gpu_mem(NULL, mfbd->unknown_gpu_addressN,
-					  64),
-		    64);
-	} else {
-		panwrap_log("<none>\n");
-	}
-	panwrap_indent--;
+	panwrap_log("blah (+0x%zx) = " MALI_PTR_FMT "\n",
+		    OFFSET(blah), mfbd->blah);
 
-	panwrap_log("blah = " MALI_PTR_FMT "\n", mfbd->blah);
-	panwrap_log("unk1 = %" PRIx32 " unk2 = %" PRIx64 " unk3 = %" PRIx64 "\n",
-		    mfbd->unknown1, mfbd->unknown2, mfbd->unknown3);
+#define PR_UNK(n, s) panwrap_log("unknown" #n " (+0x%zx) = %" PRIx ## s "\n", \
+				 OFFSET(unknown ## n), mfbd->unknown ## n)
+	PR_UNK(1, 32);
+	PR_UNK(2, 64);
+	PR_UNK(3, 64);
+#undef PR_UNK
 
-	panwrap_log("Weights = [ ");
+	panwrap_log("Weights (+0x%zx-0x%zx) = [ ",
+		    OFFSET(weights), END(weights));
 	for (int i = 0; i < ARRAY_SIZE(mfbd->weights); i++) {
 		panwrap_log_cont("%" PRIx32, mfbd->weights[i]);
 		if (i + 1 < ARRAY_SIZE(mfbd->weights))
@@ -200,6 +202,8 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 	panwrap_log_cont(" ]\n");
 
 	panwrap_indent--;
+#undef OFFSET
+#undef END
 }
 
 void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
@@ -282,13 +286,14 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_log("nulls: " MALI_PTR_FMT ", " MALI_PTR_FMT ", " MALI_PTR_FMT ", " MALI_PTR_FMT "\n",
 		    v->null0, v->null1, v->null2, v->null4);
 
+	panwrap_trace_fbd(mem, &v->fbd);
+
 	/* FIXME: cafe had some sort of hex dump thingy here that seemed to
 	 * dump some unknown structures but for the life of me I cannot figure
 	 * out what the heck it does very easily. Unfortunately, the comments
 	 * on said code do not clarify much. If we're missing something, this
 	 * might be it.
 	 */
-	panwrap_trace_fbd(mem, v->_fbd_upper, v->fbd_type, v->fbd_flags);
 
 	panwrap_indent--;
 }

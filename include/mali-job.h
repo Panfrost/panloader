@@ -102,6 +102,14 @@ enum mali_fbd_type {
 	MALI_MFBD = 1,
 };
 
+struct mali_fbd_meta {
+	enum mali_fbd_type type : 1;
+	u8 flags : 5;
+	mali_ptr _ptr_upper : MALI_PTR_BITS - 6;   /* struct tentative_fbd */
+} __attribute__((packed));
+ASSERT_SIZEOF_TYPE(struct mali_fbd_meta,
+		   sizeof(mali_ptr), sizeof(mali_ptr));
+
 /* TODO: using 32 bit datatypes is kind of awkward when you're just dealing
  * with binary data. Eventually remove all of them and replace them with proper
  * unsigned char types
@@ -124,9 +132,7 @@ struct mali_payload_vertex_tiler {
 	mali_ptr unknown6; /* pointer */
 	mali_ptr nullForVertex;
 	mali_ptr null4;
-	enum mali_fbd_type fbd_type : 1;
-	u8 fbd_flags : 5;
-	mali_ptr _fbd_upper : MALI_PTR_BITS - 6;   /* struct tentative_fbd */
+	struct mali_fbd_meta fbd;
 	mali_ptr unknown7; /* pointer */
 
 	u32 block2[36];
