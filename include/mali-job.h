@@ -139,6 +139,25 @@ struct mali_payload_vertex_tiler {
 } __attribute__((packed));
 //ASSERT_SIZEOF_TYPE(struct mali_payload_vertex_tiler, 256, 256);
 
+/* From mali_kbase_10969_workaround.c */
+#define MALI_X_COORD_MASK 0x00000FFF
+#define MALI_Y_COORD_MASK 0x0FFF0000
+#define MALI_TILE_COORD_X(coord) ((coord) & MALI_X_COORD_MASK)
+#define MALI_TILE_COORD_Y(coord) (((coord) & MALI_Y_COORD_MASK) >> 16)
+#define MALI_TILE_COORD_FLAGS(coord) ((coord) & ~(MALI_X_COORD_MASK | MALI_Y_COORD_MASK))
+
+struct mali_payload_fragment {
+	/* XXX: we might be able to translate these into bitfields someday, but
+	 * that will only be sensible if the mask of flags is limited to
+	 * 0xF0000000 or 0x0000F000. If it's 0xF000F000, feel free to just
+	 * remove this comment
+	 */
+	u32 _min_tile_coord;
+	u32 _max_tile_coord;
+	struct mali_fbd_meta fbd;
+} __attribute__((packed));
+ASSERT_SIZEOF_TYPE(struct mali_payload_fragment, 12, 16);
+
 /* TODO: Figure out what FBD means. Cafe didn't seem to know, my guess:
  * FrameBuffer Descriptor
  *
