@@ -106,7 +106,7 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 	free(mem);
 
 	panwrap_log("GPU VA " MALI_PTR_FMT " mapped to %p - %p (length == %zu)\n",
-		    mapped_mem->gpu_va, addr, addr + length, length);
+		    mapped_mem->gpu_va, addr, addr + length - 1, length);
 }
 
 void panwrap_track_munmap(void *addr)
