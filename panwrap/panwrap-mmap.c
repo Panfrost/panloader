@@ -233,9 +233,10 @@ __panwrap_fetch_mem_err(const struct panwrap_mapped_memory *mem,
 		panwrap_log("Mapping information:\n");
 		panwrap_indent++;
 		panwrap_log("CPU VA: %p - %p\n",
-			    mem->addr, mem->addr + mem->length);
+			    mem->addr, mem->addr + mem->length - 1);
 		panwrap_log("GPU VA: " MALI_PTR_FMT " - " MALI_PTR_FMT "\n",
-			    mem->gpu_va, (mali_ptr)(mem->gpu_va + mem->length));
+			    mem->gpu_va,
+			    (mali_ptr)(mem->gpu_va + mem->length - 1));
 		panwrap_log("Length: %zu bytes\n", mem->length);
 		panwrap_indent--;
 
