@@ -694,7 +694,7 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 
 	panwrap_indent++;
 	for (int i = 0; i < ARRAY_SIZE(args->raw.js_features); i++)
-		panwrap_log("\t\t\t%010x\n", args->raw.js_features[i]);
+		panwrap_log("%010x\n", args->raw.js_features[i]);
 	panwrap_indent--;
 
 	panwrap_log("Tiler features: %010x\n", args->raw.tiler_features);
