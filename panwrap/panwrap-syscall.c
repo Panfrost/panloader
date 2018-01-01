@@ -547,10 +547,15 @@ ioctl_decode_post_mem_alloc(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alloc *args = ptr;
 
+	panwrap_log("flags = ");
+	panwrap_log_decoded_flags(
+	    mem_flag_info, args->flags & ~MALI_IOCTL_MEM_FLAGS_IN_MASK);
+	panwrap_log_cont("\n");
 	panwrap_log("gpu_va = " MALI_PTR_FMT "\n", args->gpu_va);
 	panwrap_log("va_alignment = %d\n", args->va_alignment);
 
-	panwrap_track_allocation(args->gpu_va, args->flags);
+	if (args->flags & (MALI_MEM_NEED_MMAP | MALI_MEM_SAME_VA))
+		panwrap_track_allocation(args->gpu_va, args->flags);
 }
 
 static inline void

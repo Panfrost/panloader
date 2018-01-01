@@ -73,6 +73,15 @@ enum mali_ioctl_mem_flags {
 						    be the same */
 };
 
+#define MALI_IOCTL_MEM_FLAGS_IN_MASK                                          \
+	(MALI_MEM_PROT_CPU_RD | MALI_MEM_PROT_CPU_WR |                        \
+	 MALI_MEM_PROT_GPU_RD | MALI_MEM_PROT_GPU_WR | MALI_MEM_PROT_GPU_EX | \
+	 MALI_MEM_GROW_ON_GPF |                                               \
+	 MALI_MEM_COHERENT_SYSTEM | MALI_MEM_COHERENT_LOCAL |                 \
+	 MALI_MEM_CACHED_CPU |                                                \
+	 MALI_MEM_COHERENT_SYSTEM_REQUIRED | MALI_MEM_SECURE |                \
+	 MALI_MEM_DONT_NEED | MALI_MEM_IMPORT_SHARED)
+
 enum mali_ioctl_coherency_mode {
 	COHERENCY_ACE_LITE = 0,
 	COHERENCY_ACE      = 1,
