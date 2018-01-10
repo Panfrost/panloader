@@ -257,9 +257,7 @@ parse_env_bool(const char *env, bool def)
 	exit(1);
 }
 
-static void __attribute__((constructor))
-panwrap_util_init()
-{
+PANLOADER_CONSTRUCTOR {
 	const char *env;
 
 	if (parse_env_bool("PANWRAP_ENABLE_TIMESTAMPS", false)) {

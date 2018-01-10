@@ -53,9 +53,20 @@ typedef int64_t s64;
 		       #type__ " does not match expected size " #size32__)
 #endif
 
+#define __PASTE_TOKENS(a, b) a ## b
+/*
+ * PASTE_TOKENS(a, b):
+ *
+ * Expands a and b, then concatenates the resulting tokens
+ */
+#define PASTE_TOKENS(a, b) __PASTE_TOKENS(a, b)
+
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #define OFFSET_OF(type, member) __builtin_offsetof(type, member)
 
 #define YES_NO(b) ((b) ? "Yes" : "No")
+
+#define PANLOADER_CONSTRUCTOR \
+       static void __attribute__((constructor)) PASTE_TOKENS(__panloader_ctor_l, __LINE__)()
 
 #endif /* __PANLOADER_UTIL_H__ */
