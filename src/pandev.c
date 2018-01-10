@@ -16,8 +16,31 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <linux/ioctl.h>
+#include <errno.h>
+#include <string.h>
 
+#include <panloader-util.h>
 #include <mali-ioctl.h>
+#include <pandev.h>
+
+static int pandev_ioctl(int fd, unsigned long request, void *args)
+{
+	union mali_ioctl_header *h = args;
+	int rc;
+
+	h->id = 512 + _IOC_NR(request);
+
+	rc = ioctl(fd, request, args);
+	if (rc)
+		return rc;
+
+	switch (h->rc) {
+	case MALI_ERROR_NONE:              return 0;
+	case MALI_ERROR_FUNCTION_FAILED:   return -EINVAL;
+	case MALI_ERROR_OUT_OF_MEMORY:     return -ENOMEM;
+	case MALI_ERROR_OUT_OF_GPU_MEMORY: return -ENOSPC;
+	}
+}
 
 static int
 pandev_get_driver_version(int fd, unsigned *major, unsigned *minor)
@@ -26,7 +49,7 @@ pandev_get_driver_version(int fd, unsigned *major, unsigned *minor)
 	int rc;
 
 	/* So far this seems to be the only ioctl that uses 0x80 for dir */
-	rc = ioctl(fd, MALI_IOCTL_GET_VERSION, &args);
+	rc = pandev_ioctl(fd, MALI_IOCTL_GET_VERSION, &args);
 	if (rc)
 		return rc;
 
