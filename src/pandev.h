@@ -15,6 +15,10 @@
 #ifndef __PANDEV_H__
 #define __PANDEV_H__
 
+#include <mali-ioctl.h>
+
 int pandev_open();
+int pandev_query_mem(int fd, mali_ptr addr, enum mali_ioctl_mem_query_type attr,
+		     u64 *out);
 
 #endif /* __PANDEV_H__ */

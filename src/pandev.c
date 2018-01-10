@@ -59,6 +59,24 @@ pandev_get_driver_version(int fd, unsigned *major, unsigned *minor)
 	return 0;
 }
 
+int
+pandev_query_mem(int fd, mali_ptr addr, enum mali_ioctl_mem_query_type attr,
+		 u64 *out)
+{
+	struct mali_ioctl_mem_query args = {};
+	int rc;
+
+	args.gpu_addr = addr;
+	args.query = attr;
+
+	rc = pandev_ioctl(fd, MALI_IOCTL_MEM_QUERY, &args);
+	if (rc)
+		return rc;
+
+	*out = args.value;
+	return 0;
+}
+
 /**
  * Open the device file for communicating with the mali kernelspace driver,
  * and make sure it's a version of the kernel driver we're familiar with.
