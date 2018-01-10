@@ -729,13 +729,32 @@ struct mali_jd_atom_v2 {
 ASSERT_SIZEOF_TYPE(struct mali_jd_atom_v2, 48, 48);
 
 /**
+ * enum mali_error - Mali error codes shared with userspace
+ *
+ * This is subset of those common Mali errors that can be returned to userspace.
+ * Values of matching user and kernel space enumerators MUST be the same.
+ * MALI_ERROR_NONE is guaranteed to be 0.
+ *
+ * @MALI_ERROR_NONE: Success
+ * @MALI_ERROR_OUT_OF_GPU_MEMORY: Not used in the kernel driver
+ * @MALI_ERROR_OUT_OF_MEMORY: Memory allocation failure
+ * @MALI_ERROR_FUNCTION_FAILED: Generic error code
+ */
+enum mali_error {
+	MALI_ERROR_NONE = 0,
+	MALI_ERROR_OUT_OF_GPU_MEMORY,
+	MALI_ERROR_OUT_OF_MEMORY,
+	MALI_ERROR_FUNCTION_FAILED,
+};
+
+/**
  * Header used by all ioctls
  */
 union mali_ioctl_header {
 	/* [in] The ID of the UK function being called */
 	u32 id :32;
 	/* [out] The return value of the UK function that was called */
-	u32 rc :32;
+	enum mali_error rc :32;
 
 	u64 :64;
 } __attribute__((packed));
@@ -796,15 +815,17 @@ struct mali_ioctl_mem_commit {
 } __attribute__((packed));
 ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_commit, 32, 32);
 
+enum mali_ioctl_mem_query_type {
+	MALI_MEM_QUERY_COMMIT_SIZE = 1,
+	MALI_MEM_QUERY_VA_SIZE     = 2,
+	MALI_MEM_QUERY_FLAGS       = 3
+};
+
 struct mali_ioctl_mem_query {
 	union mali_ioctl_header header;
 	/* [in] */
 	PAD_PTR(mali_ptr gpu_addr);
-	enum {
-		MALI_MEM_QUERY_COMMIT_SIZE = 1,
-		MALI_MEM_QUERY_VA_SIZE     = 2,
-		MALI_MEM_QUERY_FLAGS       = 3
-	} query :32;
+	enum mali_ioctl_mem_query_type query : 32;
 	u32 :32;
 	/* [out] */
 	u64 value;
