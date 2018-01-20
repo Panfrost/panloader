@@ -2,6 +2,9 @@ conf_data = configuration_data()
 
 conf_data.set('IS_64_BIT', cc.sizeof('void*') == 8)
 
+# Linux also has linux/mman.h
+conf_data.set('HAVE_LINUX_MMAN_H', cc.has_header('linux/mman.h'))
+
 # Check whether mmap64() and mmap() are the same symbols, or if one is just
 # aliased to the other. Seperate mmap64() and mmap() functions are used before
 # Android 21.

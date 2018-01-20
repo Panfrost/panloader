@@ -11,6 +11,7 @@
  * Boston, MA  02110-1301, USA.
  *
  */
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
@@ -22,6 +23,9 @@
 #include <panloader-util.h>
 #include "panwrap.h"
 #include "panwrap-mmap.h"
+#ifdef HAVE_LINUX_MMAN_H
+#include <linux/mman.h>
+#endif
 
 static LIST_HEAD(allocations);
 static LIST_HEAD(mmaps);
