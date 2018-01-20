@@ -156,6 +156,8 @@ __rd_dlsym_helper(const char *name)
 
 	if (!libc_dl)
 		libc_dl = dlopen("libc.so", RTLD_LAZY);
+	if (!libc_dl)
+		libc_dl = dlopen("libc.so.6", RTLD_LAZY);
 	if (!libc_dl) {
 		fprintf(stderr, "Failed to dlopen libc: %s\n", dlerror());
 		exit(-1);
