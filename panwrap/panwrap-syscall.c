@@ -853,7 +853,7 @@ close(int fd)
                 return orig_close(fd);
 
 	LOCK();
-	if (mali_fd && fd == mali_fd) {
+	if (!fd || fd != mali_fd) {
 		panwrap_log("/dev/mali0 closed\n");
 		mali_fd = 0;
 	}
