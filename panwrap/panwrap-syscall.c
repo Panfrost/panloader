@@ -818,6 +818,7 @@ panwrap_open_wrap(open_func *func, const char *path, int flags, va_list args)
 	return ret;
 }
 
+#ifdef IS_OPEN64_SEPERATE_SYMBOL
 int
 open(const char *path, int flags, ...)
 {
@@ -828,6 +829,7 @@ open(const char *path, int flags, ...)
 	va_end(args);
 	return o;
 }
+#endif
 
 int
 open64(const char *path, int flags, ...)

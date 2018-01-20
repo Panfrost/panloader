@@ -23,6 +23,20 @@ conf_data.set(
         args: ['-shared', '-fPIC']
     )
 )
+conf_data.set(
+    'IS_OPEN64_SEPERATE_SYMBOL',
+    cc.links(
+        '''
+        #include <sys/stat.h>
+        #include <fcntl.h>
+
+        int open(const char *path, int flags, ...) { return 0; }
+        int open64(const char *path, int flags, ...) { return 0; }
+        ''',
+        name: 'Define both open() and open64()',
+        args: ['-shared', '-fPIC']
+    )
+)
 
 configure_file(output: 'config.h',
                configuration: conf_data)
