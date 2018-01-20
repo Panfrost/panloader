@@ -15,7 +15,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
-#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdarg.h>
 #include <list.h>
