@@ -24,9 +24,11 @@ if is_android
 endif
 
 m_dep = cc.find_library('m', required: true)
+dl_dep = cc.find_library('dl', required: false)
 
 common_dep = [
     m_dep,
+    dl_dep,
 ]
 
 if not cc.has_argument('-Werror=attributes')
