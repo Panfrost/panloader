@@ -19,7 +19,8 @@ conf_data.set(
         void *mmap(void *addr, size_t length, int prot, int flags, int fd,
                    off_t offset) {return 0x0;}
         ''',
-        name: 'Define both mmap() and mmap64()'
+        name: 'Define both mmap() and mmap64()',
+        args: ['-shared', '-fPIC']
     )
 )
 
