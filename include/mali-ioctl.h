@@ -645,7 +645,7 @@ struct mali_gpu_raw_props {
  * For normal ioctls, padded pointers are used. For actual job submissions,
  * variable length is used.
  */
-#ifdef IS_64_BIT
+#ifdef __LP64__
 #define PAD_PTR(p) p
 typedef u64 mali_ptr;
 #define MALI_PTR_FMT "0x%lx"

@@ -954,7 +954,7 @@ void *mmap64(void *addr, size_t length, int prot, int flags, int fd,
 #ifdef IS_MMAP64_SEPERATE_SYMBOL
 void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
 {
-#ifdef IS_64_BIT
+#ifdef __LP64__
 	PROLOG(mmap);
 
 	return panwrap_mmap_wrap(orig_mmap, addr, length, prot, flags, fd,

@@ -43,7 +43,7 @@ typedef int64_t s64;
  * thus, causing all members part of said extension to be located at incorrect
  * memory locations.
  */
-#ifdef IS_64_BIT
+#ifdef __LP64__
 #define ASSERT_SIZEOF_TYPE(type__, size32__, size64__)              \
 	_Static_assert(size64__ == 0 || sizeof(type__) == size64__, \
                        #type__ " does not match expected size " #size64__)
