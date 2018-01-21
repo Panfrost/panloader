@@ -721,8 +721,6 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 			panwrap_log("Slot %d: ", i);
 			panwrap_log_decoded_flags(js_feature_info, args->raw.js_features[i]);
 			panwrap_log_cont("\n");
-		} else {
-			panwrap_log("Slot %d: -missing-\n", i);
 		}
 	panwrap_indent--;
 
