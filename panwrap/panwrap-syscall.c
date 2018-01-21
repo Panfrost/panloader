@@ -168,6 +168,23 @@ static const struct panwrap_flag_info mali_jd_dep_type_flag_info[] = {
 };
 #undef FLAG_INFO
 
+#define FLAG_INFO(flag) { JS_FEATURE_##flag, #flag }
+static const struct panwrap_flag_info js_feature_info[] = {
+	FLAG_INFO(NULL_JOB),
+	FLAG_INFO(SET_VALUE_JOB),
+	FLAG_INFO(CACHE_FLUSH_JOB),
+	FLAG_INFO(COMPUTE_JOB),
+	FLAG_INFO(VERTEX_JOB),
+	FLAG_INFO(GEOMETRY_JOB),
+	FLAG_INFO(TILER_JOB),
+	FLAG_INFO(FUSED_JOB),
+	FLAG_INFO(FRAGMENT_JOB),
+	{}
+};
+#undef FLAG_INFO
+
+
+
 static inline const char *
 ioctl_decode_coherency_mode(enum mali_ioctl_coherency_mode mode)
 {
@@ -700,10 +717,13 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 
 	panwrap_indent++;
 	for (int i = 0; i < ARRAY_SIZE(args->raw.js_features); i++)
-		if (args->raw.js_features[i])
-			panwrap_log("Slot %d: %010x\n", i, args->raw.js_features[i]);
-		else
+		if (args->raw.js_features[i]) {
+			panwrap_log("Slot %d: ", i);
+			panwrap_log_decoded_flags(js_feature_info, args->raw.js_features[i]);
+			panwrap_log_cont("\n");
+		} else {
 			panwrap_log("Slot %d: -missing-\n", i);
+		}
 	panwrap_indent--;
 
 	panwrap_log("Tiler features: %010x\n", args->raw.tiler_features);

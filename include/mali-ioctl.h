@@ -418,6 +418,18 @@ typedef u32 mali_jd_core_req;
 	((core_req & MALI_JD_REQ_SOFT_JOB) || \
 	(core_req & MALI_JD_REQ_ATOM_TYPE) == MALI_JD_REQ_DEP)
 
+/* Capabilities of a job slot as reported by JS_FEATURES registers */
+
+#define JS_FEATURE_NULL_JOB              (1u << 1)
+#define JS_FEATURE_SET_VALUE_JOB         (1u << 2)
+#define JS_FEATURE_CACHE_FLUSH_JOB       (1u << 3)
+#define JS_FEATURE_COMPUTE_JOB           (1u << 4)
+#define JS_FEATURE_VERTEX_JOB            (1u << 5)
+#define JS_FEATURE_GEOMETRY_JOB          (1u << 6)
+#define JS_FEATURE_TILER_JOB             (1u << 7)
+#define JS_FEATURE_FUSED_JOB             (1u << 8)
+#define JS_FEATURE_FRAGMENT_JOB          (1u << 9)
+
 struct mali_gpu_core_props {
 	/**
 	 * Product specific value.
