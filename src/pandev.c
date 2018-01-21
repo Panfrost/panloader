@@ -346,18 +346,8 @@ pandev_open()
 	if (rc)
 		return rc;
 
-	u64 va;
-
-	rc = pandev_allocate(fd, 2, 2, 0, MALI_MEM_SAME_VA | MALI_MEM_PROT_CPU_RD | MALI_MEM_PROT_CPU_WR | MALI_MEM_PROT_GPU_RD, &va);
-	if (rc)
-		return rc;
-
-	/* TODO: Do we need to mmap or not?! */
-	u8 *buffer = (u8*) (uintptr_t) va;
-
-	rc = pandev_sync_gpu(fd, buffer, va, 64, MALI_SYNC_TO_DEVICE);
-	if (rc)
-		return rc;
+	pandev_fragment_job(fd);
+	pandev_flush_jobs(fd);
 
 	int stream_fd;
 
