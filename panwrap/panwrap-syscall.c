@@ -721,7 +721,8 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 	if (args->raw.mmu_features & ~(0xFFFF))
 		panwrap_log("MMU features (undecoded): %d\n", args->raw.mmu_features & ~(0xFFFF));
 
-	panwrap_log("Memory features: 0x%010x\n", args->raw.mem_features);
+	if (args->raw.mem_features & (~1) & (~(((1 << 5) - 1) << 8)))
+		panwrap_log("Memory features: 0x%010x\n", args->raw.mem_features & (~1) & (~(((1 << 5) - 1) << 8)));
 
 	panwrap_log("MMU features:\n");
 	panwrap_indent++;
