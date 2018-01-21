@@ -87,6 +87,22 @@ pandev_set_flags(int fd)
 	return pandev_ioctl(fd, MALI_IOCTL_SET_FLAGS, &args);
 }
 
+static int
+pandev_create_stream(int fd, const char *name, int *out)
+{
+	struct mali_ioctl_stream_create args = {};
+	int rc;
+
+	memcpy(args.name, name, strlen(name));
+
+	rc = pandev_ioctl(fd, MALI_IOCTL_STREAM_CREATE, &args);
+	if (rc)
+		return rc;
+
+	*out = args.fd;
+	return 0;
+}
+
 int
 pandev_query_mem(int fd, mali_ptr addr, enum mali_ioctl_mem_query_type attr,
 		 u64 *out)
@@ -151,6 +167,9 @@ pandev_open()
 	}
 
 	pandev_set_flags(fd);
+
+	int stream_fd;
+	pandev_create_stream(fd, "insert-queer-pun-here", &stream_fd);
 
 	return fd;
 }
