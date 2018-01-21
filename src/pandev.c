@@ -263,9 +263,20 @@ pandev_open()
 		return rc;
 
 	u64 va;
-	rc = pandev_allocate(fd, 32, 32, 0, MALI_MEM_PROT_CPU_RD | MALI_MEM_PROT_CPU_WR | MALI_MEM_PROT_GPU_RD, &va);
+	int pages = 32;
+	rc = pandev_allocate(fd, pages, pages, 0, MALI_MEM_PROT_CPU_RD | MALI_MEM_PROT_CPU_WR | MALI_MEM_PROT_GPU_RD, &va);
 	if (rc)
 		return rc;
+
+	uint8_t *buffer = mmap(NULL, pages << PAGE_SHIFT, PROT_READ | PROT_WRITE, MAP_SHARED, fd, va);
+
+	if (buffer == MAP_FAILED)
+		return -1;
+
+	rc = pandev_sync_gpu(fd, buffer, va, pages << PAGE_SHIFT, MALI_SYNC_TO_DEVICE);
+	if (rc)
+		return rc;
+
 
 	int stream_fd;
 
