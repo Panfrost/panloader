@@ -190,6 +190,29 @@ pandev_submit_job(int fd, struct mali_jd_atom_v2 atom)
 	return 0;
 }
 
+/** Sync data to/from the GPU explicitly.
+ * CPU is a pointer to the CPU-side buffer (CPU address space).
+ * GPU is the GPU address to the GPU mapping.
+ * Direction is one of MALI_SYNC_TO_DEVICE or MALI_SYNC_FROM_DEVICE
+ *
+ * Apparently (?), syncs must be page aligned, so a little excess is synced.
+ *
+ * TODO: Figure out exactly what and when data needs to be synced.
+ */
+
+static int
+pandev_sync_gpu(int fd, uint8_t* cpu, uint64_t gpu, size_t sz, int direction)
+{
+	struct mali_ioctl_sync sync = {
+		.handle = gpu & PAGE_MASK,
+		.user_addr = cpu - (gpu & ~PAGE_MASK),
+		.size = (gpu & ~PAGE_MASK) + sz,
+		.type = direction
+	};
+
+	return pandev_ioctl(fd, MALI_IOCTL_SYNC, &sync);
+}
+
 /**
  * Open the device file for communicating with the mali kernelspace driver,
  * and make sure it's a version of the kernel driver we're familiar with.
