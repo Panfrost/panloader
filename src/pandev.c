@@ -103,6 +103,26 @@ pandev_create_stream(int fd, const char *name, int *out)
 	return 0;
 }
 
+static int
+pandev_allocate(int fd, int va_pages, int commit_pages, int extent, int flags, u64 *out)
+{
+	struct mali_ioctl_mem_alloc args = {
+		.va_pages = va_pages,
+		.commit_pages = commit_pages,
+		.extent = extent,
+		.flags = flags
+	};
+
+	int rc;
+
+	rc = pandev_ioctl(fd, MALI_IOCTL_MEM_ALLOC, &args);
+	if (rc)
+		return rc;
+
+	*out = args.gpu_va;
+	return 0;
+}
+
 int
 pandev_query_mem(int fd, mali_ptr addr, enum mali_ioctl_mem_query_type attr,
 		 u64 *out)
@@ -167,6 +187,11 @@ pandev_open()
 	}
 
 	rc = pandev_set_flags(fd);
+	if (rc)
+		return rc;
+
+	u64 va;
+	rc = pandev_allocate(fd, 32, 32, 0, MALI_MEM_PROT_CPU_RD | MALI_MEM_PROT_CPU_WR | MALI_MEM_PROT_GPU_RD, &va);
 	if (rc)
 		return rc;
 
