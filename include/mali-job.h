@@ -22,7 +22,7 @@
 
 #define MALI_FBD_HIERARCHY_WEIGHTS 8
 
-#ifdef IS_64_BIT
+#ifdef __LP64__
 #define PAD_PTR(p) p
 #else
 #define PAD_PTR(p) p; u32 :32
