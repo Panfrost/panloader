@@ -23,6 +23,7 @@
 #include <panloader-util.h>
 #include <mali-ioctl.h>
 #include <pandev.h>
+#include <mali-job.h>
 
 #include <sys/user.h>
 
@@ -36,6 +37,12 @@
 
 #define MALI_MEM_MAP_TRACKING_HANDLE (3ull << 12)
 #define MALI_CONTEXT_CREATE_FLAG_NONE 0
+
+#define MAKE_TILE_COORD(X, Y, flag) ((X) | ((Y) << 16) | (flag))
+
+/* From who knows where */
+#define JOB_32_BIT 0
+#define JOB_64_BIT 1
 
 static int pandev_ioctl(int fd, unsigned long request, void *args)
 {
@@ -217,6 +224,89 @@ pandev_sync_gpu(int fd, u8* cpu, u64 gpu, size_t sz, int direction)
 	};
 
 	return pandev_ioctl(fd, MALI_IOCTL_SYNC, &sync);
+}
+
+/* TODO: Replace with an actual heap-based allocator */
+
+static u8 *
+pandev_malloc(int fd, size_t sz)
+{
+	u64 va;
+	int rc;
+	
+	rc = pandev_allocate(fd, 1 + (sz >> PAGE_SHIFT), 1 + (sz >> PAGE_SHIFT), 0, MALI_MEM_PROT_CPU_RD | MALI_MEM_PROT_CPU_WR | MALI_MEM_PROT_GPU_RD | MALI_MEM_PROT_GPU_WR | MALI_MEM_SAME_VA, &va);
+
+	if (rc)
+		return NULL;
+
+	return (u8*) (uintptr_t) va;
+}
+
+static void
+pandev_fragment_job(int fd)
+{
+	void* packet = pandev_malloc(fd, sizeof(struct mali_job_descriptor_header)
+			+ sizeof(struct mali_payload_fragment));
+
+	struct mali_job_descriptor_header header = {
+		.exception_status = JOB_NOT_STARTED,
+		.job_descriptor_size = JOB_32_BIT, /* TODO: Bifrost compatibility */
+		.job_type = JOB_TYPE_FRAGMENT,
+		.job_index = 1, /* TODO: Allocate these correctly */
+	};
+
+	struct mali_fbd_meta fbd_meta = {
+		.type = MALI_MFBD,
+		.flags = 0,
+		._ptr_upper = (mali_ptr) 0, /* TODO */
+	};
+
+	struct mali_payload_fragment payload = {
+		._min_tile_coord = MAKE_TILE_COORD(0, 0, 0),
+		._max_tile_coord = MAKE_TILE_COORD(29, 45, 0),
+		.fbd = fbd_meta
+	};
+
+	memcpy(packet, &header, sizeof(header));
+	memcpy(packet + sizeof(header), &payload, sizeof(payload));
+
+	struct mali_jd_dependency no_dependency = {
+		.atom_id = 0,
+		.dependency_type = MALI_JD_DEP_TYPE_INVALID
+	};
+
+	struct mali_jd_dependency depTiler = {
+		.atom_id = 0, /* TODO: Handle dependencies correctly */
+		.dependency_type = MALI_JD_DEP_TYPE_DATA
+	};
+
+	/*
+	uint64_t* resource = calloc(sizeof(u64), 1);
+	resource[0] = framebuffer | MALI_EXT_RES_ACCESS_EXCLUSIVE;
+	*/
+
+	struct mali_jd_atom_v2 job = {
+		.jc = (uint32_t) packet,
+
+		//.ext_res_list = (struct mali_external_resource*) resource /* TODO */,
+		//.nr_ext_res = 1,
+		
+		.ext_res_list = NULL /* TODO */,
+		.nr_ext_res = 0,
+
+
+		.core_req = MALI_JD_REQ_EXTERNAL_RESOURCES | MALI_JD_REQ_FS,
+
+		//.atom_number = ++atom_count,
+		.atom_number = 0, /* TODO */
+
+
+		.prio = MALI_JD_PRIO_MEDIUM,
+		.device_nr = 0,
+		.pre_dep = { depTiler, no_dependency }
+	};
+
+	pandev_submit_job(fd, job);
 }
 
 /**
