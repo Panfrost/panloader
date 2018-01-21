@@ -708,9 +708,18 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 	panwrap_log("Stack present? %s\n", YES_NO(args->raw.stack_present));
 	panwrap_log("Suspend size: %d\n", args->raw.suspend_size);
 
-	/* Lower 32-bits of L2 features are fully decoded */
+	/* As far as we know, these features are fully decoded, with the other
+	 * bits being zeroes. Just in case, dump them if something non-zero
+	 * comes up in the alleged "reserved" fields */
+
 	if (args->raw.l2_features & (~0xFFFFFFFF))
 		panwrap_log("L2 features (undecoded) : 0x%010x\n", args->raw.l2_features & (~0xFFFFFFFF));
+
+	if (args->raw.thread_features & (~0xFFFFFFFF))
+		panwrap_log("Thread features (undecoded): 0x%x\n", args->raw.thread_features);
+
+	if (args->raw.mmu_features & ~(0xFFFF))
+		panwrap_log("MMU features (undecoded): %d\n", args->raw.mmu_features & ~(0xFFFF));
 
 	panwrap_log("Memory features: 0x%010x\n", args->raw.mem_features);
 
@@ -718,10 +727,6 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 	panwrap_indent++;
 	panwrap_log("Virtual address bits: %d\n", args->raw.mmu_features & 0x00FF);
 	panwrap_log("Physical address bits: %d\n", (args->raw.mmu_features & 0xFF00) >> 8);
-
-	if (args->raw.mmu_features & ~(0xFFFF))
-		panwrap_log("Unknown features: %d\n", args->raw.mmu_features & ~(0xFFFF));
-
 	panwrap_indent--;
 
 	panwrap_log("Address spaces present? %s\n",
@@ -747,7 +752,6 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 		panwrap_log("Tiler features (undecoded): %010x\n", leftover_tiler);
 
 	panwrap_log("GPU ID: 0x%x\n", args->raw.gpu_id);
-	panwrap_log("Thread features: 0x%x\n", args->raw.thread_features);
 	panwrap_log("Coherency mode: 0x%x (%s)\n",
 		    args->raw.coherency_mode,
 		    ioctl_decode_coherency_mode(args->raw.coherency_mode));
