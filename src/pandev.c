@@ -28,7 +28,7 @@ static int pandev_ioctl(int fd, unsigned long request, void *args)
 	union mali_ioctl_header *h = args;
 	int rc;
 
-	h->id = 512 + _IOC_NR(request);
+	h->id = ((_IOC_TYPE(request) & 0xF) << 8) | _IOC_NR(request);
 
 	rc = ioctl(fd, request, args);
 	if (rc)
@@ -45,8 +45,12 @@ static int pandev_ioctl(int fd, unsigned long request, void *args)
 static int
 pandev_get_driver_version(int fd, unsigned *major, unsigned *minor)
 {
-	struct mali_ioctl_get_version args = {};
 	int rc;
+
+	struct mali_ioctl_get_version args = {
+		.major = 0x8,
+		.minor = 0x4
+	};
 
 	/* So far this seems to be the only ioctl that uses 0x80 for dir */
 	rc = pandev_ioctl(fd, MALI_IOCTL_GET_VERSION, &args);
