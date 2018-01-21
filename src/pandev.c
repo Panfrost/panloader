@@ -142,6 +142,54 @@ pandev_query_mem(int fd, mali_ptr addr, enum mali_ioctl_mem_query_type attr,
 	return 0;
 }
 
+#define ATOM_QUEUE_SIZE 16
+
+struct mali_jd_atom_v2 pandev_atom_queue[ATOM_QUEUE_SIZE];
+int pandev_atom_queue_count = 0;
+
+/**
+ * Submit the queued jobs to the GPU, clearing the queue. Should be called
+ * explicitly, although pandev_submit_job may call it itself to flush the queue
+ */
+
+static int
+pandev_flush_jobs(int fd)
+{
+	struct mali_ioctl_job_submit submit = {
+		.addr = pandev_atom_queue,
+		.nr_atoms = pandev_atom_queue_count,
+		.stride = sizeof(struct mali_jd_atom_v2)
+	};
+
+	if (pandev_atom_queue_count == 0) {
+		/* There is no good reason for us to be called without any
+		 * queued jobs, but honestly? */
+
+		return 0;
+	}
+
+	pandev_atom_queue_count = 0;
+
+	return pandev_ioctl(fd, MALI_IOCTL_JOB_SUBMIT, &submit);
+}
+
+/**
+ * Submit a job to the job queue, flushing the queue if necessary. Unless the
+ * queue is full, this routine does NOT do any I/O. Once jobs are queued
+ * appropriately, pandev_flush_jobs must be called explicitly.
+ */
+
+static int
+pandev_submit_job(int fd, struct mali_jd_atom_v2 atom)
+{
+	memcpy(&pandev_atom_queue[pandev_atom_queue_count++], &atom, sizeof(atom));
+
+	if(pandev_atom_queue_count == ATOM_QUEUE_SIZE)
+		return pandev_flush_jobs(fd);
+
+	return 0;
+}
+
 /**
  * Open the device file for communicating with the mali kernelspace driver,
  * and make sure it's a version of the kernel driver we're familiar with.
