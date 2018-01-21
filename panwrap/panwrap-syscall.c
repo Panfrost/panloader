@@ -707,7 +707,17 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 	panwrap_log("L2 features: 0x%010x\n", args->raw.l2_features);
 	panwrap_log("Suspend size: %d\n", args->raw.suspend_size);
 	panwrap_log("Memory features: 0x%010x\n", args->raw.mem_features);
-	panwrap_log("MMU features: 0x%010x\n", args->raw.mmu_features);
+
+	panwrap_log("MMU features:\n");
+	panwrap_indent++;
+	panwrap_log("Virtual address bits: %d\n", args->raw.mmu_features & 0x00FF);
+	panwrap_log("Physical address bits: %d\n", (args->raw.mmu_features & 0xFF00) >> 8);
+
+	if (args->raw.mmu_features & ~(0xFFFF))
+		panwrap_log("Unknown features: %d\n", args->raw.mmu_features & ~(0xFFFF));
+
+	panwrap_indent--;
+
 	panwrap_log("Address spaces present? %s\n",
 		    YES_NO(args->raw.as_present));
 
