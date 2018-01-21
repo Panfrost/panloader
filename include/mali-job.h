@@ -1,5 +1,5 @@
 /*
- * © Copyright 2017 The BiOpenly Community
+ * © Copyright 2017-2018 The BiOpenly Community
  *
  * This program is free software and is provided to you under the terms of the
  * GNU General Public License version 2 as published by the Free Software
