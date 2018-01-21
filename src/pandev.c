@@ -166,10 +166,15 @@ pandev_open()
 		fprintf(stderr, "Mapping the MTP failed\n");
 	}
 
-	pandev_set_flags(fd);
+	rc = pandev_set_flags(fd);
+	if (rc)
+		return rc;
 
 	int stream_fd;
-	pandev_create_stream(fd, "insert-queer-pun-here", &stream_fd);
+
+	rc = pandev_create_stream(fd, "insert-queer-pun-here", &stream_fd);
+	if (rc)
+		return rc;
 
 	return fd;
 }
