@@ -184,7 +184,8 @@ pandev_submit_job(int fd, struct mali_jd_atom_v2 atom)
 	return 0;
 }
 
-/** Sync data to/from the GPU explicitly.
+/**
+ * Sync data to/from the GPU explicitly.
  * CPU is a pointer to the CPU-side buffer (CPU address space).
  * GPU is the GPU address to the GPU mapping.
  * Direction is one of MALI_SYNC_TO_DEVICE or MALI_SYNC_FROM_DEVICE
@@ -229,17 +230,6 @@ pandev_open()
 
 	printf("Found kernel driver version v%d.%d at /dev/mali0\n",
 	       major, minor);
-
-	/* We only support using v10 since this is the kernel driver version
-	 * HiKey 960's come with pre-built on Android. Mali changes things a
-	 * lot, so it's not worth the effort to support anything else
-	 */
-	if (major != 10) {
-		fprintf(stderr,
-			"Warning! This has only been tested with v10 of the "
-			"Bifrost kernel driver. There is no guarantee anything "
-			"will work with this version.\n");
-	}
 
 	/* The Memmap Tracking Handle is necessary to be mapped for the kernel
 	 * driver to be happy. It is still unclear why this is mapped or what
