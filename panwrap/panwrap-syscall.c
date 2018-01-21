@@ -668,6 +668,8 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 		    pow(2, args->l2.log2_line_size));
 	panwrap_log("Cache size: %.lf KB\n",
 		    pow(2, args->l2.log2_cache_size) / 1024);
+	panwrap_log("Associativity: %d\n", (args->raw.l2_features & 0xFF00) >> 8);
+	panwrap_log("External bus width: %d\n", (args->raw.l2_features & 0xFF000000) >> 24);
 	panwrap_log("L2 slice count: %d\n", args->l2.num_l2_slices);
 	panwrap_indent--;
 
@@ -704,8 +706,12 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 	panwrap_log("Tiler present? %s\n", YES_NO(args->raw.tiler_present));
 	panwrap_log("L2 present? %s\n", YES_NO(args->raw.l2_present));
 	panwrap_log("Stack present? %s\n", YES_NO(args->raw.stack_present));
-	panwrap_log("L2 features: 0x%010x\n", args->raw.l2_features);
 	panwrap_log("Suspend size: %d\n", args->raw.suspend_size);
+
+	/* Lower 32-bits of L2 features are fully decoded */
+	if (args->raw.l2_features & (~0xFFFFFFFF))
+		panwrap_log("L2 features (undecoded) : 0x%010x\n", args->raw.l2_features & (~0xFFFFFFFF));
+
 	panwrap_log("Memory features: 0x%010x\n", args->raw.mem_features);
 
 	panwrap_log("MMU features:\n");
