@@ -62,6 +62,7 @@ pandev_get_driver_version(int fd, unsigned *major, unsigned *minor)
 {
 	int rc;
 
+	/* Report old version for legacy mmap handling */
 	struct mali_ioctl_get_version args = {
 		.major = 8,
 		.minor = 2
