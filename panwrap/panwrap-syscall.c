@@ -734,7 +734,11 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 		}
 	panwrap_indent--;
 
-	panwrap_log("Tiler features: %010x\n", args->raw.tiler_features);
+	/* Bit field -- the other values are extracted above */
+	int leftover_tiler = args->raw.tiler_features & ~((1 << 7) - 1) & ~(((1 << 5) - 1) << 8);
+
+	if (leftover_tiler)
+		panwrap_log("Tiler features (undecoded): %010x\n", leftover_tiler);
 
 	panwrap_log("GPU ID: 0x%x\n", args->raw.gpu_id);
 	panwrap_log("Thread features: 0x%x\n", args->raw.thread_features);
