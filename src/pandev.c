@@ -35,6 +35,7 @@
 /* From the kernel module */
 
 #define MALI_MEM_MAP_TRACKING_HANDLE (3ull << 12)
+#define MALI_CONTEXT_CREATE_FLAG_NONE 0
 
 static int pandev_ioctl(int fd, unsigned long request, void *args)
 {
@@ -74,6 +75,16 @@ pandev_get_driver_version(int fd, unsigned *major, unsigned *minor)
 	*minor = args.minor;
 
 	return 0;
+}
+
+static int
+pandev_set_flags(int fd)
+{
+	struct mali_ioctl_set_flags args = {
+		.create_flags = MALI_CONTEXT_CREATE_FLAG_NONE
+	};
+
+	return pandev_ioctl(fd, MALI_IOCTL_SET_FLAGS, &args);
 }
 
 int
@@ -138,6 +149,8 @@ pandev_open()
 	if (mtp == MAP_FAILED) {
 		fprintf(stderr, "Mapping the MTP failed\n");
 	}
+
+	pandev_set_flags(fd);
 
 	return fd;
 }
