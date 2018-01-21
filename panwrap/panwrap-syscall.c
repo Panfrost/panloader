@@ -708,7 +708,7 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 	panwrap_log("Suspend size: %d\n", args->raw.suspend_size);
 	panwrap_log("Memory features: 0x%010x\n", args->raw.mem_features);
 	panwrap_log("MMU features: 0x%010x\n", args->raw.mmu_features);
-	panwrap_log("Address spaces present? present? %s\n",
+	panwrap_log("Address spaces present? %s\n",
 		    YES_NO(args->raw.as_present));
 
 	panwrap_log("Job slots present? %s\n",
