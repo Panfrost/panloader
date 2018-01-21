@@ -121,7 +121,18 @@ pandev_allocate(int fd, int va_pages, int commit_pages, int extent, int flags, u
 	if (rc)
 		return rc;
 
-	*out = args.gpu_va;
+	if (args.flags & MALI_MEM_SAME_VA) {
+		u8 *buffer = mmap(NULL, va_pages << PAGE_SHIFT, PROT_READ |
+				PROT_WRITE, MAP_SHARED, fd, args.gpu_va);
+
+		if (buffer == MAP_FAILED)
+			return -1;
+
+		*out = (u64) (uintptr_t) buffer;
+	} else {
+		*out = args.gpu_va;
+	}
+
 	return 0;
 }
 
@@ -246,22 +257,15 @@ pandev_open()
 	if (rc)
 		return rc;
 
-	u64 va;
 	int pages = 2;
+	u64 va;
+
 	rc = pandev_allocate(fd, pages, pages, 0, MALI_MEM_SAME_VA | MALI_MEM_PROT_CPU_RD | MALI_MEM_PROT_CPU_WR | MALI_MEM_PROT_GPU_RD, &va);
 	if (rc)
 		return rc;
 
-	/* TODO: Determine the details of memory allocation on both 32- and 64-
-	 * bit systems and on old and new version numbers, since it varies */
-
-	u8 *buffer = mmap(NULL, pages << PAGE_SHIFT, PROT_READ |
-			PROT_WRITE, MAP_SHARED, fd, va);
-
-	if (buffer == MAP_FAILED)
-		return -1;
-
-	va = (u64) (uintptr_t) buffer;
+	/* TODO: Do we need to mmap or not?! */
+	u8 *buffer = (u8*) (uintptr_t) va;
 
 	rc = pandev_sync_gpu(fd, buffer, va, 64, MALI_SYNC_TO_DEVICE);
 	if (rc)
