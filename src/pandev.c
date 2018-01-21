@@ -129,7 +129,7 @@ int
 pandev_query_mem(int fd, mali_ptr addr, enum mali_ioctl_mem_query_type attr,
 		 u64 *out)
 {
-	struct mali_ioctl_mem_query args = {};
+	struct mali_ioctl_mem_query args;
 	int rc;
 
 	args.gpu_addr = addr;
@@ -161,13 +161,6 @@ pandev_flush_jobs(int fd)
 		.nr_atoms = pandev_atom_queue_count,
 		.stride = sizeof(struct mali_jd_atom_v2)
 	};
-
-	if (pandev_atom_queue_count == 0) {
-		/* There is no good reason for us to be called without any
-		 * queued jobs, but honestly? */
-
-		return 0;
-	}
 
 	pandev_atom_queue_count = 0;
 
