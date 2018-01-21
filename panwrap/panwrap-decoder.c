@@ -217,11 +217,6 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	mali_ptr meta_ptr = v->_shader_upper << 4;
 	mali_ptr p;
 
-	/* From chai, no idea what this is for */
-	if ((meta_ptr & 0xFFF00000) == 0x5AB00000) {
-		panwrap_log("Job sabotaged\n");
-	}
-
 	attr_mem = panwrap_find_mapped_gpu_mem_containing(v->attribute_meta);
 
 	panwrap_log("%s shader @ " MALI_PTR_FMT " (flags 0x%x)\n",
@@ -287,13 +282,6 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		    v->null0, v->null1, v->null2, v->null4);
 
 	panwrap_trace_fbd(mem, &v->fbd);
-
-	/* FIXME: cafe had some sort of hex dump thingy here that seemed to
-	 * dump some unknown structures but for the life of me I cannot figure
-	 * out what the heck it does very easily. Unfortunately, the comments
-	 * on said code do not clarify much. If we're missing something, this
-	 * might be it.
-	 */
 
 	panwrap_indent--;
 }
