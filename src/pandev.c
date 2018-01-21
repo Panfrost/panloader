@@ -53,6 +53,7 @@ static int pandev_ioctl(int fd, unsigned long request, void *args)
 	case MALI_ERROR_FUNCTION_FAILED:   return -EINVAL;
 	case MALI_ERROR_OUT_OF_MEMORY:     return -ENOMEM;
 	case MALI_ERROR_OUT_OF_GPU_MEMORY: return -ENOSPC;
+	default:			   return -EINVAL;
 	}
 }
 
