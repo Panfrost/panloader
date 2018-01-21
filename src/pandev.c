@@ -18,10 +18,23 @@
 #include <linux/ioctl.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/mman.h>
 
 #include <panloader-util.h>
 #include <mali-ioctl.h>
 #include <pandev.h>
+
+#include <sys/user.h>
+
+/* From Linux arch/arm/include/asm/page.h */
+
+#define PAGE_SHIFT	12
+#define PAGE_SIZE 	(1 << PAGE_SHIFT)
+#define PAGE_MASK 	(~(PAGE_SIZE - 1))
+
+/* From the kernel module */
+
+#define MALI_MEM_MAP_TRACKING_HANDLE (3ull << 12)
 
 static int pandev_ioctl(int fd, unsigned long request, void *args)
 {
@@ -135,10 +148,20 @@ pandev_open()
 			"will work with this version.\n");
 	}
 
+	/* The Memmap Tracking Handle is necessary to be mapped for the kernel
+	 * driver to be happy. It is still unclear why this is mapped or what
+	 * we are supposed to dowith the mapped region. TODO
+	 */
+
+	uint8_t *mtp = mmap(NULL, PAGE_SIZE, PROT_NONE, MAP_SHARED, fd, MALI_MEM_MAP_TRACKING_HANDLE);
+
+	if (mtp == MAP_FAILED) {
+		fprintf(stderr, "Mapping the MTP failed\n");
+	}
+
 	rc = pandev_dump_gpu_properties(fd);
 	if (rc)
 		return rc;
-
 
 	return fd;
 }
