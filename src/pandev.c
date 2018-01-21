@@ -201,7 +201,7 @@ pandev_submit_job(int fd, struct mali_jd_atom_v2 atom)
  */
 
 static int
-pandev_sync_gpu(int fd, uint8_t* cpu, uint64_t gpu, size_t sz, int direction)
+pandev_sync_gpu(int fd, u8* cpu, u64 gpu, size_t sz, int direction)
 {
 	struct mali_ioctl_sync sync = {
 		.handle = gpu & PAGE_MASK,
@@ -252,7 +252,7 @@ pandev_open()
 	 * we are supposed to dowith the mapped region. TODO
 	 */
 
-	uint8_t *mtp = mmap(NULL, PAGE_SIZE, PROT_NONE, MAP_SHARED, fd, MALI_MEM_MAP_TRACKING_HANDLE);
+	u8 *mtp = mmap(NULL, PAGE_SIZE, PROT_NONE, MAP_SHARED, fd, MALI_MEM_MAP_TRACKING_HANDLE);
 
 	if (mtp == MAP_FAILED) {
 		fprintf(stderr, "Mapping the MTP failed\n");
@@ -271,7 +271,7 @@ pandev_open()
 	/* TODO: Determine the details of memory allocation on both 32- and 64-
 	 * bit systems and on old and new version numbers, since it varies */
 
-	uint8_t *buffer = mmap(NULL, pages << PAGE_SHIFT, PROT_READ |
+	u8 *buffer = mmap(NULL, pages << PAGE_SHIFT, PROT_READ |
 			PROT_WRITE, MAP_SHARED, fd, va);
 
 	if (buffer == MAP_FAILED)
