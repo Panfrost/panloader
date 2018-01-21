@@ -277,7 +277,7 @@ pandev_open()
 	if (buffer == MAP_FAILED)
 		return -1;
 
-	va = buffer;
+	va = (u64) (uintptr_t) buffer;
 
 	rc = pandev_sync_gpu(fd, buffer, va, 64, MALI_SYNC_TO_DEVICE);
 	if (rc)
