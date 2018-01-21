@@ -249,18 +249,16 @@ pandev_open()
 
 	u8 *mtp = mmap(NULL, PAGE_SIZE, PROT_NONE, MAP_SHARED, fd, MALI_MEM_MAP_TRACKING_HANDLE);
 
-	if (mtp == MAP_FAILED) {
-		fprintf(stderr, "Mapping the MTP failed\n");
-	}
+	if (mtp == MAP_FAILED)
+		return -1;
 
 	rc = pandev_set_flags(fd);
 	if (rc)
 		return rc;
 
-	int pages = 2;
 	u64 va;
 
-	rc = pandev_allocate(fd, pages, pages, 0, MALI_MEM_SAME_VA | MALI_MEM_PROT_CPU_RD | MALI_MEM_PROT_CPU_WR | MALI_MEM_PROT_GPU_RD, &va);
+	rc = pandev_allocate(fd, 2, 2, 0, MALI_MEM_SAME_VA | MALI_MEM_PROT_CPU_RD | MALI_MEM_PROT_CPU_WR | MALI_MEM_PROT_GPU_RD, &va);
 	if (rc)
 		return rc;
 
@@ -270,7 +268,6 @@ pandev_open()
 	rc = pandev_sync_gpu(fd, buffer, va, 64, MALI_SYNC_TO_DEVICE);
 	if (rc)
 		return rc;
-
 
 	int stream_fd;
 
