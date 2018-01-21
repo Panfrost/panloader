@@ -82,6 +82,26 @@ pandev_query_mem(int fd, mali_ptr addr, enum mali_ioctl_mem_query_type attr,
 }
 
 /**
+ * Dump detailed GPU properties. The userspace driver *does not actually need*
+ * the majority of this information. At the moment, we need precisely none of
+ * it. That said, when coupled with panwrap, this enables a nicely formatted
+ * property display, which works without needing the blob at all.
+ */
+
+int
+pandev_dump_gpu_properties(int fd)
+{
+	struct mali_ioctl_gpu_props_reg_dump args = {};
+	int rc;
+
+	rc = pandev_ioctl(fd, MALI_IOCTL_GPU_PROPS_REG_DUMP, &args);
+	if (rc)
+		return rc;
+
+	return 0;
+}
+
+/**
  * Open the device file for communicating with the mali kernelspace driver,
  * and make sure it's a version of the kernel driver we're familiar with.
  *
@@ -114,6 +134,11 @@ pandev_open()
 			"Bifrost kernel driver. There is no guarantee anything "
 			"will work with this version.\n");
 	}
+
+	rc = pandev_dump_gpu_properties(fd);
+	if (rc)
+		return rc;
+
 
 	return fd;
 }

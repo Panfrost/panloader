@@ -629,8 +629,8 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 	panwrap_log("Version status: %d\n", args->core.version_status);
 	panwrap_log("Minor revision: %d\n", args->core.minor_revision);
 	panwrap_log("Major revision: %d\n", args->core.major_revision);
-	panwrap_log("GPU speed (?): %dMHz\n", args->core.gpu_speed_mhz);
-	panwrap_log("GPU frequencies (?): %dKHz-%dKHz\n",
+	panwrap_log("Current GPU clock rate: %dMHz\n", args->core.gpu_speed_mhz);
+	panwrap_log("GPU clock range: %dKHz-%dKHz\n",
 		    args->core.gpu_freq_khz_min, args->core.gpu_freq_khz_max);
 	panwrap_log("Shader program counter size: %.lf MB\n",
 		    pow(2, args->core.log2_program_counter_size) / 1024 / 1024);
@@ -691,16 +691,19 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 	panwrap_log("Suspend size: %d\n", args->raw.suspend_size);
 	panwrap_log("Memory features: 0x%010x\n", args->raw.mem_features);
 	panwrap_log("MMU features: 0x%010x\n", args->raw.mmu_features);
-	panwrap_log("AS (what is this?) present? %s\n",
+	panwrap_log("Address spaces present? present? %s\n",
 		    YES_NO(args->raw.as_present));
 
-	panwrap_log("JS (what is this?) present? %s\n",
+	panwrap_log("Job slots present? %s\n",
 		    YES_NO(args->raw.js_present));
-	panwrap_log("JS features:\n");
+	panwrap_log("Job slot features:\n");
 
 	panwrap_indent++;
 	for (int i = 0; i < ARRAY_SIZE(args->raw.js_features); i++)
-		panwrap_log("%010x\n", args->raw.js_features[i]);
+		if (args->raw.js_features[i])
+			panwrap_log("Slot %d: %010x\n", i, args->raw.js_features[i]);
+		else
+			panwrap_log("Slot %d: -missing-\n", i);
 	panwrap_indent--;
 
 	panwrap_log("Tiler features: %010x\n", args->raw.tiler_features);
