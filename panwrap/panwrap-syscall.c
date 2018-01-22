@@ -635,6 +635,8 @@ ioctl_decode_post_sync(unsigned long int request, void *ptr)
 	panwrap_indent--;
 }
 
+#define PRINT_IF_NO(text, value) if (!value) panwrap_log("%s present? No\n", text);
+
 static inline void
 ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 {
@@ -710,10 +712,13 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 
 	panwrap_indent++;
 
-	panwrap_log("Shader present? %s\n", YES_NO(args->raw.shader_present));
-	panwrap_log("Tiler present? %s\n", YES_NO(args->raw.tiler_present));
-	panwrap_log("L2 present? %s\n", YES_NO(args->raw.l2_present));
-	panwrap_log("Stack present? %s\n", YES_NO(args->raw.stack_present));
+	/* Generally, these should be present, so be optimistic */
+
+	PRINT_IF_NO("Shader", args->raw.shader_present);
+	PRINT_IF_NO("Tiler", args->raw.tiler_present);
+	PRINT_IF_NO("L2", args->raw.l2_present);
+	PRINT_IF_NO("Stack", args->raw.stack_present);
+
 	panwrap_log("Suspend size: %d\n", args->raw.suspend_size);
 
 	/* As far as we know, these features are fully decoded, with the other
