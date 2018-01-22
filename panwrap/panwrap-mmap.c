@@ -44,7 +44,9 @@ static const struct panwrap_flag_info mmap_flags_flag_info[] = {
 	FLAG_INFO(MAP_NORESERVE),
 	FLAG_INFO(MAP_POPULATE),
 	FLAG_INFO(MAP_STACK),
+#if MAP_UNINITIALIZED != 0
 	FLAG_INFO(MAP_UNINITIALIZED),
+#endif
 	{}
 };
 
