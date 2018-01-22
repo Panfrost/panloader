@@ -21,6 +21,7 @@
 #define __WRAP_H__
 
 #include <dlfcn.h>
+#include <stdbool.h>
 #include <panloader-util.h>
 #include "panwrap-mmap.h"
 #include "panwrap-decoder.h"
@@ -43,6 +44,8 @@ void panwrap_log_decoded_flags(const struct panwrap_flag_info *flag_info,
 			       u64 flags);
 void panwrap_log_hexdump(const void *data, size_t size);
 void panwrap_log_hexdump_trimmed(const void *data, size_t size);
+
+bool panwrap_parse_env_bool(const char *env, bool def);
 
 extern short panwrap_indent;
 

@@ -111,6 +111,11 @@ static int mali_fd = 0;
 static LIST_HEAD(allocations);
 static LIST_HEAD(mmaps);
 
+static bool step_mode;
+PANLOADER_CONSTRUCTOR {
+	step_mode = panwrap_parse_env_bool("PANWRAP_STEP_MODE", false);
+}
+
 #define FLAG_INFO(flag) { MALI_MEM_##flag, #flag }
 static const struct panwrap_flag_info mem_flag_info[] = {
 	FLAG_INFO(PROT_CPU_RD),
@@ -953,7 +958,6 @@ int ioctl(int fd, int request, ...)
 		    name, _IOC_NR(request), request, _IOC_SIZE(request), func);
 
 	panwrap_indent++;
-
 	ioctl_decode_pre(request, ptr);
 
 	ret = orig_ioctl(fd, request, ptr);
@@ -961,9 +965,13 @@ int ioctl(int fd, int request, ...)
 	panwrap_log("= %02d, %02d\n",
 		    ret, header->rc);
 	ioctl_decode_post(request, ptr);
-
 	panwrap_indent--;
 
+	if (step_mode) {
+		panwrap_log("Paused, hit enter to continue\n");
+		panwrap_log_flush();
+		getchar();
+	}
 out:
 	UNLOCK();
 	return ret;

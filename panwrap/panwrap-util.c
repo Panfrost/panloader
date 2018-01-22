@@ -239,8 +239,8 @@ panwrap_download_mem(void *p, size_t s)
 	return cpy;
 }
 
-static bool
-parse_env_bool(const char *env, bool def)
+bool
+panwrap_parse_env_bool(const char *env, bool def)
 {
 	const char *val = getenv(env);
 
@@ -262,7 +262,7 @@ parse_env_bool(const char *env, bool def)
 PANLOADER_CONSTRUCTOR {
 	const char *env;
 
-	if (parse_env_bool("PANWRAP_ENABLE_TIMESTAMPS", false)) {
+	if (panwrap_parse_env_bool("PANWRAP_ENABLE_TIMESTAMPS", false)) {
 		enable_timestamps = true;
 		if (clock_gettime(CLOCK_MONOTONIC, &start_time)) {
 			fprintf(stderr,
@@ -272,8 +272,8 @@ PANLOADER_CONSTRUCTOR {
 		}
 	}
 
-	enable_hexdump_trimming = parse_env_bool("PANWRAP_ENABLE_HEXDUMP_TRIM",
-						 true);
+	enable_hexdump_trimming = panwrap_parse_env_bool(
+	    "PANWRAP_ENABLE_HEXDUMP_TRIM", true);
 
 	env = getenv("PANWRAP_OUTPUT");
 	if (env) {
