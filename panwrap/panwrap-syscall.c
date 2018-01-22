@@ -117,7 +117,7 @@ PANLOADER_CONSTRUCTOR {
 }
 
 #define LOCK()   pthread_mutex_lock(&l);
-#define UNLOCK() panwrap_log_flush();
+#define UNLOCK() panwrap_log_flush(); pthread_mutex_unlock(&l)
 
 #define FLAG_INFO(flag) { MALI_MEM_##flag, #flag }
 static const struct panwrap_flag_info mem_flag_info[] = {
