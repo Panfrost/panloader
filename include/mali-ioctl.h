@@ -81,6 +81,7 @@ enum mali_ioctl_mem_flags {
 	 MALI_MEM_CACHED_CPU |                                                \
 	 MALI_MEM_COHERENT_SYSTEM_REQUIRED | MALI_MEM_SECURE |                \
 	 MALI_MEM_DONT_NEED | MALI_MEM_IMPORT_SHARED)
+#define MALI_MEM_MAP_TRACKING_HANDLE (3ull << 12)
 
 enum mali_ioctl_coherency_mode {
 	COHERENCY_ACE_LITE = 0,

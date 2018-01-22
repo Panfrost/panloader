@@ -981,8 +981,15 @@ static void inline *panwrap_mmap_wrap(mmap_func *func,
 	LOCK();
 	ret = func(addr, length, prot, flags, fd, offset);
 
-	/* offset == gpu_va */
-	panwrap_track_mmap(offset, ret, length, prot, flags);
+	switch (offset) { /* offset == gpu_va */
+	case MALI_MEM_MAP_TRACKING_HANDLE:
+		panwrap_log("Memory map tracking handle ("MALI_PTR_FMT") mapped to %p\n",
+			    offset, addr);
+		break;
+	default:
+		panwrap_track_mmap(offset, ret, length, prot, flags);
+		break;
+	}
 
 	UNLOCK();
 	return ret;
