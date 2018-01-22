@@ -717,6 +717,8 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 	PRINT_IF_NO("Shader", args->raw.shader_present);
 	PRINT_IF_NO("Tiler", args->raw.tiler_present);
 	PRINT_IF_NO("L2", args->raw.l2_present);
+	PRINT_IF_NO("Address spaces", args->raw.as_present);
+	PRINT_IF_NO("Job slots", args->raw.js_present);
 	PRINT_IF_NO("Stack", args->raw.stack_present);
 
 	panwrap_log("Suspend size: %d\n", args->raw.suspend_size);
@@ -743,11 +745,6 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 	panwrap_log("Physical address bits: %d\n", (args->raw.mmu_features & 0xFF00) >> 8);
 	panwrap_indent--;
 
-	panwrap_log("Address spaces present? %s\n",
-		    YES_NO(args->raw.as_present));
-
-	panwrap_log("Job slots present? %s\n",
-		    YES_NO(args->raw.js_present));
 	panwrap_log("Job slot features:\n");
 
 	panwrap_indent++;
