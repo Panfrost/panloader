@@ -23,15 +23,13 @@
 #include <linux/ioctl.h>
 #include <math.h>
 #include <sys/mman.h>
+#include <unistd.h>
 
 #include <mali-ioctl.h>
 #include <list.h>
 #include "panwrap.h"
 
 static pthread_mutex_t l = PTHREAD_MUTEX_INITIALIZER;
-
-#define LOCK()   pthread_mutex_lock(&l)
-#define UNLOCK() pthread_mutex_unlock(&l)
 
 #define IOCTL_CASE(request) (_IOWR(_IOC_TYPE(request), _IOC_NR(request), \
 				   _IOC_SIZE(request)))
@@ -112,9 +110,14 @@ static LIST_HEAD(allocations);
 static LIST_HEAD(mmaps);
 
 static bool step_mode;
+static long log_delay;
 PANLOADER_CONSTRUCTOR {
 	step_mode = panwrap_parse_env_bool("PANWRAP_STEP_MODE", false);
+	log_delay = panwrap_parse_env_long("PANWRAP_LOG_DELAY", 0);
 }
+
+#define LOCK()   pthread_mutex_lock(&l);
+#define UNLOCK() panwrap_log_flush();
 
 #define FLAG_INFO(flag) { MALI_MEM_##flag, #flag }
 static const struct panwrap_flag_info mem_flag_info[] = {
@@ -855,6 +858,7 @@ panwrap_open_wrap(open_func *func, const char *path, int flags, va_list args)
 	}
 
 	LOCK();
+	msleep(log_delay);
 	if (ret != -1) {
 		if (strcmp(path, "/dev/mali0") == 0) {
 			panwrap_log("/dev/mali0 fd == %d\n", ret);
@@ -904,6 +908,7 @@ close(int fd)
                 return orig_close(fd);
 
 	LOCK();
+	msleep(log_delay);
 	if (!fd || fd != mali_fd) {
 		panwrap_log("/dev/mali0 closed\n");
 		mali_fd = 0;
@@ -938,6 +943,7 @@ int ioctl(int fd, int request, ...)
 		return orig_ioctl(fd, request, ptr);
 
 	LOCK();
+	msleep(log_delay);
 	name = ioctl_get_info(request)->name ?: "???";
 	header = ptr;
 
@@ -987,6 +993,7 @@ static void inline *panwrap_mmap_wrap(mmap_func *func,
 		return func(addr, length, prot, flags, fd, offset);
 
 	LOCK();
+	msleep(log_delay);
 	ret = func(addr, length, prot, flags, fd, offset);
 
 	switch (offset) { /* offset == gpu_va */
@@ -1032,11 +1039,16 @@ int munmap(void *addr, size_t length)
 	struct panwrap_mapped_memory *mem;
 	PROLOG(munmap);
 
+	if (!mali_fd)
+		return orig_munmap(addr, length);
+
 	LOCK();
 	ret = orig_munmap(addr, length);
 	mem = panwrap_find_mapped_mem(addr);
 	if (!mem)
 		goto out;
+
+	msleep(log_delay);
 
 	/* Was it memory mapped from the GPU? */
 	if (mem->gpu_va)

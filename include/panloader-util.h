@@ -69,4 +69,6 @@ typedef int64_t s64;
 #define PANLOADER_CONSTRUCTOR \
        static void __attribute__((constructor)) PASTE_TOKENS(__panloader_ctor_l, __LINE__)()
 
+#define msleep(n) (usleep(n * 1000))
+
 #endif /* __PANLOADER_UTIL_H__ */

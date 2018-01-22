@@ -259,6 +259,26 @@ panwrap_parse_env_bool(const char *env, bool def)
 	exit(1);
 }
 
+long
+panwrap_parse_env_long(const char *env, long def)
+{
+	const char *val = getenv(env);
+	long ret;
+
+	if (!val)
+		return def;
+
+	ret = strtol(val, NULL, 10);
+	if (!ret && errno) {
+		fprintf(stderr,
+			"Invalid value for %s: %s\n"
+			"Must be a valid 10-based integer",
+			env, val);
+	}
+
+	return ret;
+}
+
 PANLOADER_CONSTRUCTOR {
 	const char *env;
 
