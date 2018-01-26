@@ -299,9 +299,16 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_indent--;
 	}
 
-	/* TODO: Some of these are for textures. Rename and dump those. */
-	panwrap_log("nulls: " MALI_PTR_FMT ", " MALI_PTR_FMT ", " MALI_PTR_FMT ", " MALI_PTR_FMT "\n",
-		    v->null0, v->null1, v->null2, v->null4);
+	panwrap_log("nulls: " MALI_PTR_FMT ", " MALI_PTR_FMT "\n",
+		    v->null0, v->null4);
+
+	if (v->texture_meta_address || v->texture_unknown) {
+		panwrap_log("Texture:");
+		panwrap_indent++;
+		panwrap_log("Meta address: " MALI_PTR_FMT "\n", v->texture_meta_address);
+		panwrap_log("Unknown address: " MALI_PTR_FMT "\n", v->texture_unknown);
+		panwrap_indent--;
+	}
 
 	panwrap_trace_fbd(mem, &v->fbd);
 
