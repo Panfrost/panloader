@@ -123,7 +123,7 @@ struct mali_payload_vertex_tiler {
 	mali_ptr unknown1; /* pointer */
 	mali_ptr null1;
 	mali_ptr null2;
-	mali_ptr unknown2; /* pointer */
+	mali_ptr uniforms;
 	u8 flags : 4;
 	mali_ptr _shader_upper : MALI_PTR_BITS - 4; /* struct shader_meta */
 	mali_ptr attributes; /* struct attribute_buffer[] */

@@ -10,6 +10,7 @@ is_android = cc.get_define('__ANDROID__') == '1'
 
 test_cc_flags = [
     '-Werror-implicit-function-declaration',
+    '-mfp16-format=ieee'
 ]
 foreach flag: test_cc_flags
     if cc.has_argument(flag)

@@ -276,7 +276,30 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 				*PANWRAP_PTR(attr_mem, v->block1[7], u8)));
 	}
 
-	/* TODO: Rename appropriately */
+	if (v->uniforms) {
+		/* XXX: How do we know how many to print? How do we know to use
+		 * half-floats? */
+
+		struct panwrap_mapped_memory *uniform_mem = panwrap_find_mapped_gpu_mem_containing(v->uniforms);
+
+		panwrap_log("Uniforms: \n");
+		panwrap_fetch_gpu_mem(uniform_mem, v->uniforms, 4 * sizeof(__fp16));
+
+		__fp16 *PANWRAP_PTR_VAR(uniforms, uniform_mem, v->uniforms);
+
+		panwrap_indent++;
+		panwrap_log("<");
+
+		for (int i = 0; i < 4; i++)
+			panwrap_log_cont("%f%s",
+					 (float) uniforms[i],
+					 i < 4 - 1 ? ", " : "");
+
+		panwrap_log_cont(">\n");
+		panwrap_indent--;
+	}
+
+	/* TODO: Some of these are for textures. Rename and dump those. */
 	panwrap_log("nulls: " MALI_PTR_FMT ", " MALI_PTR_FMT ", " MALI_PTR_FMT ", " MALI_PTR_FMT "\n",
 		    v->null0, v->null1, v->null2, v->null4);
 
