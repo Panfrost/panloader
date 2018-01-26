@@ -15,6 +15,10 @@
 #include "panwrap.h"
 #include <mali-ioctl.h>
 #include <mali-job.h>
+#include <stdio.h>
+
+extern char* replace_fragment;
+extern char* replace_vertex;
 
 static char *panwrap_job_type_name(enum mali_job_type type)
 {
@@ -232,11 +236,28 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	if (meta_ptr) {
 		meta = panwrap_fetch_gpu_mem(NULL, meta_ptr, sizeof(*meta));
 
+		/* For testing the shader compiler infrastructure, panloader
+		 * can replace shaders at runtime, configurable by
+		 * environmental variables. */
+
+		char *replacement = h->job_type == JOB_TYPE_VERTEX ?
+			replace_vertex : replace_fragment;
+
+		if (*replacement) {
+			/* TODO: Determine size and possibly allocate our own
+			 * shader buffer */
+
+			FILE *fp = fopen(replacement, "rb");
+			fread(meta->shader, 1, 64, fp);
+			fclose(fp);
+		}
+
 		panwrap_log("Shader blob: @ " MALI_PTR_FMT "\n", meta_ptr);
 		panwrap_indent++;
 		panwrap_log_hexdump(
 		    panwrap_fetch_gpu_mem(NULL, meta->shader, 832), 832);
 		panwrap_indent--;
+
 	} else
 		panwrap_log("<no shader>\n");
 

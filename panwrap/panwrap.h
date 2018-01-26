@@ -47,6 +47,7 @@ void panwrap_log_hexdump_trimmed(const void *data, size_t size);
 
 bool panwrap_parse_env_bool(const char *env, bool def);
 long panwrap_parse_env_long(const char *env, long def);
+char * panwrap_parse_env_string(const char *env, char *def);
 
 extern short panwrap_indent;
 

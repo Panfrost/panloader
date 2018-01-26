@@ -279,6 +279,18 @@ panwrap_parse_env_long(const char *env, long def)
 	return ret;
 }
 
+char *
+panwrap_parse_env_string(const char *env, char *def)
+{
+	const char *val = getenv(env);
+
+	if (!val)
+		return def;
+
+	return val;
+}
+
+
 PANLOADER_CONSTRUCTOR {
 	const char *env;
 
