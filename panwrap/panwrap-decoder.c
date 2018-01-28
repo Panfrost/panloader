@@ -217,6 +217,7 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	struct mali_shader_meta *meta;
 	struct panwrap_mapped_memory *attr_mem;
 	struct mali_attr_meta *attr_meta;
+	u8 *shader;
 	mali_ptr meta_ptr = v->_shader_upper << 4;
 	mali_ptr p;
 
@@ -235,6 +236,7 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 	if (meta_ptr) {
 		meta = panwrap_fetch_gpu_mem(NULL, meta_ptr, sizeof(*meta));
+		shader = panwrap_fetch_gpu_mem(NULL, meta->shader, 64);
 
 		/* For testing the shader compiler infrastructure, panloader
 		 * can replace shaders at runtime, configurable by
@@ -248,7 +250,7 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			 * shader buffer */
 
 			FILE *fp = fopen(replacement, "rb");
-			fread(meta->shader, 1, 64, fp);
+			fread(shader, 1, 64, fp);
 			fclose(fp);
 		}
 
