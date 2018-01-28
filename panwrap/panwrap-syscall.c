@@ -111,8 +111,8 @@ static LIST_HEAD(mmaps);
 
 static bool step_mode;
 static long log_delay;
-char* replace_fragment;
-char* replace_vertex;
+const char* replace_fragment;
+const char* replace_vertex;
 PANLOADER_CONSTRUCTOR {
 	step_mode = panwrap_parse_env_bool("PANWRAP_STEP_MODE", false);
 	log_delay = panwrap_parse_env_long("PANWRAP_LOG_DELAY", 0);
