@@ -480,7 +480,7 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 			panwrap_indent++;
 			for (int j = 0; j < a->nr_ext_res; j++)
 			{
-				panwrap_log("");
+				panwrap_log(" ");
 				panwrap_log_decoded_flags(
 					external_resources_access_flag_info,
 					a->ext_res_list[j].ext_resource[0]);
@@ -1005,7 +1005,7 @@ static void inline *panwrap_mmap_wrap(mmap_func *func,
 	switch (offset) { /* offset == gpu_va */
 	case MALI_MEM_MAP_TRACKING_HANDLE:
 		panwrap_log("Memory map tracking handle ("MALI_PTR_FMT") mapped to %p\n",
-			    offset, ret);
+			    (mali_ptr) offset, ret);
 		break;
 	default:
 		panwrap_track_mmap(offset, ret, length, prot, flags);

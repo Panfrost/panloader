@@ -185,13 +185,16 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 	panwrap_log("ugan (+0x%zx) = " MALI_PTR_FMT "\n",
 		    OFFSET(unknown_gpu_addressN), mfbd->unknown_gpu_addressN);
 
-	panwrap_log("blah (+0x%zx) = " MALI_PTR_FMT "\n",
+	panwrap_log("blah (+0x%zx) = %" PRIx64 "\n",
 		    OFFSET(blah), mfbd->blah);
 
 #define PR_UNK(n, s) panwrap_log("unknown" #n " (+0x%zx) = %" PRIx ## s "\n", \
 				 OFFSET(unknown ## n), mfbd->unknown ## n)
 	PR_UNK(1, 32);
-	PR_UNK(2, 64);
+
+	panwrap_log("unknown2 (+0x%zx) = " MALI_PTR_FMT "\n", \
+				 OFFSET(unknown2), mfbd->unknown2);
+
 	PR_UNK(3, 64);
 #undef PR_UNK
 
@@ -276,7 +279,7 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			panwrap_indent++;
 
 			panwrap_log("flags = 0x%014" PRIx64 "\n",
-				    attr_meta->flags);
+				    (u64) attr_meta->flags);
 			panwrap_decode_attributes(
 			    attr_mem,
 			    v->attributes + (attr_meta->index *
