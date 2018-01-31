@@ -339,7 +339,8 @@ do_dump_file(const char *name, int in, int out)
 }
 
 static void
-dump_debugfs() {
+dump_debugfs(unsigned int request) {
+	const struct ioctl_info *ioc_info;
 	int outd_fd,
 	    mem_view_fd, mem_view_out_fd,
 	    mem_profile_fd, mem_profile_out_fd,
@@ -356,10 +357,12 @@ dump_debugfs() {
 		return;
 	}
 
+	ioc_info = ioctl_get_info(request);
+
 	/* Create outd */
 	panwrap_timestamp(&tp);
 	snprintf(outd_name, sizeof(outd_name),
-		 "dump-%ld.%ld", tp.tv_sec, tp.tv_nsec);
+		 "%ld.%ld-%s", tp.tv_sec, tp.tv_nsec, ioc_info->name);
 
 	ret = mkdirat(dump_dir_fd, outd_name, 0777);
 	if (ret < 0) {
@@ -545,6 +548,7 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 	panwrap_log("type = %d (%s)\n", args->type, type);
 
 	if (args->type == MALI_SYNC_TO_DEVICE) {
+		dump_debugfs(request);
 		panwrap_log("Dumping memory being synced to device:\n");
 		panwrap_indent++;
 		panwrap_log_hexdump(args->user_addr, args->size);
@@ -574,7 +578,7 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 	const struct mali_ioctl_job_submit *args = ptr;
 	const struct mali_jd_atom_v2 *atoms = args->addr;
 
-	dump_debugfs();
+	dump_debugfs(request);
 
 	panwrap_log("addr = %p\n", args->addr);
 	panwrap_log("nr_atoms = %d\n", args->nr_atoms);
@@ -769,6 +773,7 @@ ioctl_decode_post_sync(unsigned long int request, void *ptr)
 	if (args->type != MALI_SYNC_TO_CPU)
 		return;
 
+	dump_debugfs(request);
 	panwrap_log("Dumping memory from device:\n");
 	panwrap_indent++;
 	panwrap_log_hexdump_trimmed(args->user_addr, args->size);
