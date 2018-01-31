@@ -180,14 +180,6 @@ panwrap_timestamp(struct timespec *tp)
 			strerror(errno));
 		exit(1);
 	}
-
-	tp->tv_sec -= start_time.tv_sec;
-	tp->tv_nsec -= start_time.tv_nsec;
-
-	if (tp->tv_nsec < 0) {
-		tp->tv_sec--;
-		tp->tv_nsec = 1e+9 + tp->tv_nsec;
-	}
 }
 
 void
