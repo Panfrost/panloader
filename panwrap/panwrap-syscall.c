@@ -376,22 +376,22 @@ dump_debugfs() {
 		abort();
 	}
 
-#define TRY_COPY(name)                                                             \
+#define TRY_COPY(name)                                                \
 	name ## _fd = openat(debugfs_fd, #name, O_RDONLY);            \
-	if (name ## _fd < 0) {                                                     \
-		fprintf(stderr, "Error: Failed to open %s: %s\n",                  \
-                        #name, strerror(errno));                                   \
-		abort();                                                           \
-	}                                                                          \
+	if (name ## _fd < 0) {                                        \
+		fprintf(stderr, "Error: Failed to open %s: %s\n",     \
+                        #name, strerror(errno));                      \
+		abort();                                              \
+	}                                                             \
 	name ## _out_fd = openat(outd_fd, #name, O_WRONLY | O_CREAT); \
-	if (name ## _out_fd < 0) {                                                 \
-		fprintf(stderr, "Error: Failed to create %s: %s\n",                \
-                        #name, strerror(errno));                                   \
-		abort();                                                           \
-	}                                                                          \
-                                                                                   \
-	do_dump_file(#name, name ## _fd, name ## _out_fd);                         \
-	close(name ## _fd);                                                        \
+	if (name ## _out_fd < 0) {                                    \
+		fprintf(stderr, "Error: Failed to create %s: %s\n",   \
+                        #name, strerror(errno));                      \
+		abort();                                              \
+	}                                                             \
+                                                                      \
+	do_dump_file(#name, name ## _fd, name ## _out_fd);            \
+	close(name ## _fd);                                           \
 	close(name ## _out_fd);
 
 	TRY_COPY(mem_view);
