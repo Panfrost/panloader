@@ -272,7 +272,7 @@ panwrap_parse_env_long(const char *env, long def)
 }
 
 const char *
-panwrap_parse_env_string(const char *env, char *def)
+panwrap_parse_env_string(const char *env, const char *def)
 {
 	const char *val = getenv(env);
 
