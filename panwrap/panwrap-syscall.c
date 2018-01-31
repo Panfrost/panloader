@@ -410,6 +410,8 @@ dump_debugfs() {
 			abort();
 		}
 
+		do_dump_file("mem_profile", mem_profile_fd, mem_profile_out_fd);
+
 		close(mem_profile_fd);
 		close(mem_profile_out_fd);
 	}
