@@ -24,6 +24,9 @@
 #include <math.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <linux/limits.h>
+#include <sys/stat.h>
+#include <errno.h>
 
 #include <mali-ioctl.h>
 #include <list.h>
@@ -114,6 +117,8 @@ ioctl_get_info(unsigned long int request)
 }
 
 static int mali_fd = 0;
+static long context_id = 0;
+static char debugfs_ctx_path[PATH_MAX] = {0};
 static LIST_HEAD(allocations);
 static LIST_HEAD(mmaps);
 
@@ -121,11 +126,28 @@ static bool step_mode;
 static long log_delay;
 const char* replace_fragment;
 const char* replace_vertex;
+
+static const char *dump_dir;
+static int dump_dir_fd;
+static int debugfs_fd;
 PANLOADER_CONSTRUCTOR {
-	step_mode = panwrap_parse_env_bool("PANWRAP_STEP_MODE", false);
 	log_delay = panwrap_parse_env_long("PANWRAP_LOG_DELAY", 0);
 	replace_fragment = panwrap_parse_env_string("PANWRAP_REPLACE_FRAGMENT", "");
 	replace_vertex = panwrap_parse_env_string("PANWRAP_REPLACE_VERTEX", "");
+	dump_dir = panwrap_parse_env_string("PANWRAP_DUMP_DIR", NULL);
+	step_mode = panwrap_parse_env_bool("PANWRAP_STEP", false);
+
+	if (dump_dir != NULL) {
+		mkdir(dump_dir, 0777);
+
+		dump_dir_fd = open(dump_dir, O_DIRECTORY);
+		if (dump_dir_fd < 0) {
+			fprintf(stderr,
+				"Failed to create/open %s: %s\n",
+				dump_dir, strerror(errno));
+			abort();
+		}
+	}
 }
 
 #define LOCK()   pthread_mutex_lock(&l);
@@ -293,6 +315,108 @@ ioctl_log_decoded_jd_core_req(mali_jd_core_req req)
 }
 #undef SOFT_FLAG
 
+static void
+do_dump_file(const char *name, int in, int out)
+{
+	unsigned char buf[4096];
+	ssize_t in_ret, out_ret;
+
+	do {
+		in_ret = read(in, buf, sizeof(buf));
+		if (in_ret < 0 && errno != EAGAIN) {
+			fprintf(stderr, "Failed to read %s: %s\n",
+				name, strerror(errno));
+			abort();
+		}
+
+		out_ret = write(out, buf, in_ret);
+		if (out_ret && out_ret != in_ret) {
+			fprintf(stderr, "Failed to write %s: %s\n",
+				name, strerror(errno));
+			abort();
+		}
+	} while (in_ret > 0);
+}
+
+static void
+dump_debugfs() {
+	int outd_fd,
+	    mem_view_fd, mem_view_out_fd,
+	    mem_profile_fd, mem_profile_out_fd,
+	    atoms_fd, atoms_out_fd;
+	char outd_name[PATH_MAX];
+	struct timespec tp;
+	int ret;
+
+	if (dump_dir == NULL)
+		return;
+
+	if (context_id == 0) {
+		panwrap_log("Error! dump_debugfs() called but no context_id?\n");
+		return;
+	}
+
+	/* Create outd */
+	panwrap_timestamp(&tp);
+	snprintf(outd_name, sizeof(outd_name),
+		 "dump-%ld.%ld", tp.tv_sec, tp.tv_nsec);
+
+	ret = mkdirat(dump_dir_fd, outd_name, 0777);
+	if (ret < 0) {
+		fprintf(stderr,
+			"Error! Failed to create dump dir %s: %s\n",
+			outd_name, strerror(errno));
+		abort();
+	}
+	outd_fd = openat(dump_dir_fd, outd_name, O_DIRECTORY);
+	if (outd_fd < 0) {
+		fprintf(stderr,
+			"Error! Failed to open dump dir %s: %s\n",
+			outd_name, strerror(errno));
+		abort();
+	}
+
+#define TRY_COPY(name)                                                             \
+	name ## _fd = openat(debugfs_fd, #name, O_RDONLY);            \
+	if (name ## _fd < 0) {                                                     \
+		fprintf(stderr, "Error: Failed to open %s: %s\n",                  \
+                        #name, strerror(errno));                                   \
+		abort();                                                           \
+	}                                                                          \
+	name ## _out_fd = openat(outd_fd, #name, O_WRONLY | O_CREAT); \
+	if (name ## _out_fd < 0) {                                                 \
+		fprintf(stderr, "Error: Failed to create %s: %s\n",                \
+                        #name, strerror(errno));                                   \
+		abort();                                                           \
+	}                                                                          \
+                                                                                   \
+	do_dump_file(#name, name ## _fd, name ## _out_fd);                         \
+	close(name ## _fd);                                                        \
+	close(name ## _out_fd);
+
+	TRY_COPY(mem_view);
+	TRY_COPY(atoms);
+
+	/* mem_profile doesn't always exist! */
+	mem_profile_fd = openat(debugfs_fd, "mem_profile",
+				O_RDONLY | O_NONBLOCK);
+	if (mem_profile_fd > 0) {
+		mem_profile_out_fd = openat(outd_fd,
+					    "mem_profile",
+					    O_WRONLY | O_NONBLOCK | O_CREAT);
+		if (mem_profile_out_fd < 0) {
+			fprintf(stderr, "Error: Failed to create mem_profile: %s\n",
+				strerror(errno));
+			abort();
+		}
+
+		close(mem_profile_fd);
+		close(mem_profile_out_fd);
+	}
+
+	close(outd_fd);
+}
+
 static inline void
 ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
 {
@@ -447,6 +571,8 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_job_submit *args = ptr;
 	const struct mali_jd_atom_v2 *atoms = args->addr;
+
+	dump_debugfs();
 
 	panwrap_log("addr = %p\n", args->addr);
 	panwrap_log("nr_atoms = %d\n", args->nr_atoms);
@@ -813,6 +939,24 @@ ioctl_decode_post_get_context_id(unsigned long int request, void *ptr)
 	const struct mali_ioctl_get_context_id *args = ptr;
 
 	panwrap_log("id = 0x%" PRIx64 "\n", args->id);
+
+	if (context_id != 0) {
+		panwrap_log("Oh no, there's more then one context! I can't handle this yet\n");
+		abort();
+	}
+
+	context_id = args->id;
+
+	/* this seems to be how the kdriver determines debugfs paths... */
+	snprintf(debugfs_ctx_path, sizeof(debugfs_ctx_path),
+		 "/sys/kernel/debug/mali0/ctx/%d_%ld/",
+		 getpid(), context_id & ~0x7f00000000);
+	debugfs_fd = open(debugfs_ctx_path, O_RDONLY | O_DIRECTORY);
+	if (!debugfs_fd) {
+		fprintf(stderr, "Failed to open debugfs dir %s: %s\n",
+			debugfs_ctx_path, strerror(errno));
+		abort();
+	}
 }
 
 static inline void

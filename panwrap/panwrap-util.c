@@ -172,7 +172,7 @@ __rd_dlsym_helper(const char *name)
 	return func;
 }
 
-static void
+void
 panwrap_timestamp(struct timespec *tp)
 {
 	if (clock_gettime(CLOCK_MONOTONIC, tp)) {
@@ -191,7 +191,7 @@ panwrap_log(const char *format, ...)
 	if (enable_timestamps) {
 		panwrap_timestamp(&tp);
 		fprintf(log_output,
-			"panwrap [%.8lf]: ", tp.tv_sec + tp.tv_nsec / 1e+9F);
+			"panwrap [%ld.%ld]: ", tp.tv_sec, tp.tv_nsec);
 	} else {
 		fprintf(log_output, "panwrap: ");
 	}
