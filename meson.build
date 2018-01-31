@@ -28,10 +28,12 @@ endif
 
 m_dep = cc.find_library('m', required: true)
 dl_dep = cc.find_library('dl', required: false)
+pthread_dep = cc.find_library('pthread', required: false)
 
 common_dep = [
     m_dep,
     dl_dep,
+    pthread_dep
 ]
 
 if not cc.has_argument('-Werror=attributes')
