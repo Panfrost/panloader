@@ -29,7 +29,15 @@
 #include <list.h>
 #include "panwrap.h"
 
-static pthread_mutex_t l = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t l;
+PANLOADER_CONSTRUCTOR {
+	pthread_mutexattr_t mattr;
+
+	pthread_mutexattr_init(&mattr);
+	pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
+	pthread_mutex_init(&l, &mattr);
+	pthread_mutexattr_destroy(&mattr);
+}
 
 #define IOCTL_CASE(request) (_IOWR(_IOC_TYPE(request), _IOC_NR(request), \
 				   _IOC_SIZE(request)))
