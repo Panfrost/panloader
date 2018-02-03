@@ -959,7 +959,7 @@ ioctl_decode_post_get_context_id(unsigned long int request, void *ptr)
 		 "/sys/kernel/debug/mali0/ctx/%d_%" PRId64,
 		 getpid(), context_id & ~0x7f00000000);
 	debugfs_fd = open(debugfs_ctx_path, O_RDONLY | O_DIRECTORY);
-	if (!debugfs_fd) {
+	if (debugfs_fd < 0) {
 		fprintf(stderr, "Failed to open debugfs dir %s: %s\n",
 			debugfs_ctx_path, strerror(errno));
 		abort();
