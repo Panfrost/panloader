@@ -956,7 +956,7 @@ ioctl_decode_post_get_context_id(unsigned long int request, void *ptr)
 
 	/* this seems to be how the kdriver determines debugfs paths... */
 	snprintf(debugfs_ctx_path, sizeof(debugfs_ctx_path),
-		 "/sys/kernel/debug/mali0/ctx/%d_/%" PRIX64,
+		 "/sys/kernel/debug/mali0/ctx/%d_%" PRId64,
 		 getpid(), context_id & ~0x7f00000000);
 	debugfs_fd = open(debugfs_ctx_path, O_RDONLY | O_DIRECTORY);
 	if (!debugfs_fd) {
