@@ -26,7 +26,8 @@
 #define HEXDUMP_ROW_LEN 16
 
 static bool enable_timestamps = false,
-	    enable_hexdump_trimming = true;
+	    enable_hexdump_trimming = true,
+	    enable_replay_source = false;
 static struct timespec start_time;
 static FILE *log_output;
 short panwrap_indent = 0;
@@ -36,6 +37,8 @@ panwrap_log_decoded_flags(const struct panwrap_flag_info *flag_info,
 			  u64 flags)
 {
 	bool decodable_flags_found = false;
+
+	if (enable_replay_source) return;
 
 	panwrap_log_cont("0x%" PRIx64, flags);
 
@@ -69,6 +72,8 @@ panwrap_log_hexdump(const void *data, size_t size)
 	unsigned char *buf = (void *) data;
 	char alpha[HEXDUMP_ROW_LEN + 1];
 	int i;
+
+	if (enable_replay_source) return;
 
 	for (i = 0; i < size; i++) {
 		if (!(i % HEXDUMP_ROW_LEN))
@@ -121,6 +126,8 @@ panwrap_log_hexdump_trimmed(const void *data, size_t size)
 	off_t trim_offset;
 	size_t trim_size = size;
 	bool trimming = false;
+
+	if (enable_replay_source) return;
 
 	if (!enable_hexdump_trimming)
 		goto out;
@@ -188,6 +195,8 @@ panwrap_log(const char *format, ...)
 	struct timespec tp;
 	va_list ap;
 
+	if (enable_replay_source) return;
+
 	if (enable_timestamps) {
 		panwrap_timestamp(&tp);
 		fprintf(log_output,
@@ -210,6 +219,8 @@ void
 panwrap_log_cont(const char *format, ...)
 {
 	va_list ap;
+
+	if (enable_replay_source) return;
 
 	va_start(ap, format);
 	vfprintf(log_output, format, ap);
@@ -298,6 +309,9 @@ PANLOADER_CONSTRUCTOR {
 
 	enable_hexdump_trimming = panwrap_parse_env_bool(
 	    "PANWRAP_ENABLE_HEXDUMP_TRIM", true);
+
+	enable_replay_source = panwrap_parse_env_bool(
+	    "PANWRAP_ENABLE_REPLAY", false);
 
 	env = getenv("PANWRAP_OUTPUT");
 	if (env) {
