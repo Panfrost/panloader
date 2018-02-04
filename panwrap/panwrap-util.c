@@ -26,7 +26,8 @@
 #define HEXDUMP_ROW_LEN 16
 
 static bool enable_timestamps = false,
-	    enable_hexdump_trimming = true;
+	    enable_hexdump_trimming = true,
+	    enable_replay_source = false;
 static struct timespec start_time;
 static FILE *log_output;
 short panwrap_indent = 0;
@@ -188,12 +189,14 @@ panwrap_log(const char *format, ...)
 	struct timespec tp;
 	va_list ap;
 
-	if (enable_timestamps) {
-		panwrap_timestamp(&tp);
-		fprintf(log_output,
-			"panwrap [%ld.%ld]: ", tp.tv_sec, tp.tv_nsec);
-	} else {
-		fprintf(log_output, "panwrap: ");
+	if (!enable_replay_source) {
+		if (enable_timestamps) {
+			panwrap_timestamp(&tp);
+			fprintf(log_output,
+				"panwrap [%ld.%ld]: ", tp.tv_sec, tp.tv_nsec);
+		} else {
+			fprintf(log_output, "panwrap: ");
+		}
 	}
 
 	for (int i = 0; i < panwrap_indent; i++) {
@@ -298,6 +301,9 @@ PANLOADER_CONSTRUCTOR {
 
 	enable_hexdump_trimming = panwrap_parse_env_bool(
 	    "PANWRAP_ENABLE_HEXDUMP_TRIM", true);
+
+	enable_replay_source = panwrap_parse_env_bool(
+	    "PANWRAP_ENABLE_REPLAY", false);
 
 	env = getenv("PANWRAP_OUTPUT");
 	if (env) {
