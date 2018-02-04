@@ -32,6 +32,8 @@
 #include <list.h>
 #include "panwrap.h"
 
+#define panwrap_msg(s, ...) do{}while(0)
+
 static pthread_mutex_t l;
 PANLOADER_CONSTRUCTOR {
 	pthread_mutexattr_t mattr;
@@ -353,7 +355,7 @@ dump_debugfs(unsigned int request) {
 		return;
 
 	if (context_id == 0) {
-		panwrap_log("Error! dump_debugfs() called but no context_id?\n");
+		panwrap_msg("Error! dump_debugfs() called but no context_id?\n");
 		return;
 	}
 
@@ -589,9 +591,9 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 	 * legacy job formats
 	 */
 	if (args->stride != sizeof(*atoms)) {
-		panwrap_log("SIZE MISMATCH (stride should be %zd, was %d)\n",
+		panwrap_msg("SIZE MISMATCH (stride should be %zd, was %d)\n",
 			    sizeof(*atoms), args->stride);
-		panwrap_log("Cannot dump atoms :(, maybe it's a legacy job format?\n");
+		panwrap_msg("Cannot dump atoms :(, maybe it's a legacy job format?\n");
 		return;
 	}
 
@@ -1026,10 +1028,10 @@ panwrap_open_wrap(open_func *func, const char *path, int flags, va_list args)
 	msleep(log_delay);
 	if (ret != -1) {
 		if (strcmp(path, "/dev/mali0") == 0) {
-			panwrap_log("/dev/mali0 fd == %d\n", ret);
+			panwrap_msg("/dev/mali0 fd == %d\n", ret);
 			mali_fd = ret;
 		} else if (strstr(path, "/dev/")) {
-			panwrap_log("Unknown device %s opened at fd %d\n",
+			panwrap_msg("Unknown device %s opened at fd %d\n",
 				    path, ret);
 		}
 	}
@@ -1113,19 +1115,19 @@ int ioctl(int fd, int request, ...)
 	header = ptr;
 
 	if (!ptr) { /* All valid mali ioctl's should have a specified arg */
-		panwrap_log("<%-20s> (%02d) (%08x), has no arguments? Cannot decode :(\n",
+		panwrap_msg("<%-20s> (%02d) (%08x), has no arguments? Cannot decode :(\n",
 			    name, _IOC_NR(request), request);
 
 		ret = orig_ioctl(fd, request, ptr);
 
 		panwrap_indent++;
-		panwrap_log("= %02d\n", ret);
+		panwrap_msg("= %02d\n", ret);
 		panwrap_indent--;
 		goto out;
 	}
 
 	func = header->id;
-	panwrap_log("<%-20s> (%02d) (%08x) (%04d) (%03d)\n",
+	panwrap_msg("<%-20s> (%02d) (%08x) (%04d) (%03d)\n",
 		    name, _IOC_NR(request), request, _IOC_SIZE(request), func);
 
 	panwrap_indent++;
@@ -1133,7 +1135,7 @@ int ioctl(int fd, int request, ...)
 
 	ret = orig_ioctl(fd, request, ptr);
 
-	panwrap_log("= %02d, %02d\n",
+	panwrap_msg("= %02d, %02d\n",
 		    ret, header->rc);
 	ioctl_decode_post(request, ptr);
 	panwrap_indent--;
@@ -1163,7 +1165,7 @@ static void inline *panwrap_mmap_wrap(mmap_func *func,
 
 	switch (offset) { /* offset == gpu_va */
 	case MALI_MEM_MAP_TRACKING_HANDLE:
-		panwrap_log("Memory map tracking handle ("MALI_PTR_FMT") mapped to %p\n",
+		panwrap_msg("Memory map tracking handle ("MALI_PTR_FMT") mapped to %p\n",
 			    (mali_ptr) offset, ret);
 		break;
 	default:
@@ -1217,10 +1219,10 @@ int munmap(void *addr, size_t length)
 
 	/* Was it memory mapped from the GPU? */
 	if (mem->gpu_va)
-		panwrap_log("Unmapped GPU memory " MALI_PTR_FMT "@%p\n",
+		panwrap_msg("Unmapped GPU memory " MALI_PTR_FMT "@%p\n",
 			    mem->gpu_va, mem->addr);
 	else
-		panwrap_log("Unmapped unknown memory %p\n",
+		panwrap_msg("Unmapped unknown memory %p\n",
 			    mem->addr);
 
 	list_del(&mem->node);
