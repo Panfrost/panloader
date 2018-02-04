@@ -37,7 +37,7 @@
 
 #ifdef DO_REPLAY
 #define panwrap_msg(...) do{panwrap_log("// ");panwrap_log_cont(__VA_ARGS__);}while(0)
-#define panwrap_prop(...) do{panwrap_log(".");panwrap_log_cont(__VA_ARGS__);panwrap_log_cont("\b,\n");}while(0)
+#define panwrap_prop(...) do{panwrap_log(".");panwrap_log_cont(__VA_ARGS__);panwrap_log_cont(",\n");}while(0)
 #else
 #define panwrap_msg panwrap_log
 #define panwrap_prop(...) do{panwrap_log_cont(__VA_ARGS__);panwrap_log_cont("\n");}while(0)
@@ -438,9 +438,9 @@ ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alloc *args = ptr;
 
-	panwrap_prop("va_pages = %" PRId64 "\n", args->va_pages);
-	panwrap_prop("commit_pages = %" PRId64 "\n", args->commit_pages);
-	panwrap_prop("extent = 0x%" PRIx64 "\n", args->extent);
+	panwrap_prop("va_pages = %" PRId64, args->va_pages);
+	panwrap_prop("commit_pages = %" PRId64, args->commit_pages);
+	panwrap_prop("extent = 0x%" PRIx64, args->extent);
 
 	panwrap_prop("flags = ");
 	panwrap_log_decoded_flags(mem_flag_info, args->flags);
@@ -460,8 +460,8 @@ ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 	default:                               type = "Invalid"; break;
 	}
 
-	panwrap_prop("phandle = 0x%" PRIx64 "\n", args->phandle);
-	panwrap_prop("type = %d (%s)\n", args->type, type);
+	panwrap_prop("phandle = 0x%" PRIx64, args->phandle);
+	panwrap_prop("type = %d (%s)", args->type, type);
 
 	panwrap_prop("flags = ");
 	panwrap_log_decoded_flags(mem_flag_info, args->flags);
@@ -473,8 +473,8 @@ ioctl_decode_pre_mem_commit(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_commit *args = ptr;
 
-	panwrap_prop("gpu_addr = " MALI_PTR_FMT "\n", args->gpu_addr);
-	panwrap_prop("pages = %" PRId64 "\n", args->pages);
+	panwrap_prop("gpu_addr = " MALI_PTR_FMT, args->gpu_addr);
+	panwrap_prop("pages = %" PRId64, args->pages);
 }
 
 static inline void
@@ -490,8 +490,8 @@ ioctl_decode_pre_mem_query(unsigned long int request, void *ptr)
 	default:                         query_name = "???"; break;
 	}
 
-	panwrap_prop("gpu_addr = " MALI_PTR_FMT "\n", args->gpu_addr);
-	panwrap_prop("query = %d (%s)\n", args->query, query_name);
+	panwrap_prop("gpu_addr = " MALI_PTR_FMT, args->gpu_addr);
+	panwrap_prop("query = %d (%s)", args->query, query_name);
 }
 
 static inline void
@@ -499,7 +499,7 @@ ioctl_decode_pre_mem_free(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_free *args = ptr;
 
-	panwrap_prop("gpu_addr = " MALI_PTR_FMT "\n", args->gpu_addr);
+	panwrap_prop("gpu_addr = " MALI_PTR_FMT, args->gpu_addr);
 }
 
 static inline void
@@ -507,11 +507,11 @@ ioctl_decode_pre_mem_flags_change(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_flags_change *args = ptr;
 
-	panwrap_prop("gpu_va = " MALI_PTR_FMT "\n", args->gpu_va);
+	panwrap_prop("gpu_va = " MALI_PTR_FMT, args->gpu_va);
 	panwrap_prop("flags = ");
 	panwrap_log_decoded_flags(mem_flag_info, args->flags);
 	panwrap_log_cont("\n");
-	panwrap_prop("mask = 0x%" PRIx64 "\n", args->mask);
+	panwrap_prop("mask = 0x%" PRIx64, args->mask);
 }
 
 static inline void
@@ -522,9 +522,9 @@ ioctl_decode_pre_mem_alias(unsigned long int request, void *ptr)
 	panwrap_prop("flags = ");
 	panwrap_log_decoded_flags(mem_flag_info, args->flags);
 	panwrap_log_cont("\n");
-	panwrap_prop("stride = %" PRId64 "\n", args->stride);
-	panwrap_prop("nents = %" PRId64 "\n", args->nents);
-	panwrap_prop("ai = 0x%" PRIx64 "\n", args->ai);
+	panwrap_prop("stride = %" PRId64, args->stride);
+	panwrap_prop("nents = %" PRId64, args->nents);
+	panwrap_prop("ai = 0x%" PRIx64, args->ai);
 }
 
 static inline void
@@ -542,21 +542,21 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 	}
 
 	if (mem) {
-		panwrap_prop("handle = " MALI_PTR_FMT " (end=" MALI_PTR_FMT ", len=%zu)\n",
+		panwrap_prop("handle = " MALI_PTR_FMT " (end=" MALI_PTR_FMT ", len=%zu)",
 			    args->handle,
 			    (mali_ptr)(args->handle + mem->length - 1),
 			    mem->length);
-		panwrap_prop("user_addr = %p - %p (offset=%zu)\n",
+		panwrap_prop("user_addr = %p - %p (offset=%zu)",
 			    args->user_addr, args->user_addr + args->size - 1,
 			    args->user_addr - mem->addr);
 	} else {
 		panwrap_msg("ERROR! Unknown handle specified\n");
-		panwrap_prop("handle = " MALI_PTR_FMT "\n", args->handle);
-		panwrap_prop("user_addr = %p - %p\n",
+		panwrap_prop("handle = " MALI_PTR_FMT, args->handle);
+		panwrap_prop("user_addr = %p - %p",
 			    args->user_addr, args->user_addr + args->size - 1);
 	}
-	panwrap_prop("size = %" PRId64 "\n", args->size);
-	panwrap_prop("type = %d (%s)\n", args->type, type);
+	panwrap_prop("size = %" PRId64, args->size);
+	panwrap_prop("type = %d (%s)", args->type, type);
 
 	if (args->type == MALI_SYNC_TO_DEVICE) {
 		dump_debugfs(request);
@@ -572,7 +572,7 @@ ioctl_decode_pre_set_flags(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_set_flags *args = ptr;
 
-	panwrap_prop("create_flags = %08x\n", args->create_flags);
+	panwrap_prop("create_flags = %08x", args->create_flags);
 }
 
 static inline void
@@ -580,7 +580,7 @@ ioctl_decode_pre_stream_create(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_stream_create *args = ptr;
 
-	panwrap_prop("name = %s\n", args->name);
+	panwrap_prop("name = %s", args->name);
 }
 
 static inline void
@@ -591,9 +591,9 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 
 	dump_debugfs(request);
 
-	panwrap_prop("addr = %p\n", args->addr);
-	panwrap_prop("nr_atoms = %d\n", args->nr_atoms);
-	panwrap_prop("stride = %d\n", args->stride);
+	panwrap_prop("addr = %p", args->addr);
+	panwrap_prop("nr_atoms = %d", args->nr_atoms);
+	panwrap_prop("stride = %d", args->stride);
 
 	/* The stride should be equivalent to the length of the structure,
 	 * if it isn't then it's possible we're somehow tracing one of the
@@ -611,7 +611,7 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 	for (int i = 0; i < args->nr_atoms; i++) {
 		const struct mali_jd_atom_v2 *a = &atoms[i];
 
-		panwrap_prop("jc = " MALI_PTR_FMT "\n", a->jc);
+		panwrap_prop("jc = " MALI_PTR_FMT, a->jc);
 		panwrap_indent++;
 
 		panwrap_msg("Decoding job chain:\n");
@@ -619,12 +619,12 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 		panwrap_trace_hw_chain(a->jc);
 		panwrap_indent--;
 
-		panwrap_prop("udata = [0x%" PRIx64 ", 0x%" PRIx64 "]\n",
+		panwrap_prop("udata = [0x%" PRIx64 ", 0x%" PRIx64 "]",
 			    a->udata.blob[0], a->udata.blob[1]);
-		panwrap_prop("nr_ext_res = %d\n", a->nr_ext_res);
+		panwrap_prop("nr_ext_res = %d", a->nr_ext_res);
 
 		if (a->ext_res_list) {
-			panwrap_prop("text_res_list.count = %" PRId64 "\n",
+			panwrap_prop("text_res_list.count = %" PRId64,
 				    a->ext_res_list->count);
 			panwrap_msg("External resources:\n");
 
@@ -639,10 +639,10 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 			}
 			panwrap_indent--;
 		} else {
-			panwrap_prop("<no external resources>\n");
+			panwrap_prop("<no external resources>");
 		}
 
-		panwrap_prop("compat_core_req = 0x%x\n", a->compat_core_req);
+		panwrap_prop("compat_core_req = 0x%x", a->compat_core_req);
 
 		panwrap_msg("Pre-dependencies:\n");
 		panwrap_indent++;
@@ -656,10 +656,10 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 		}
 		panwrap_indent--;
 
-		panwrap_prop("atom_number = %d\n", a->atom_number);
-		panwrap_prop("prio = %d (%s)\n",
+		panwrap_prop("atom_number = %d", a->atom_number);
+		panwrap_prop("prio = %d (%s)",
 			    a->prio, ioctl_decode_jd_prio(a->prio));
-		panwrap_prop("device_nr = %d\n", a->device_nr);
+		panwrap_prop("device_nr = %d", a->device_nr);
 
 		panwrap_msg("Job type = %s\n",
 			    ioctl_get_job_type_from_jd_core_req(a->core_req));
@@ -719,8 +719,8 @@ ioctl_decode_post_get_version(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_get_version *args = ptr;
 
-	panwrap_prop("major = %3d\n", args->major);
-	panwrap_prop("minor = %3d\n", args->minor);
+	panwrap_prop("major = %3d", args->major);
+	panwrap_prop("minor = %3d", args->minor);
 }
 
 static inline void
@@ -732,8 +732,8 @@ ioctl_decode_post_mem_alloc(unsigned long int request, void *ptr)
 	panwrap_log_decoded_flags(
 	    mem_flag_info, args->flags & ~MALI_IOCTL_MEM_FLAGS_IN_MASK);
 	panwrap_log_cont("\n");
-	panwrap_prop("gpu_va = " MALI_PTR_FMT "\n", args->gpu_va);
-	panwrap_prop("va_alignment = %d\n", args->va_alignment);
+	panwrap_prop("gpu_va = " MALI_PTR_FMT, args->gpu_va);
+	panwrap_prop("va_alignment = %d", args->va_alignment);
 
 	if (args->flags & (MALI_MEM_NEED_MMAP | MALI_MEM_SAME_VA))
 		panwrap_track_allocation(args->gpu_va, args->flags);
@@ -744,8 +744,8 @@ ioctl_decode_post_mem_import(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_import *args = ptr;
 
-	panwrap_prop("gpu_va = " MALI_PTR_FMT "\n", args->gpu_va);
-	panwrap_prop("va_pages = %" PRId64 "\n", args->va_pages);
+	panwrap_prop("gpu_va = " MALI_PTR_FMT, args->gpu_va);
+	panwrap_prop("va_pages = %" PRId64, args->va_pages);
 	panwrap_prop("flags = ");
 	panwrap_log_decoded_flags(mem_flag_info, args->flags);
 	panwrap_log_cont("\n");
@@ -756,7 +756,7 @@ ioctl_decode_post_mem_commit(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_commit *args = ptr;
 
-	panwrap_prop("result_subcode = %d\n", args->result_subcode);
+	panwrap_prop("result_subcode = %d", args->result_subcode);
 }
 
 static inline void
@@ -764,7 +764,7 @@ ioctl_decode_post_mem_query(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_query *args = ptr;
 
-	panwrap_prop("value = 0x%" PRIx64 "\n", args->value);
+	panwrap_prop("value = 0x%" PRIx64, args->value);
 }
 
 static inline void
@@ -772,8 +772,8 @@ ioctl_decode_post_mem_alias(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alias *args = ptr;
 
-	panwrap_prop("gpu_va = " MALI_PTR_FMT "\n", args->gpu_va);
-	panwrap_prop("va_pages = %" PRId64 "\n", args->va_pages);
+	panwrap_prop("gpu_va = " MALI_PTR_FMT, args->gpu_va);
+	panwrap_prop("va_pages = %" PRId64, args->va_pages);
 }
 
 static inline void
@@ -785,7 +785,7 @@ ioctl_decode_post_sync(unsigned long int request, void *ptr)
 		return;
 
 	dump_debugfs(request);
-	panwrap_prop("Dumping memory from device:\n");
+	panwrap_prop("Dumping memory from device:");
 	panwrap_indent++;
 	panwrap_log_hexdump_trimmed(args->user_addr, args->size);
 	panwrap_indent--;
@@ -948,7 +948,7 @@ ioctl_decode_post_stream_create(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_stream_create *args = ptr;
 
-	panwrap_prop("fd = %d\n", args->fd);
+	panwrap_prop("fd = %d", args->fd);
 }
 
 static inline void
@@ -956,7 +956,7 @@ ioctl_decode_post_get_context_id(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_get_context_id *args = ptr;
 
-	panwrap_prop("id = 0x%" PRIx64 "\n", args->id);
+	panwrap_prop("id = 0x%" PRIx64, args->id);
 
 	if (context_id != 0) {
 		panwrap_log("Oh no, there's more then one context! I can't handle this yet\n");
