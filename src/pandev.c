@@ -387,8 +387,8 @@ pandev_open()
 	if (rc)
 		return rc;
 
-	pandev_fragment_job(fd);
-	pandev_flush_jobs(fd);
+	//pandev_fragment_job(fd);
+	//pandev_flush_jobs(fd);
 
 	int stream_fd;
 
