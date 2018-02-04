@@ -589,7 +589,7 @@ ioctl_decode_pre_stream_create(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_stream_create *args = ptr;
 
-	panwrap_prop("name = %s", args->name);
+	panwrap_prop("name = \"%s\"", args->name);
 }
 
 static inline void
