@@ -27,6 +27,7 @@
 #include <linux/limits.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include <mali-ioctl.h>
 #include <list.h>
@@ -1091,6 +1092,16 @@ close(int fd)
 	return orig_close(fd);
 }
 
+static char *panwrap_lower_string(const char *str)
+{
+	char *out = (char *) malloc(strlen(str) + 1);
+	
+	for (int i = 0; i < strlen(str); ++i)
+		out[i] = tolower(str[i]);
+
+	return out;
+}
+
 /* XXX: Android has a messed up ioctl signature */
 int ioctl(int fd, int request, ...)
 {
@@ -1133,8 +1144,15 @@ int ioctl(int fd, int request, ...)
 	}
 
 	func = header->id;
+
+#ifdef DO_REPLAY
+	char *lname = panwrap_lower_string(name);
+	panwrap_log("struct %s o_%s = {\n", lname, lname);
+	free(lname);
+#else
 	panwrap_msg("<%-20s> (%02d) (%08x) (%04d) (%03d)\n",
 		    name, _IOC_NR(request), request, _IOC_SIZE(request), func);
+#endif
 
 	panwrap_indent++;
 	ioctl_decode_pre(request, ptr);
@@ -1143,7 +1161,17 @@ int ioctl(int fd, int request, ...)
 
 	panwrap_msg("= %02d, %02d\n",
 		    ret, header->rc);
+
+	/* If we're building up a replay, we don't care about the result; we
+	 * have to assume it's correct! It can be seperately viewed for
+	 * debugging, of course, in a seperate wrap. */
+
+#ifdef DO_REPLAY
+	panwrap_log("};\n");
+#else
 	ioctl_decode_post(request, ptr);
+#endif
+
 	panwrap_indent--;
 
 	if (step_mode) {
