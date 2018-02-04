@@ -347,6 +347,16 @@ pandev_dump_gpu_properties(int fd)
 }
 
 /**
+ * Low-level open call, used by the main pandev_open
+ */
+
+int
+pandev_raw_open()
+{
+	return open("/dev/mali0", O_RDWR | O_NONBLOCK | O_CLOEXEC);
+}
+
+/**
  * Open the device file for communicating with the mali kernelspace driver,
  * and make sure it's a version of the kernel driver we're familiar with.
  *
@@ -355,7 +365,7 @@ pandev_dump_gpu_properties(int fd)
 int
 pandev_open()
 {
-	int fd = open("/dev/mali0", O_RDWR | O_NONBLOCK | O_CLOEXEC),
+	int fd = pandev_raw_open(),
 	    rc;
 	unsigned major, minor;
 

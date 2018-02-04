@@ -332,7 +332,7 @@ PANLOADER_CONSTRUCTOR {
 		panwrap_log("\n");
 		panwrap_log("void main(void) {\n");
 		panwrap_indent++;
-		panwrap_log("int fd = pandev_open();\n");
+		panwrap_log("int fd = pandev_raw_open();\n");
 		panwrap_log("\n");
 	}
 }
