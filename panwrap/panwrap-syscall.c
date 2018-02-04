@@ -1169,7 +1169,7 @@ int ioctl(int fd, int request, ...)
 	char *lname = panwrap_lower_string(name);
 	int number = ioctl_count++;
 
-	panwrap_log("struct %s %s_%d = {\n", lname, lname, number);
+	panwrap_log("struct mali_ioctl_%s %s_%d = {\n", lname, lname, number);
 #else
 	panwrap_msg("<%-20s> (%02d) (%08x) (%04d) (%03d)\n",
 		    name, _IOC_NR(request), request, _IOC_SIZE(request), func);
