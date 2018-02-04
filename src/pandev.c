@@ -356,6 +356,17 @@ pandev_raw_open()
 	return open("/dev/mali0", O_RDWR | O_NONBLOCK | O_CLOEXEC);
 }
 
+/* The Memmap Tracking Handle is necessary to be mapped for the kernel
+ * driver to be happy. It is still unclear why this is mapped or what
+ * we are supposed to dowith the mapped region. TODO
+ */
+
+u8* pandev_map_mtp(int fd)
+{
+	return mmap(NULL, PAGE_SIZE, PROT_NONE, MAP_SHARED, fd, MALI_MEM_MAP_TRACKING_HANDLE);
+}
+
+
 /**
  * Open the device file for communicating with the mali kernelspace driver,
  * and make sure it's a version of the kernel driver we're familiar with.
@@ -379,14 +390,7 @@ pandev_open()
 	printf("Found kernel driver version v%d.%d at /dev/mali0\n",
 	       major, minor);
 
-	/* The Memmap Tracking Handle is necessary to be mapped for the kernel
-	 * driver to be happy. It is still unclear why this is mapped or what
-	 * we are supposed to dowith the mapped region. TODO
-	 */
-
-	u8 *mtp = mmap(NULL, PAGE_SIZE, PROT_NONE, MAP_SHARED, fd, MALI_MEM_MAP_TRACKING_HANDLE);
-
-	if (mtp == MAP_FAILED)
+	if (pandev_map_mtp(fd) == MAP_FAILED)
 		return -1;
 
 	rc = pandev_set_flags(fd);
