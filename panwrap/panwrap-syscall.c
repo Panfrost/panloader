@@ -1168,13 +1168,14 @@ int ioctl(int fd, int request, ...)
 	 * have to assume it's correct! It can be seperately viewed for
 	 * debugging, of course, in a seperate wrap. */
 
-#ifdef DO_REPLAY
-	panwrap_log("};\n");
-#else
+#ifndef DO_REPLAY
 	ioctl_decode_post(request, ptr);
 #endif
-
 	panwrap_indent--;
+
+#ifdef DO_REPLAY
+	panwrap_log("};\n");
+#endif
 
 	if (step_mode) {
 		panwrap_log("Paused, hit enter to continue\n");
