@@ -1099,6 +1099,8 @@ static char *panwrap_lower_string(const char *str)
 	for (int i = 0; i < strlen(str); ++i)
 		out[i] = tolower(str[i]);
 
+	out[strlen(str)] = 0;
+
 	return out;
 }
 
