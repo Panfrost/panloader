@@ -35,7 +35,7 @@
 #define DO_REPLAY
 
 #ifdef DO_REPLAY
-#define panwrap_msg(s, ...) do{panwrap_log("// ");panwrap_log_cont(s, ...);}while(0)
+#define panwrap_msg(...) do{panwrap_log("// ");panwrap_log_cont(__VA_ARGS__);}while(0)
 #else
 #define panwrap_msg panwrap_log
 #endif
