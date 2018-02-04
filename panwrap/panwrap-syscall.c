@@ -1118,6 +1118,10 @@ static char *panwrap_lower_string(const char *str)
 	return out;
 }
 
+/* Global count of ioctls, for replay purposes */
+
+static int ioctl_count = 0;
+
 /* XXX: Android has a messed up ioctl signature */
 int ioctl(int fd, int request, ...)
 {
@@ -1163,8 +1167,9 @@ int ioctl(int fd, int request, ...)
 
 #ifdef DO_REPLAY
 	char *lname = panwrap_lower_string(name);
-	panwrap_log("struct %s o_%s = {\n", lname, lname);
-	free(lname);
+	int number = ioctl_count++;
+
+	panwrap_log("struct %s %s_%d = {\n", lname, lname, number);
 #else
 	panwrap_msg("<%-20s> (%02d) (%08x) (%04d) (%03d)\n",
 		    name, _IOC_NR(request), request, _IOC_SIZE(request), func);
@@ -1189,6 +1194,10 @@ int ioctl(int fd, int request, ...)
 
 #ifdef DO_REPLAY
 	panwrap_log("};\n");
+	panwrap_log("\n");
+	panwrap_log("assert(!pandev_ioctl(fd, MALI_IOCTL_%s, &%s_%d));\n", name, lname, number);
+	panwrap_log("\n");
+	free(lname);
 #endif
 
 	if (step_mode) {
