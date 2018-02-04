@@ -32,7 +32,13 @@
 #include <list.h>
 #include "panwrap.h"
 
-#define panwrap_msg(s, ...) do{}while(0)
+#define DO_REPLAY
+
+#ifdef DO_REPLAY
+#define panwrap_msg(s, ...) do{panwrap_log("// ");panwrap_log_cont(s, ...);}while(0)
+#else
+#define panwrap_msg panwrap_log
+#endif
 
 static pthread_mutex_t l;
 PANLOADER_CONSTRUCTOR {
