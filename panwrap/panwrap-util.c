@@ -38,8 +38,6 @@ panwrap_log_decoded_flags(const struct panwrap_flag_info *flag_info,
 {
 	bool decodable_flags_found = false;
 
-	if (enable_replay_source) return;
-
 	panwrap_log_cont("0x%" PRIx64, flags);
 
 	for (int i = 0; flag_info[i].name; i++) {
@@ -72,8 +70,6 @@ panwrap_log_hexdump(const void *data, size_t size)
 	unsigned char *buf = (void *) data;
 	char alpha[HEXDUMP_ROW_LEN + 1];
 	int i;
-
-	if (enable_replay_source) return;
 
 	for (i = 0; i < size; i++) {
 		if (!(i % HEXDUMP_ROW_LEN))
@@ -126,8 +122,6 @@ panwrap_log_hexdump_trimmed(const void *data, size_t size)
 	off_t trim_offset;
 	size_t trim_size = size;
 	bool trimming = false;
-
-	if (enable_replay_source) return;
 
 	if (!enable_hexdump_trimming)
 		goto out;
@@ -195,14 +189,14 @@ panwrap_log(const char *format, ...)
 	struct timespec tp;
 	va_list ap;
 
-	if (enable_replay_source) return;
-
-	if (enable_timestamps) {
-		panwrap_timestamp(&tp);
-		fprintf(log_output,
-			"panwrap [%ld.%ld]: ", tp.tv_sec, tp.tv_nsec);
-	} else {
-		fprintf(log_output, "panwrap: ");
+	if (!enable_replay_source) {
+		if (enable_timestamps) {
+			panwrap_timestamp(&tp);
+			fprintf(log_output,
+				"panwrap [%ld.%ld]: ", tp.tv_sec, tp.tv_nsec);
+		} else {
+			fprintf(log_output, "panwrap: ");
+		}
 	}
 
 	for (int i = 0; i < panwrap_indent; i++) {
@@ -219,8 +213,6 @@ void
 panwrap_log_cont(const char *format, ...)
 {
 	va_list ap;
-
-	if (enable_replay_source) return;
 
 	va_start(ap, format);
 	vfprintf(log_output, format, ap);

@@ -434,6 +434,15 @@ dump_debugfs(unsigned int request) {
 }
 
 static inline void
+ioctl_decode_pre_get_version(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_get_version *args = ptr;
+
+	panwrap_prop("major = %3d", args->major);
+	panwrap_prop("minor = %3d", args->minor);
+}
+
+static inline void
 ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_alloc *args = ptr;
@@ -676,6 +685,9 @@ static inline void
 ioctl_decode_pre(unsigned long int request, void *ptr)
 {
 	switch (IOCTL_CASE(request)) {
+	case IOCTL_CASE(MALI_IOCTL_GET_VERSION):
+		ioctl_decode_pre_get_version(request, ptr);
+		break;
 	case IOCTL_CASE(MALI_IOCTL_MEM_ALLOC):
 		ioctl_decode_pre_mem_alloc(request, ptr);
 		break;
