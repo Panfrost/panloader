@@ -21,4 +21,9 @@ int pandev_open();
 int pandev_query_mem(int fd, mali_ptr addr, enum mali_ioctl_mem_query_type attr,
 		     u64 *out);
 
+/* Calls used while replaying */
+int pandev_raw_open()
+u8* pandev_map_mtp(int fd);
+int pandev_ioctl(int fd, unsigned long request, void *args);
+
 #endif /* __PANDEV_H__ */

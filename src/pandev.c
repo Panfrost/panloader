@@ -61,7 +61,8 @@
 #define MALI_MEM_MAP_TRACKING_HANDLE (3ull << 12)
 #define MALI_CONTEXT_CREATE_FLAG_NONE 0
 
-static int pandev_ioctl(int fd, unsigned long request, void *args)
+int
+pandev_ioctl(int fd, unsigned long request, void *args)
 {
 	union mali_ioctl_header *h = args;
 	int rc;
@@ -361,7 +362,8 @@ pandev_raw_open()
  * we are supposed to dowith the mapped region. TODO
  */
 
-u8* pandev_map_mtp(int fd)
+u8*
+pandev_map_mtp(int fd)
 {
 	return mmap(NULL, PAGE_SIZE, PROT_NONE, MAP_SHARED, fd, MALI_MEM_MAP_TRACKING_HANDLE);
 }
