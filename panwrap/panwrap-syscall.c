@@ -1180,8 +1180,10 @@ int ioctl(int fd, int request, ...)
 
 	ret = orig_ioctl(fd, request, ptr);
 
+#ifndef DO_REPLAY
 	panwrap_msg("= %02d, %02d\n",
-		    ret, header->rc);
+ 		    ret, header->rc);
+#endif
 
 	/* If we're building up a replay, we don't care about the result; we
 	 * have to assume it's correct! It can be seperately viewed for
@@ -1225,8 +1227,13 @@ static void inline *panwrap_mmap_wrap(mmap_func *func,
 
 	switch (offset) { /* offset == gpu_va */
 	case MALI_MEM_MAP_TRACKING_HANDLE:
+#ifdef DO_REPLAY
+		panwrap_log("pandev_map_mtp();\n");
+		panwrap_log("\n");
+#else
 		panwrap_msg("Memory map tracking handle ("MALI_PTR_FMT") mapped to %p\n",
-			    (mali_ptr) offset, ret);
+ 			    (mali_ptr) offset, ret);
+#endif
 		break;
 	default:
 		panwrap_track_mmap(offset, ret, length, prot, flags);
