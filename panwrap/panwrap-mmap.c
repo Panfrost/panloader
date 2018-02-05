@@ -71,9 +71,6 @@ void replay_memory()
 		/* If we don't have write access, no replay :) */
 		if (!(pos->flags & MALI_MEM_PROT_CPU_WR)) continue;
 
-		/* Generate memory buffer */
-		panwrap_log("uint32_t mali_memory_" MALI_PTR_FMT "[%d] = {0};\n", pos->gpu_va, pos->length / sizeof(uint32_t));
-
 		/* Fill it with dumped memory, skipping zeroes */
 		uint32_t *array = (uint32_t *) pos->addr;
 
@@ -148,8 +145,13 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 	list_del(&mem->node);
 	free(mem);
 
+#ifdef DO_REPLAY
+	panwrap_log("uint32_t *mali_memory_" MALI_PTR_FMT " = mmap(NULL, %d, %d, %d, fd, %p);\n\n",
+		    mapped_mem->gpu_va, length, prot, flags, addr);
+#else
 	panwrap_msg("GPU VA " MALI_PTR_FMT " mapped to %p - %p (length == %zu)\n",
 		    mapped_mem->gpu_va, addr, addr + length - 1, length);
+#endif
 }
 
 void panwrap_track_munmap(void *addr)
