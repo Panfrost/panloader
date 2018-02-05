@@ -1191,7 +1191,16 @@ int ioctl(int fd, int request, ...)
 
 #ifndef DO_REPLAY
 	ioctl_decode_post(request, ptr);
+#else
+	/* This is essential for tracking but was done in the post region.. */
+	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_ALLOC)) {
+		const struct mali_ioctl_mem_alloc *args = ptr;
+
+		if (args->flags & (MALI_MEM_NEED_MMAP | MALI_MEM_SAME_VA))
+			panwrap_track_allocation(args->gpu_va, args->flags);
+	}
 #endif
+
 	panwrap_indent--;
 
 #ifdef DO_REPLAY
