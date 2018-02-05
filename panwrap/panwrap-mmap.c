@@ -68,7 +68,14 @@ void replay_memory()
 	struct panwrap_mapped_memory *pos;
 
 	list_for_each_entry(pos, &mmaps, node) {
-		panwrap_log("Mapped %p to " MALI_PTR_FMT "\n", pos->addr, pos->gpu_va);
+		/* If we don't have write access, no replay :) */
+		if (!pos->flags & MALI_MEM_PROT_CPU_WR) continue;
+
+		panwrap_log("uint32_t mali_memory_0x" MALI_PTR_FMT "[] = {\n", pos->gpu_va);
+		panwrap_indent++;
+		panwrap_log_hexdump_trimmed(pos->addr, pos->length);
+		panwrap_indent--;
+		panwrap_log("}\n");
 	}
 }
 
