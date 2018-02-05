@@ -72,14 +72,14 @@ void replay_memory()
 		if (!(pos->flags & MALI_MEM_PROT_CPU_WR)) continue;
 
 		/* Generate memory buffer */
-		panwrap_log("uint32_t mali_memory_0x" MALI_PTR_FMT "[%d] = {0};\n", pos->gpu_va, pos->length / sizeof(uint32_t));
+		panwrap_log("uint32_t mali_memory_" MALI_PTR_FMT "[%d] = {0};\n", pos->gpu_va, pos->length / sizeof(uint32_t));
 
 		/* Fill it with dumped memory, skipping zeroes */
 		uint32_t *array = (uint32_t *) pos->addr;
 
 		for (uint32_t i = 0; i < pos->length / sizeof(uint32_t); ++i) {
 			if (array[i])
-				panwrap_log("mali_memory_0x" MALI_PTR_FMT "[%d] = 0x%08X;\n", pos->gpu_va, i, array[i]);
+				panwrap_log("mali_memory_" MALI_PTR_FMT "[%d] = 0x%08X;\n", pos->gpu_va, i, array[i]);
 		}
 
 		panwrap_log("\n");
