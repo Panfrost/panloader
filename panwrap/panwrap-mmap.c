@@ -78,8 +78,17 @@ void replay_memory()
 		uint32_t *array = (uint32_t *) pos->addr;
 
 		for (uint32_t i = 0; i < pos->length / sizeof(uint32_t); ++i) {
-			if (array[i])
-				panwrap_log("mali_memory_" MALI_PTR_FMT "[%d] = 0x%08X;\n", pos->gpu_va, i, array[i]);
+			if (array[i]) {
+				struct panwrap_mapped_memory *mapped;
+
+				if (((array[i] & 0xFF000000) == 0xB6000000) && (mapped = panwrap_find_mapped_mem_containing((void *) (uintptr_t) array[i]))) {
+					/* Address fix up */
+
+					panwrap_log("mali_memory_" MALI_PTR_FMT "[%d] = mali_memory_" MALI_PTR_FMT " + %d;\n", pos->gpu_va, i, mapped->gpu_va, array[i] - mapped->gpu_va);
+				} else if (array[i]) {
+					panwrap_log("mali_memory_" MALI_PTR_FMT "[%d] = 0x%08X;\n", pos->gpu_va, i, array[i]);
+				}
+			}
 		}
 
 		panwrap_log("\n");
