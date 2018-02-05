@@ -58,6 +58,20 @@ static const struct panwrap_flag_info mmap_prot_flag_info[] = {
 };
 #undef FLAG_INFO
 
+/* On job submission, there will be a -lot- of structures built up in memory.
+ * While we could decode them, for triangle #1 it's easier to just dump them
+ * all verbatim, as hex arrays, and memcpy them into the allocated memory
+ * spaces. The main issue is address fix up, which we also handle here. */
+
+void replay_memory()
+{
+	struct panwrap_mapped_memory *pos;
+
+	list_for_each_entry(pos, &mmaps, node) {
+		panwrap_log("Mapped %p to " MALI_PTR_FMT "\n", pos->addr, pos->gpu_va);
+	}
+}
+
 void panwrap_track_allocation(mali_ptr addr, int flags)
 {
 	struct panwrap_allocated_memory *mem = malloc(sizeof(*mem));

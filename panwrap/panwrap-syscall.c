@@ -1176,6 +1176,9 @@ int ioctl(int fd, int request, ...)
 	char *lname = panwrap_lower_string(name);
 	int number = ioctl_count++;
 
+	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_JOB_SUBMIT))
+		replay_memory();
+
 	panwrap_log("struct mali_ioctl_%s %s_%d = {\n", lname, lname, number);
 #else
 	panwrap_msg("<%-20s> (%02d) (%08x) (%04d) (%03d)\n",
