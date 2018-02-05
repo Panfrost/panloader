@@ -451,9 +451,13 @@ ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
 	panwrap_prop("commit_pages = %" PRId64, args->commit_pages);
 	panwrap_prop("extent = 0x%" PRIx64, args->extent);
 
+#ifdef DO_REPLAY
+	panwrap_prop("flags = 0x%" PRIx64, args->flags);
+#else
 	panwrap_prop("flags = ");
 	panwrap_log_decoded_flags(mem_flag_info, args->flags);
 	panwrap_log_cont("\n");
+#endif
 }
 
 static inline void
@@ -756,6 +760,7 @@ ioctl_decode_post_mem_alloc(unsigned long int request, void *ptr)
 	panwrap_log_decoded_flags(
 	    mem_flag_info, args->flags & ~MALI_IOCTL_MEM_FLAGS_IN_MASK);
 	panwrap_log_cont("\n");
+
 	panwrap_prop("gpu_va = " MALI_PTR_FMT, args->gpu_va);
 	panwrap_prop("va_alignment = %d", args->va_alignment);
 
