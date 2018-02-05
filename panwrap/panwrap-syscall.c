@@ -544,6 +544,14 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 	struct panwrap_mapped_memory *mem =
 		panwrap_find_mapped_gpu_mem(args->handle);
 
+
+#ifdef DO_REPLAY
+	panwrap_prop("handle = " MALI_PTR_FMT, args->handle);
+	panwrap_prop("user_addr = %p", args->user_addr);
+	panwrap_prop("size = %" PRId64, args->size);
+	panwrap_prop("type = %d", args->type);
+#else
+
 	switch (args->type) {
 	case MALI_SYNC_TO_DEVICE: type = "device <- CPU"; break;
 	case MALI_SYNC_TO_CPU:    type = "device -> CPU"; break;
@@ -565,6 +573,7 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 			    args->user_addr, args->user_addr + args->size - 1);
 	}
 	panwrap_prop("size = %" PRId64, args->size);
+
 	panwrap_prop("type = %d (%s)", args->type, type);
 
 	if (args->type == MALI_SYNC_TO_DEVICE) {
@@ -574,6 +583,7 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 		panwrap_log_hexdump(args->user_addr, args->size);
 		panwrap_indent--;
 	}
+#endif
 }
 
 static inline void
