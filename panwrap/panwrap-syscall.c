@@ -33,16 +33,6 @@
 #include <list.h>
 #include "panwrap.h"
 
-#define DO_REPLAY
-
-#ifdef DO_REPLAY
-#define panwrap_msg(...) do{panwrap_log("// ");panwrap_log_cont(__VA_ARGS__);}while(0)
-#define panwrap_prop(...) do{panwrap_log(".");panwrap_log_cont(__VA_ARGS__);panwrap_log_cont(",\n");}while(0)
-#else
-#define panwrap_msg panwrap_log
-#define panwrap_prop(...) do{panwrap_log_cont(__VA_ARGS__);panwrap_log_cont("\n");}while(0)
-#endif
-
 static pthread_mutex_t l;
 PANLOADER_CONSTRUCTOR {
 	pthread_mutexattr_t mattr;
@@ -629,6 +619,7 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 		return;
 	}
 
+#ifndef DO_REPLAY
 	panwrap_msg("Atoms:\n");
 	panwrap_indent++;
 	for (int i = 0; i < args->nr_atoms; i++) {
@@ -637,12 +628,10 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 		panwrap_prop("jc = " MALI_PTR_FMT, a->jc);
 		panwrap_indent++;
 
-#ifndef DO_REPLAY
 		panwrap_msg("Decoding job chain:\n");
 		panwrap_indent++;
 		panwrap_trace_hw_chain(a->jc);
 		panwrap_indent--;
-#endif
 
 		panwrap_prop("udata = [0x%" PRIx64 ", 0x%" PRIx64 "]",
 			    a->udata.blob[0], a->udata.blob[1]);
@@ -695,6 +684,7 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 		panwrap_indent--;
 	}
 	panwrap_indent--;
+#endif
 }
 
 static inline void

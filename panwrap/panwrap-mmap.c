@@ -62,7 +62,7 @@ void panwrap_track_allocation(mali_ptr addr, int flags)
 {
 	struct panwrap_allocated_memory *mem = malloc(sizeof(*mem));
 
-	panwrap_log("GPU memory allocated at GPU VA " MALI_PTR_FMT "\n",
+	panwrap_msg("GPU memory allocated at GPU VA " MALI_PTR_FMT "\n",
 		    addr);
 	list_init(&mem->node);
 	mem->gpu_va = addr;
@@ -85,12 +85,12 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 		}
 	}
 	if (!mem) {
-		panwrap_log("Error: Untracked gpu memory " MALI_PTR_FMT " mapped to %p\n",
+		panwrap_msg("Error: Untracked gpu memory " MALI_PTR_FMT " mapped to %p\n",
 			    gpu_va, addr);
-		panwrap_log("\tprot = ");
+		panwrap_msg("\tprot = ");
 		panwrap_log_decoded_flags(mmap_prot_flag_info, prot);
 		panwrap_log_cont("\n");
-		panwrap_log("\tflags = ");
+		panwrap_msg("\tflags = ");
 		panwrap_log_decoded_flags(mmap_flags_flag_info, flags);
 		panwrap_log_cont("\n");
 
@@ -111,7 +111,7 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 	list_del(&mem->node);
 	free(mem);
 
-	panwrap_log("GPU VA " MALI_PTR_FMT " mapped to %p - %p (length == %zu)\n",
+	panwrap_msg("GPU VA " MALI_PTR_FMT " mapped to %p - %p (length == %zu)\n",
 		    mapped_mem->gpu_va, addr, addr + length - 1, length);
 }
 
@@ -121,12 +121,12 @@ void panwrap_track_munmap(void *addr)
 		panwrap_find_mapped_mem(addr);
 
 	if (!mapped_mem) {
-		panwrap_log("Unknown mmap %p unmapped\n", addr);
+		panwrap_msg("Unknown mmap %p unmapped\n", addr);
 		return;
 	}
 
 	list_del(&mapped_mem->node);
-	panwrap_log("Unmapped GPU memory at %p\n",
+	panwrap_msg("Unmapped GPU memory at %p\n",
 		    addr);
 	free(mapped_mem);
 }
@@ -188,12 +188,12 @@ panwrap_assert_gpu_same(const struct panwrap_mapped_memory *mem,
 
 	for (size_t i = 0; i < size; i++) {
 		if (buffer[i] != data[i]) {
-			panwrap_log("At " MALI_PTR_FMT ", expected:\n",
+			panwrap_msg("At " MALI_PTR_FMT ", expected:\n",
 				    gpu_va);
 			panwrap_indent++;
 			panwrap_log_hexdump_trimmed(data, size);
 			panwrap_indent--;
-			panwrap_log("Instead got:\n");
+			panwrap_msg("Instead got:\n");
 			panwrap_indent++;
 			panwrap_log_hexdump_trimmed(buffer, size);
 			panwrap_indent--;
@@ -211,7 +211,7 @@ panwrap_assert_gpu_mem_zero(const struct panwrap_mapped_memory *mem,
 
 	for (size_t i = 0; i < size; i++) {
 		if (buffer[i] != '\0') {
-			panwrap_log("At " MALI_PTR_FMT ", expected all 0 but got:\n",
+			panwrap_msg("At " MALI_PTR_FMT ", expected all 0 but got:\n",
 				    gpu_va);
 			panwrap_indent++;
 			panwrap_log_hexdump_trimmed(buffer, size);
@@ -228,31 +228,31 @@ __panwrap_fetch_mem_err(const struct panwrap_mapped_memory *mem,
 			int line, const char *filename)
 {
 	panwrap_indent = 0;
-	panwrap_log("\n");
+	panwrap_msg("\n");
 
-	panwrap_log("INVALID GPU MEMORY ACCESS @"
+	panwrap_msg("INVALID GPU MEMORY ACCESS @"
 		    MALI_PTR_FMT " - " MALI_PTR_FMT ":\n",
 		    gpu_va, gpu_va + size);
-	panwrap_log("Occurred at line %d of %s\n", line, filename);
+	panwrap_msg("Occurred at line %d of %s\n", line, filename);
 
 	if (mem) {
-		panwrap_log("Mapping information:\n");
+		panwrap_msg("Mapping information:\n");
 		panwrap_indent++;
-		panwrap_log("CPU VA: %p - %p\n",
+		panwrap_msg("CPU VA: %p - %p\n",
 			    mem->addr, mem->addr + mem->length - 1);
-		panwrap_log("GPU VA: " MALI_PTR_FMT " - " MALI_PTR_FMT "\n",
+		panwrap_msg("GPU VA: " MALI_PTR_FMT " - " MALI_PTR_FMT "\n",
 			    mem->gpu_va,
 			    (mali_ptr)(mem->gpu_va + mem->length - 1));
-		panwrap_log("Length: %zu bytes\n", mem->length);
+		panwrap_msg("Length: %zu bytes\n", mem->length);
 		panwrap_indent--;
 
 		if (!(mem->prot & MALI_MEM_PROT_CPU_RD))
-			panwrap_log("Memory is only accessible from GPU\n");
+			panwrap_msg("Memory is only accessible from GPU\n");
 		else
-			panwrap_log("Access length was %zu (%zu out of bounds)\n",
+			panwrap_msg("Access length was %zu (%zu out of bounds)\n",
 				    size, ((gpu_va - mem->gpu_va) + size) - mem->length);
 	} else {
-		panwrap_log("GPU memory is not contained within known GPU VA mappings\n");
+		panwrap_msg("GPU memory is not contained within known GPU VA mappings\n");
 
 	}
 
