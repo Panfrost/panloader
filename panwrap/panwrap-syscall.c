@@ -1197,7 +1197,13 @@ int ioctl(int fd, int request, ...)
 #ifdef DO_REPLAY
 	panwrap_log("};\n");
 	panwrap_log("\n");
-	panwrap_log("assert(!pandev_ioctl(fd, MALI_IOCTL_%s, &%s_%d));\n", name, lname, number);
+
+	panwrap_log("rc = pandev_ioctl(fd, MALI_IOCTL_%s, &%s_%d);\n", name, lname, number);
+	panwrap_log("if (rc) {\n");
+	panwrap_indent++;
+	panwrap_log("printf(\"Error %%d in %s_%d\\n\", rc);\n", name, number);
+	panwrap_indent--;
+	panwrap_log("}\n");
 	panwrap_log("\n");
 	free(lname);
 #endif

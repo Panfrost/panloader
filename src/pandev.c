@@ -15,7 +15,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <linux/ioctl.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/mman.h>
@@ -408,7 +407,7 @@ pandev_open()
 
 	int stream_fd;
 
-	rc = pandev_create_stream(fd, "insert-queer-pun-here", &stream_fd);
+	//rc = pandev_create_stream(fd, "insert-queer-pun-here", &stream_fd);
 	if (rc)
 		return 0; /* This breaks, we know that, just not why */
 

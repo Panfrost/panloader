@@ -16,6 +16,7 @@
 #define __PANDEV_H__
 
 #include <mali-ioctl.h>
+#include <linux/ioctl.h>
 
 int pandev_open();
 int pandev_query_mem(int fd, mali_ptr addr, enum mali_ioctl_mem_query_type attr,
