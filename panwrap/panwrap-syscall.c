@@ -623,10 +623,12 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 		panwrap_prop("jc = " MALI_PTR_FMT, a->jc);
 		panwrap_indent++;
 
+#ifndef DO_REPLAY
 		panwrap_msg("Decoding job chain:\n");
 		panwrap_indent++;
 		panwrap_trace_hw_chain(a->jc);
 		panwrap_indent--;
+#endif
 
 		panwrap_prop("udata = [0x%" PRIx64 ", 0x%" PRIx64 "]",
 			    a->udata.blob[0], a->udata.blob[1]);
