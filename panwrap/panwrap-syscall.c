@@ -639,8 +639,9 @@ static void emit_atoms(void *ptr) {
 		panwrap_log("{\n");
 		panwrap_indent++;
 
-		panwrap_prop("jc = " MALI_PTR_FMT, a->jc);
-
+		struct panwrap_mapped_memory *mapped = panwrap_find_mapped_mem_containing(a->jc);
+		panwrap_prop("jc = mali_memory_%d + %d", mapped->allocation_number, a->jc - mapped->gpu_va);
+	
 		panwrap_prop("udata = {0x%" PRIx64 ", 0x%" PRIx64 "}",
 			    a->udata.blob[0], a->udata.blob[1]);
 		panwrap_prop("nr_ext_res = %d", a->nr_ext_res);
