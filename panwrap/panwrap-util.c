@@ -330,6 +330,7 @@ PANLOADER_CONSTRUCTOR {
 		panwrap_log("\n");
 		panwrap_log("#include <stdio.h>\n");
 		panwrap_log("#include <sys/mman.h>\n");
+		panwrap_log("#define XXX_POINTER_VOODOO_XXX\n");
 		panwrap_log("#include \"pandev.h\"\n");
 		panwrap_log("\n");
 		panwrap_log("void main(void) {\n");
