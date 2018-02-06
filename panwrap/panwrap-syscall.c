@@ -741,8 +741,6 @@ ioctl_decode_post_get_version(unsigned long int request, void *ptr)
 	panwrap_prop("minor = %3d", args->minor);
 }
 
-static int allocation_counter = 0;
-
 static inline void
 ioctl_decode_post_mem_alloc(unsigned long int request, void *ptr)
 {
@@ -755,9 +753,6 @@ ioctl_decode_post_mem_alloc(unsigned long int request, void *ptr)
 
 	panwrap_prop("gpu_va = " MALI_PTR_FMT, args->gpu_va);
 	panwrap_prop("va_alignment = %d", args->va_alignment);
-
-	if (args->flags & (MALI_MEM_NEED_MMAP | MALI_MEM_SAME_VA))
-		panwrap_track_allocation(args->gpu_va, args->flags, allocation_counter++);
 }
 
 static inline void
@@ -1203,15 +1198,15 @@ int ioctl(int fd, int request, ...)
 
 #ifndef DO_REPLAY
 	ioctl_decode_post(request, ptr);
-#else
-	/* This is essential for tracking but was done in the post region.. */
+#endif
+
+	/* Track memory allocation if needed  */
 	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_ALLOC)) {
 		const struct mali_ioctl_mem_alloc *args = ptr;
 
 		if (args->flags & (MALI_MEM_NEED_MMAP | MALI_MEM_SAME_VA) || args->gpu_va < 0xb0000000)
-			panwrap_track_allocation(args->gpu_va, args->flags, allocation_counter++);
+			panwrap_track_allocation(args->gpu_va, args->flags, number);
 	}
-#endif
 
 	panwrap_indent--;
 
