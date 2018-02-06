@@ -150,6 +150,12 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 #ifdef DO_REPLAY
 	panwrap_log("uint32_t *mali_memory_%d = mmap(NULL, %d, %d, %d, fd, mem_alloc_%d.gpu_va);\n\n",
 		    mapped_mem->allocation_number, length, prot, flags, mapped_mem->allocation_number);
+
+	panwrap_log("if (mali_memory_%d == MAP_FAILED) {\n", mapped_mem->allocation_number);
+	panwrap_indent++;
+	panwrap_log("printf(\"Error mmaping mali_memory_%d (%%p)\\n\", mem_alloc_%d.gpu_va);\n", mapped_mem->allocation_number, mapped_mem->allocation_number);
+	panwrap_indent--;
+	panwrap_log("}\n");
 #else
 	panwrap_msg("GPU VA " MALI_PTR_FMT " mapped to %p - %p (length == %zu)\n",
 		    mapped_mem->gpu_va, addr, addr + length - 1, length);

@@ -790,7 +790,7 @@ struct mali_ioctl_mem_alloc {
 	/* [in/out] */
 	u64 flags;
 	/* [out] */
-	PAD_PTR(mali_ptr gpu_va);
+	u64 gpu_va;
 	u16 va_alignment;
 
 	u32 :32;
