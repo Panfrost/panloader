@@ -629,8 +629,7 @@ static void emit_atoms(void *ptr) {
 		}
 	}
 
-
-	panwrap_log("mali_jd_atom_v2 atoms_%d[] = {\n", job_no);
+	panwrap_log("struct mali_jd_atom_v2 atoms_%d[] = {\n", job_no);
 	panwrap_indent++;
 
 	for (int i = 0; i < args->nr_atoms; i++) {
