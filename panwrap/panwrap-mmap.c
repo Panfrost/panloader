@@ -81,7 +81,7 @@ void replay_memory()
 				if (((array[i] & 0xFF000000) == 0xB6000000) && (mapped = panwrap_find_mapped_mem_containing((void *) (uintptr_t) array[i]))) {
 					/* Address fix up */
 
-					panwrap_log("mali_memory_%d[%d] = mali_memory_%d + %d;\n", pos->allocation_number, i, mapped->allocation_number, array[i] - mapped->gpu_va);
+					panwrap_log("mali_memory_%d[%d] = (uintptr_t) mali_memory_%d + %d;\n", pos->allocation_number, i, mapped->allocation_number, array[i] - mapped->gpu_va);
 				} else if (array[i]) {
 					panwrap_log("mali_memory_%d[%d] = 0x%08X;\n", pos->allocation_number, i, array[i]);
 				}

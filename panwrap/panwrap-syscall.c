@@ -639,7 +639,7 @@ static void emit_atoms(void *ptr) {
 		panwrap_indent++;
 
 		struct panwrap_mapped_memory *mapped = panwrap_find_mapped_mem_containing(a->jc);
-		panwrap_prop("jc = mali_memory_%d + %d", mapped->allocation_number, a->jc - mapped->gpu_va);
+		panwrap_prop("jc = (uintptr_t) mali_memory_%d + %d", mapped->allocation_number, a->jc - mapped->gpu_va);
 	
 		panwrap_prop("udata = {0x%" PRIx64 ", 0x%" PRIx64 "}",
 			    a->udata.blob[0], a->udata.blob[1]);
