@@ -603,6 +603,80 @@ ioctl_decode_pre_stream_create(unsigned long int request, void *ptr)
 	panwrap_prop("name = \"%s\"", args->name);
 }
 
+static int job_count = 0;
+
+static void emit_atoms(void *ptr) {
+	const struct mali_ioctl_job_submit *args = ptr;
+	const struct mali_jd_atom_v2 *atoms = args->addr;
+
+	int job_no = job_count++;
+
+	for (int i = 0; i < args->nr_atoms; i++) {
+		const struct mali_jd_atom_v2 *a = &atoms[i];
+
+		if (a->ext_res_list) {
+			panwrap_log("struct mali_external_resource resources_%d_%d[] = {\n", job_no, i);
+			panwrap_indent++;
+
+			for (int j = 0; j < a->nr_ext_res; j++) {
+				panwrap_log("{ .count = 0x%" PRIx64 ", .ext_resource = 0x%" PRIx64 "},\n",
+					       	job_no, i, j, a->ext_res_list[j].count, a->ext_res_list[j].ext_resource[0]);
+			}
+
+			panwrap_indent--;
+			panwrap_log("};\n");
+
+		}
+	}
+
+
+	panwrap_log("mali_jd_atom_v2 atoms_%d[] = {\n", job_no);
+	panwrap_indent++;
+
+	for (int i = 0; i < args->nr_atoms; i++) {
+		const struct mali_jd_atom_v2 *a = &atoms[i];
+
+		panwrap_log("{\n");
+		panwrap_indent++;
+
+		panwrap_prop("jc = " MALI_PTR_FMT, a->jc);
+
+		panwrap_prop("udata = {0x%" PRIx64 ", 0x%" PRIx64 "}",
+			    a->udata.blob[0], a->udata.blob[1]);
+		panwrap_prop("nr_ext_res = %d", a->nr_ext_res);
+
+		if (a->ext_res_list) {
+			panwrap_prop("ext_res_list = resources_%d_%d", job_no, i);
+		} else {
+			panwrap_prop("ext_res_list = 0");
+		}
+
+		panwrap_prop("compat_core_req = 0x%x", a->compat_core_req);
+
+		panwrap_log(".pre_dep = {\n");
+		panwrap_indent++;
+		for (int j = 0; j < ARRAY_SIZE(a->pre_dep); j++) {
+			panwrap_log("{ .atom_id = %d, .dependency_type = %d },\n",
+				    a->pre_dep[i].atom_id, a->pre_dep[i].dependency_type);
+		}
+		panwrap_indent--;
+		panwrap_log("},\n");
+
+		panwrap_prop("atom_number = %d", a->atom_number);
+		panwrap_prop("prio = %d", a->prio);
+		panwrap_prop("device_nr = %d", a->device_nr);
+
+		panwrap_prop("core_req = %d", a->core_req);
+
+		panwrap_indent--;
+		panwrap_log("},\n");
+
+	}
+
+	panwrap_indent--;
+	panwrap_log("};\n");
+}
+
 static inline void
 ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 {
@@ -1180,8 +1254,10 @@ int ioctl(int fd, int request, ...)
 	char *lname = panwrap_lower_string(name);
 	int number = ioctl_count++;
 
-	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_JOB_SUBMIT))
+	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_JOB_SUBMIT)) {
 		replay_memory();
+		emit_atoms(ptr);
+	}
 
 	panwrap_log("struct mali_ioctl_%s %s_%d = {\n", lname, lname, number);
 #else
