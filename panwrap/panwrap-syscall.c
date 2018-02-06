@@ -741,6 +741,8 @@ ioctl_decode_post_get_version(unsigned long int request, void *ptr)
 	panwrap_prop("minor = %3d", args->minor);
 }
 
+static int allocation_counter = 0;
+
 static inline void
 ioctl_decode_post_mem_alloc(unsigned long int request, void *ptr)
 {
@@ -755,7 +757,7 @@ ioctl_decode_post_mem_alloc(unsigned long int request, void *ptr)
 	panwrap_prop("va_alignment = %d", args->va_alignment);
 
 	if (args->flags & (MALI_MEM_NEED_MMAP | MALI_MEM_SAME_VA))
-		panwrap_track_allocation(args->gpu_va, args->flags);
+		panwrap_track_allocation(args->gpu_va, args->flags, allocation_counter++);
 }
 
 static inline void
@@ -1207,7 +1209,7 @@ int ioctl(int fd, int request, ...)
 		const struct mali_ioctl_mem_alloc *args = ptr;
 
 		if (args->flags & (MALI_MEM_NEED_MMAP | MALI_MEM_SAME_VA) || args->gpu_va < 0xb0000000)
-			panwrap_track_allocation(args->gpu_va, args->flags);
+			panwrap_track_allocation(args->gpu_va, args->flags, allocation_counter++);
 	}
 #endif
 

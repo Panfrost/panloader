@@ -24,6 +24,7 @@
 struct panwrap_allocated_memory {
 	mali_ptr gpu_va;
 	int flags;
+	int allocation_number;
 
 	struct list node;
 };
@@ -35,12 +36,13 @@ struct panwrap_mapped_memory {
 	mali_ptr gpu_va;
 	int prot;
         int flags;
+	int allocation_number;
 
 	struct list node;
 };
 
 void replay_memory();
-void panwrap_track_allocation(mali_ptr gpu_va, int flags);
+void panwrap_track_allocation(mali_ptr gpu_va, int flags, int number);
 void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
                         int prot, int flags);
 void panwrap_track_munmap(void *addr);

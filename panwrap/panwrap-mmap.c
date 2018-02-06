@@ -81,9 +81,9 @@ void replay_memory()
 				if (((array[i] & 0xFF000000) == 0xB6000000) && (mapped = panwrap_find_mapped_mem_containing((void *) (uintptr_t) array[i]))) {
 					/* Address fix up */
 
-					panwrap_log("mali_memory_" MALI_PTR_FMT "[%d] = mali_memory_" MALI_PTR_FMT " + %d;\n", pos->gpu_va, i, mapped->gpu_va, array[i] - mapped->gpu_va);
+					panwrap_log("mali_memory_%d[%d] = mali_memory_%d + %d;\n", pos->allocation_number, i, mapped->allocation_number, array[i] - mapped->gpu_va);
 				} else if (array[i]) {
-					panwrap_log("mali_memory_" MALI_PTR_FMT "[%d] = 0x%08X;\n", pos->gpu_va, i, array[i]);
+					panwrap_log("mali_memory_%d[%d] = 0x%08X;\n", pos->allocation_number, i, array[i]);
 				}
 			}
 		}
@@ -92,7 +92,7 @@ void replay_memory()
 	}
 }
 
-void panwrap_track_allocation(mali_ptr addr, int flags)
+void panwrap_track_allocation(mali_ptr addr, int flags, int number)
 {
 	struct panwrap_allocated_memory *mem = malloc(sizeof(*mem));
 
@@ -101,6 +101,7 @@ void panwrap_track_allocation(mali_ptr addr, int flags)
 	list_init(&mem->node);
 	mem->gpu_va = addr;
 	mem->flags = flags;
+	mem->allocation_number = number;
 
 	list_add(&mem->node, &allocations);
 }
@@ -139,6 +140,7 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 	mapped_mem->addr = addr;
 	mapped_mem->prot = prot;
 	mapped_mem->flags = mem->flags;
+	mapped_mem->allocation_number = mem->allocation_number;
 
 	list_add(&mapped_mem->node, &mmaps);
 
@@ -146,8 +148,8 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 	free(mem);
 
 #ifdef DO_REPLAY
-	panwrap_log("uint32_t *mali_memory_" MALI_PTR_FMT " = mmap(NULL, %d, %d, %d, fd, %p);\n\n",
-		    mapped_mem->gpu_va, length, prot, flags, addr);
+	panwrap_log("uint32_t *mali_memory_%d = mmap(NULL, %d, %d, %d, fd, %p);\n\n",
+		    mapped_mem->allocation_number, length, prot, flags, addr);
 #else
 	panwrap_msg("GPU VA " MALI_PTR_FMT " mapped to %p - %p (length == %zu)\n",
 		    mapped_mem->gpu_va, addr, addr + length - 1, length);
