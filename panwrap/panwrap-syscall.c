@@ -685,7 +685,11 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 
 	dump_debugfs(request);
 
+#ifdef DO_REPLAY
+	panwrap_prop("addr = atoms_%d", job_count - 1); /* XXX */
+#else
 	panwrap_prop("addr = %p", args->addr);
+#endif
 	panwrap_prop("nr_atoms = %d", args->nr_atoms);
 	panwrap_prop("stride = %d", args->stride);
 
