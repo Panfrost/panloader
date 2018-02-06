@@ -540,8 +540,15 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 
 
 #ifdef DO_REPLAY
-	panwrap_prop("handle = " MALI_PTR_FMT, args->handle);
-	panwrap_prop("user_addr = %p", args->user_addr);
+	if (mem) {
+		panwrap_prop("handle = mali_memory_%d", mem->allocation_number);
+		panwrap_prop("user_addr = mali_memory_%d + %d", mem->allocation_number, args->user_addr - mem->addr);
+	} else {
+		panwrap_msg("ERROR! Unknown handle specified\n");
+		panwrap_prop("handle = " MALI_PTR_FMT, args->handle);
+		panwrap_prop("user_addr = %p", args->user_addr);
+	}
+
 	panwrap_prop("size = %" PRId64, args->size);
 	panwrap_prop("type = %d", args->type);
 #else
