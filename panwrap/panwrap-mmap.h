@@ -45,6 +45,9 @@ struct panwrap_mapped_memory {
 	struct list node;
 };
 
+#define TOUCH(mem, addr, obj) \
+	memset(mem->touched + ((addr - mem->gpu_va) / sizeof(uint32_t)), 1, sizeof(obj) / sizeof(uint32_t));
+
 void replay_memory();
 void panwrap_track_allocation(mali_ptr gpu_va, int flags, int number);
 void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,

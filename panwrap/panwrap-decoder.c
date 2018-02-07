@@ -467,17 +467,21 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		panwrap_log("};\n");
 
 		/* Touch the fields */
-		memset(mem->touched + ((jc_gpu_va - mem->gpu_va) / sizeof(uint32_t)), 1, sizeof(*h) / sizeof(uint32_t));
-
-		panwrap_indent++;
+		TOUCH(mem, jc_gpu_va, *h);
 
 		switch (h->job_type) {
 		case JOB_TYPE_SET_VALUE:
 			{
 				struct mali_payload_set_value *s = payload;
 
-				panwrap_log("set value -> %" PRIX64 " (%" PRIX64 ")\n",
-					    s->out, s->unknown);
+				panwrap_log("struct mali_payload_set_value set_value_%d = {\n", job_no);
+				panwrap_indent++;
+				panwrap_prop("out = 0x%" PRIX64, s->out);
+				panwrap_prop("unknown = 0x%" PRIX64, s->unknown);
+				panwrap_indent--;
+				panwrap_log("};\n");
+				TOUCH(mem, payload_ptr, *s);
+
 				break;
 			}
 		case JOB_TYPE_TILER:
@@ -490,7 +494,5 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		default:
 			break;
 		}
-
-		panwrap_indent--;
 	} while ((jc_gpu_va = h->next_job));
 }
