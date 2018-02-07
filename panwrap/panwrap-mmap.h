@@ -41,7 +41,7 @@ struct panwrap_mapped_memory {
 	char name[32];
 
 #ifdef DO_REPLAY
-	bool* emitted;
+	bool* touched;
 #endif
 
 	struct list node;
