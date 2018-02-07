@@ -631,6 +631,14 @@ static void emit_atoms(void *ptr) {
 	for (int i = 0; i < args->nr_atoms; i++) {
 		const struct mali_jd_atom_v2 *a = &atoms[i];
 
+		if (a->jc) {
+			panwrap_replay_jc(a->jc);
+		}
+	}
+
+	for (int i = 0; i < args->nr_atoms; i++) {
+		const struct mali_jd_atom_v2 *a = &atoms[i];
+
 		if (a->ext_res_list) {
 			panwrap_log("mali_external_resource resources_%d_%d[] = {\n", job_no, i);
 			panwrap_indent++;
@@ -1301,7 +1309,6 @@ int ioctl(int fd, int request, ...)
 			panwrap_log("posix_memalign((void **) &framebuffer, CACHE_LINE_SIZE, 4096*4096*4);\n");
 			panwrap_log("struct mali_mem_import_user_buffer framebuffer_handle = { .ptr = (uint64_t) (uintptr_t) framebuffer, .length = 4096*4096*4 };\n");
 		}
-
 
 		if (!ignore)
 			panwrap_log("struct mali_ioctl_%s %s_%d = {\n", lname, lname, number);
