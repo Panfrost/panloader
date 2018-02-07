@@ -40,6 +40,10 @@ struct panwrap_mapped_memory {
 	int allocation_number;
 	char name[32];
 
+#ifdef DO_REPLAY
+	bool* emitted;
+#endif
+
 	struct list node;
 };
 
