@@ -16,6 +16,7 @@
 #include <mali-ioctl.h>
 #include <mali-job.h>
 #include <stdio.h>
+#include <memory.h>
 
 extern char* replace_fragment;
 extern char* replace_vertex;
@@ -411,6 +412,70 @@ void panwrap_trace_hw_chain(mali_ptr jc_gpu_va)
 			break;
 		case JOB_TYPE_FRAGMENT:
 			panwrap_decode_fragment_job(mem, payload_ptr);
+			break;
+		default:
+			break;
+		}
+
+		panwrap_indent--;
+	} while ((jc_gpu_va = h->next_job));
+}
+
+void panwrap_replay_jc(mali_ptr jc_gpu_va)
+{
+	struct panwrap_mapped_memory *mem =
+		panwrap_find_mapped_gpu_mem_containing(jc_gpu_va);
+	struct mali_job_descriptor_header *h;
+
+	do {
+		mali_ptr payload_ptr = jc_gpu_va + sizeof(*h);
+		void *payload;
+
+		h = PANWRAP_PTR(mem, jc_gpu_va, typeof(*h));
+		payload = panwrap_fetch_gpu_mem(mem, payload_ptr,
+						MALI_PAYLOAD_SIZE);
+
+		panwrap_prop("job_type = %d", h->job_type);
+		panwrap_prop("job_descriptor_size = %d", h->job_descriptor_size);
+		panwrap_prop("exception_status = %d", h->exception_status);
+		panwrap_prop("first_incomplete_task = %d", h->first_incomplete_task);
+
+		panwrap_prop("fault_pointer = 0x%" PRIx64, h->fault_pointer);
+		panwrap_prop("job_barrier = %d", h->job_barrier);
+		panwrap_prop("job_index = %d", h->job_index);
+
+		panwrap_prop("job_dependency_index_1 = %d", h->job_dependency_index_1);
+		panwrap_prop("job_dependency_index_1 = %d", h->job_dependency_index_2);
+
+		panwrap_prop("next_job = " MALI_PTR_FMT, h->next_job);
+
+		/* If any of these bits are set, then the replay is wrong... */
+		if (h->_reserved_01 | h->_reserved_1 | h->_reserved_02
+		  | h->_reserved_03 | h->_reserved_2 | h->_reserved_04
+		  | h->_reserved_05) {
+			panwrap_msg("XXX Reserved flag in job descriptor header set, replay may be wrong XXX");
+		}
+
+		/* Touch the fields */
+		memset(mem->touched + ((jc_gpu_va - mem->gpu_va) / sizeof(uint32_t)), 1, sizeof(*h) / sizeof(uint32_t));
+
+		panwrap_indent++;
+
+		switch (h->job_type) {
+		case JOB_TYPE_SET_VALUE:
+			{
+				struct mali_payload_set_value *s = payload;
+
+				panwrap_log("set value -> %" PRIX64 " (%" PRIX64 ")\n",
+					    s->out, s->unknown);
+				break;
+			}
+		case JOB_TYPE_TILER:
+		case JOB_TYPE_VERTEX:
+			//panwrap_decode_vertex_or_tiler_job(h, mem, payload_ptr);
+			break;
+		case JOB_TYPE_FRAGMENT:
+			//panwrap_decode_fragment_job(mem, payload_ptr);
 			break;
 		default:
 			break;
