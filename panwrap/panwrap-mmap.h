@@ -39,7 +39,7 @@ struct panwrap_mapped_memory {
 	int allocation_number;
 
 #ifdef DO_REPLAY
-	bool* emitted;
+	bool* touched;
 #endif
 
 	struct list node;
