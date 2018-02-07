@@ -421,6 +421,8 @@ void panwrap_trace_hw_chain(mali_ptr jc_gpu_va)
 	} while ((jc_gpu_va = h->next_job));
 }
 
+static int job_descriptor_number = 0;
+
 void panwrap_replay_jc(mali_ptr jc_gpu_va)
 {
 	struct panwrap_mapped_memory *mem =
@@ -434,6 +436,11 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		h = PANWRAP_PTR(mem, jc_gpu_va, typeof(*h));
 		payload = panwrap_fetch_gpu_mem(mem, payload_ptr,
 						MALI_PAYLOAD_SIZE);
+
+		int job_no = job_descriptor_number++;
+
+		panwrap_log("struct mali_job_descriptor_header job_%d = {\n", job_no);
+		panwrap_indent++;
 
 		panwrap_prop("job_type = %d", h->job_type);
 		panwrap_prop("job_descriptor_size = %d", h->job_descriptor_size);
@@ -455,6 +462,9 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		  | h->_reserved_05) {
 			panwrap_msg("XXX Reserved flag in job descriptor header set, replay may be wrong XXX");
 		}
+
+		panwrap_indent--;
+		panwrap_log("};\n");
 
 		/* Touch the fields */
 		memset(mem->touched + ((jc_gpu_va - mem->gpu_va) / sizeof(uint32_t)), 1, sizeof(*h) / sizeof(uint32_t));
