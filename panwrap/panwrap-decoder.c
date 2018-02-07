@@ -343,6 +343,21 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_indent--;
 }
 
+static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
+					mali_ptr payload, int job_no)
+{
+	const struct mali_payload_fragment *PANWRAP_PTR_VAR(s, mem, payload);
+
+	panwrap_log("struct mali_payload_fragment fragment_%d = {\n", job_no);
+	panwrap_indent++;
+	panwrap_prop("_min_tile_coord = 0x%" PRIX32, s->_min_tile_coord);
+	panwrap_prop("_max_tile_coord = 0x%" PRIX32, s->_max_tile_coord);
+	panwrap_prop("fbd = " MALI_PTR_FMT, s->fbd);
+	panwrap_indent--;
+	panwrap_log("};\n");
+	TOUCH(mem, payload, *s);
+}
+
 static void panwrap_decode_fragment_job(const struct panwrap_mapped_memory *mem,
 					mali_ptr payload)
 {
@@ -489,7 +504,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 			//panwrap_decode_vertex_or_tiler_job(h, mem, payload_ptr);
 			break;
 		case JOB_TYPE_FRAGMENT:
-			//panwrap_decode_fragment_job(mem, payload_ptr);
+			panwrap_replay_fragment_job(mem, payload_ptr, job_no);
 			break;
 		default:
 			break;
