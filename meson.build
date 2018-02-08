@@ -12,7 +12,8 @@ test_cc_flags = [
     '-Werror-implicit-function-declaration',
     '-Werror-incompatible-pointer-types-discards-qualifiers',
     '-Werror-int-conversion',
-    '-mfp16-format=ieee'
+    '-mfp16-format=ieee',
+    '-U_FILE_OFFSET_BITS'
 ]
 foreach flag: test_cc_flags
     if cc.has_argument(flag)
