@@ -459,16 +459,20 @@ ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 	switch (args->type) {
 	case MALI_MEM_IMPORT_TYPE_UMP:         type = "UMP"; break;
 	case MALI_MEM_IMPORT_TYPE_UMM:         type = "UMM"; break;
-	case MALI_MEM_IMPORT_TYPE_USER_BUFFER: type = "User buffer"; break;
+	case MALI_MEM_IMPORT_TYPE_USER_BUFFER: type = "USER_BUFFER"; break;
 	default:                               type = "Invalid"; break;
 	}
 
 	panwrap_prop("phandle = 0x%" PRIx64, args->phandle);
-	panwrap_prop("type = %d (%s)", args->type, type);
+	panwrap_prop("type = MALI_MEM_IMPORT_TYPE_%s", type);
 
+#ifdef DO_REPLAY
+	panwrap_prop("flags = %d", args->flags);
+#else
 	panwrap_prop("flags = ");
 	panwrap_log_decoded_flags(mem_flag_info, args->flags);
 	panwrap_log_cont("\n");
+#endif
 }
 
 static inline void
@@ -1254,6 +1258,16 @@ int ioctl(int fd, int request, ...)
 
 	func = header->id;
 
+	bool ignore = false;
+
+	/* Race condition... */
+	if (!panwrap_indent)
+		ignore = true;
+
+	/* Queries are not interesting for replay */
+	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_QUERY))
+		ignore = true;
+
 #ifdef DO_REPLAY
 	char *lname = panwrap_lower_string(name);
 	int number = ioctl_count++;
@@ -1263,14 +1277,16 @@ int ioctl(int fd, int request, ...)
 		emit_atoms(ptr);
 	}
 
-	panwrap_log("struct mali_ioctl_%s %s_%d = {\n", lname, lname, number);
+	if (!ignore)
+		panwrap_log("struct mali_ioctl_%s %s_%d = {\n", lname, lname, number);
 #else
 	panwrap_msg("<%-20s> (%02d) (%08x) (%04d) (%03d)\n",
 		    name, _IOC_NR(request), request, _IOC_SIZE(request), func);
 #endif
 
 	panwrap_indent++;
-	ioctl_decode_pre(request, ptr);
+	if (!ignore)
+		ioctl_decode_pre(request, ptr);
 
 	ret = orig_ioctl(fd, request, ptr);
 
@@ -1298,16 +1314,19 @@ int ioctl(int fd, int request, ...)
 	panwrap_indent--;
 
 #ifdef DO_REPLAY
-	panwrap_log("};\n");
-	panwrap_log("\n");
+	if (!ignore) {
+		panwrap_log("};\n");
+		panwrap_log("\n");
 
-	panwrap_log("rc = pandev_ioctl(fd, MALI_IOCTL_%s, &%s_%d);\n", name, lname, number);
-	panwrap_log("if (rc) {\n");
-	panwrap_indent++;
-	panwrap_log("printf(\"Error %%d in %s_%d\\n\", rc);\n", name, number);
-	panwrap_indent--;
-	panwrap_log("}\n");
-	panwrap_log("\n");
+		panwrap_log("rc = pandev_ioctl(fd, MALI_IOCTL_%s, &%s_%d);\n", name, lname, number);
+		panwrap_log("if (rc) {\n");
+		panwrap_indent++;
+		panwrap_log("printf(\"Error %%d in %s_%d\\n\", rc);\n", name, number);
+		panwrap_indent--;
+		panwrap_log("}\n");
+		panwrap_log("\n");
+	}
+
 	free(lname);
 #endif
 
