@@ -1268,6 +1268,10 @@ int ioctl(int fd, int request, ...)
 	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_QUERY))
 		ignore = true;
 
+	/* Neither is debugfs nonsense */
+	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_DEBUGFS_MEM_PROFILE_ADD))
+		ignore = true;
+
 #ifdef DO_REPLAY
 	char *lname = panwrap_lower_string(name);
 	int number = ioctl_count++;
