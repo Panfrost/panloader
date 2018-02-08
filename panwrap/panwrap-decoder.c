@@ -213,6 +213,95 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 #undef END
 }
 
+void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
+					const struct panwrap_mapped_memory *mem,
+					mali_ptr payload, int job_no)
+{
+	struct mali_payload_vertex_tiler *PANWRAP_PTR_VAR(v, mem, payload);
+	struct mali_shader_meta *meta;
+	struct panwrap_mapped_memory *attr_mem;
+	struct mali_attr_meta *attr_meta;
+	u8 *shader;
+	mali_ptr meta_ptr = v->_shader_upper << 4;
+	mali_ptr p;
+
+	attr_mem = panwrap_find_mapped_gpu_mem_containing(v->attribute_meta);
+
+	panwrap_log("%s shader @ " MALI_PTR_FMT " (flags 0x%x)\n",
+		    h->job_type == JOB_TYPE_VERTEX ? "Vertex" : "Fragment",
+		    meta_ptr, v->flags);
+
+	panwrap_indent++;
+
+	if (meta_ptr) {
+		meta = panwrap_fetch_gpu_mem(NULL, meta_ptr, sizeof(*meta));
+		shader = panwrap_fetch_gpu_mem(NULL, meta->shader, 64);
+
+		panwrap_log("Shader blob: @ " MALI_PTR_FMT " (@ " MALI_PTR_FMT ")\n",
+			       	meta_ptr, meta->shader & ~7);
+		panwrap_indent++;
+		/*panwrap_log_hexdump(
+		    panwrap_fetch_gpu_mem(NULL, meta->shader & ~7, 832), 832);*/
+		panwrap_indent--;
+
+	} else
+		panwrap_log("<no shader>\n");
+
+	if (v->attribute_meta) {
+		panwrap_log("Attribute list:\n");
+		panwrap_indent++;
+		for (p = v->attribute_meta;
+		     *PANWRAP_PTR(attr_mem, p, u64) != 0;
+		     p += sizeof(u64)) {
+			attr_meta = panwrap_fetch_gpu_mem(attr_mem, p,
+							  sizeof(*attr_mem));
+
+			panwrap_log("%x:\n", attr_meta->index);
+			panwrap_indent++;
+
+			panwrap_log("flags = 0x%014" PRIx64 "\n",
+				    (u64) attr_meta->flags);
+
+			panwrap_indent--;
+		}
+		panwrap_indent--;
+	} else
+		panwrap_log("<no attributes>\n");
+
+	if (h->job_type == JOB_TYPE_TILER && v->block1[7]) {
+		panwrap_log("GL draw mode: %s\n",
+			    panwrap_gl_mode_name(
+				*PANWRAP_PTR(attr_mem, v->block1[7], u8)));
+	}
+
+	if (v->uniforms) {
+		/* XXX: How do we know how many to print? How do we know to use
+		 * half-floats? */
+
+		struct panwrap_mapped_memory *uniform_mem = panwrap_find_mapped_gpu_mem_containing(v->uniforms);
+
+		panwrap_log("Uniforms: \n");
+		panwrap_fetch_gpu_mem(uniform_mem, v->uniforms, 4 * sizeof(__fp16));
+	}
+
+	if (v->null0 || v->null4)
+		panwrap_msg("Fragment/tiler null tripped;replay may be wrong\n");
+
+	if (v->texture_meta_address || v->texture_unknown) {
+		panwrap_log("Texture:");
+		panwrap_indent++;
+		panwrap_log("Meta address: " MALI_PTR_FMT "\n", v->texture_meta_address);
+		panwrap_log("Unknown address: " MALI_PTR_FMT "\n", v->texture_unknown);
+		panwrap_indent--;
+	}
+
+	//panwrap_trace_fbd(mem, &v->fbd);
+
+	panwrap_indent--;
+}
+
+
+
 void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
 					const struct panwrap_mapped_memory *mem,
 					mali_ptr payload)
@@ -501,7 +590,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 			}
 		case JOB_TYPE_TILER:
 		case JOB_TYPE_VERTEX:
-			//panwrap_decode_vertex_or_tiler_job(h, mem, payload_ptr);
+			panwrap_replay_vertex_or_tiler_job(h, mem, payload_ptr, job_no);
 			break;
 		case JOB_TYPE_FRAGMENT:
 			panwrap_replay_fragment_job(mem, payload_ptr, job_no);
