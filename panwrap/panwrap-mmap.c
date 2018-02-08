@@ -148,7 +148,7 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 	free(mem);
 
 #ifdef DO_REPLAY
-	panwrap_log("uint32_t *mali_memory_%d = mmap(NULL, %d, %d, %d, fd, mem_alloc_%d.gpu_va);\n\n",
+	panwrap_log("uint32_t *mali_memory_%d = mmap64(NULL, %d, %d, %d, fd, mem_alloc_%d.gpu_va);\n\n",
 		    mapped_mem->allocation_number, length, prot, flags, mapped_mem->allocation_number);
 
 	panwrap_log("if (mali_memory_%d == MAP_FAILED) {\n", mapped_mem->allocation_number);
