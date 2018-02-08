@@ -55,7 +55,7 @@ struct device_info {
 	const struct ioctl_info info[MALI_IOCTL_TYPE_COUNT][_IOC_NR(0xffffffff)];
 };
 
-typedef void* (mmap_func)(void *, size_t, int, int, int, off_t);
+typedef void* (mmap_func)(void *, size_t, int, int, int, loff_t);
 typedef int (open_func)(const char *, int flags, ...);
 
 #define IOCTL_TYPE(type) [type - MALI_IOCTL_TYPE_BASE] =
@@ -1323,7 +1323,7 @@ out:
 
 static void inline *panwrap_mmap_wrap(mmap_func *func,
 				      void *addr, size_t length, int prot,
-				      int flags, int fd, off_t offset)
+				      int flags, int fd, loff_t offset)
 {
 	void *ret;
 
@@ -1354,7 +1354,7 @@ static void inline *panwrap_mmap_wrap(mmap_func *func,
 }
 
 void *mmap64(void *addr, size_t length, int prot, int flags, int fd,
-	     off_t offset)
+	     loff_t offset)
 {
 	PROLOG(mmap64);
 
