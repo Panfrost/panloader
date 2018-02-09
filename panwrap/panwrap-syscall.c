@@ -463,7 +463,29 @@ ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 	default:                               type = "Invalid"; break;
 	}
 
+#ifdef DO_REPLAY
+	/* Like with syncs etc, where we need to fixup a GPU address, imports
+	 * require us to fixup a _CPU_ address. For UMMs, this means emitting a
+	 * pointer to a file descriptor fetched from the DRI... */
+
+	if (args->type == MALI_MEM_IMPORT_TYPE_UMM) {
+		int* fd_p = (int*) (uintptr_t) args->phandle;
+		int drm_fd = *fd_p;
+
+		void *drm_buf;
+		drm_buf = mmap(NULL, 8, PROT_READ | PROT_WRITE, MAP_SHARED, drm_fd, 0);
+
+		if (drm_buf == MAP_FAILED) {
+			panwrap_msg("ruh roh\n");
+		} else {
+			panwrap_log_hexdump(drm_buf, 8);
+		}
+
+		panwrap_msg("fd = %d\n", drm_fd);
+	}
+#endif
 	panwrap_prop("phandle = 0x%" PRIx64, args->phandle);
+
 	panwrap_prop("type = MALI_MEM_IMPORT_TYPE_%s", type);
 
 #ifdef DO_REPLAY
@@ -1278,6 +1300,12 @@ int ioctl(int fd, int request, ...)
 	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_DEBUGFS_MEM_PROFILE_ADD))
 		ignore = true;
 
+	/* Imports -are-, but we can't replay them in any sane way, so we'll
+	 * just put some relevant comments afterwards */
+	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_IMPORT))
+		ignore = true;
+
+
 #ifdef DO_REPLAY
 	char *lname = panwrap_lower_string(name);
 	int number = ioctl_count++;
@@ -1319,6 +1347,14 @@ int ioctl(int fd, int request, ...)
 
 		if (args->flags & (MALI_MEM_NEED_MMAP | MALI_MEM_SAME_VA) || args->gpu_va < 0xb0000000)
 			panwrap_track_allocation(args->gpu_va, args->flags, number);
+	}
+
+	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_IMPORT)) {
+		const struct mali_ioctl_mem_import *args = ptr;
+
+		/* just in case this ends up mattering... */
+		panwrap_msg("Import VA: 0x%" PRIx64 "\n", args->gpu_va);
+		panwrap_msg("va_pages 0x%" PRIx64 "\n", args->va_pages);
 	}
 
 	panwrap_indent--;
