@@ -711,7 +711,7 @@ struct mali_external_resource {
 	 *
 	 * (source for this from original kdriver: mali_kbase_jd.c)
 	 */
-	u64 count;
+//	u64 count;
 	u64 ext_resource[1];
 };
 

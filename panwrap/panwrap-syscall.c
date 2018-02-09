@@ -651,8 +651,11 @@ static void emit_atoms(void *ptr) {
 			panwrap_indent++;
 
 			for (int j = 0; j < a->nr_ext_res; j++) {
-				panwrap_log("{ .count = 0x%" PRIx64 ", .ext_resource = 0x%" PRIx64 "},\n",
-					       	job_no, i, j, a->ext_res_list[j].count, a->ext_res_list[j].ext_resource[0]);
+				u64 rsrc = a->ext_res_list[j].ext_resource[0];
+
+				/* Trap the resource, since it's the framebuffer and we haven't set that up yet */
+				rsrc = 0xCAFECAF1;
+				panwrap_log("{ .ext_resource = 0x%" PRIx64 "},\n", rsrc);
 			}
 
 			panwrap_indent--;
