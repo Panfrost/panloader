@@ -816,10 +816,10 @@ struct mali_ioctl_mem_import {
 	/* [in/out] */
 	u64 flags;
 	/* [out] */
-	mali_ptr gpu_va;
+	u64 gpu_va;
 	u64 va_pages;
 } __attribute__((packed));
-/* FIXME: Size unconfirmed (haven't seen in a trace yet) */
+ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_import, 48, 48);
 
 struct mali_ioctl_mem_commit {
 	union mali_ioctl_header header;
