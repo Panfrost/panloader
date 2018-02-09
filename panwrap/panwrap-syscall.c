@@ -467,7 +467,7 @@ ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 	panwrap_prop("type = MALI_MEM_IMPORT_TYPE_%s", type);
 
 #ifdef DO_REPLAY
-	panwrap_prop("flags = %d", args->flags);
+	panwrap_prop("flags = 0x%" PRIx64, args->flags);
 #else
 	panwrap_prop("flags = ");
 	panwrap_log_decoded_flags(mem_flag_info, args->flags);
