@@ -656,8 +656,8 @@ static void emit_atoms(void *ptr) {
 		struct panwrap_mapped_memory *mapped = panwrap_find_mapped_mem_containing((void *) (uintptr_t) a->jc);
 		panwrap_prop("jc = (uintptr_t) mali_memory_%d + %d", mapped->allocation_number, a->jc - mapped->gpu_va);
 
-		panwrap_prop("udata = {0x%" PRIx64 ", 0x%" PRIx64 "}",
-			    a->udata.blob[0], a->udata.blob[1]);
+		/* Don't passthrough udata; it's nondeterministic and for userspace use only */
+
 		panwrap_prop("nr_ext_res = %d", a->nr_ext_res);
 
 		if (a->ext_res_list) {
@@ -1155,7 +1155,7 @@ panwrap_open_wrap(open_func *func, const char *path, int flags, va_list args)
 
 	LOCK();
 	msleep(log_delay);
-	if (ret != -1) {
+	if (ret != -1 && !do_replay) {
 		if (strcmp(path, "/dev/mali0") == 0) {
 			panwrap_msg("/dev/mali0 fd == %d\n", ret);
 			mali_fd = ret;
