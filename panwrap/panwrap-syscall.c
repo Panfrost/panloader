@@ -706,8 +706,6 @@ static void ioctl_pretty_print_job_submit(const struct mali_ioctl_job_submit *ar
 		panwrap_prop("nr_ext_res = %d", a->nr_ext_res);
 
 		if (a->ext_res_list) {
-			panwrap_prop("text_res_list.count = %" PRId64,
-				    a->ext_res_list->count);
 			panwrap_msg("External resources:\n");
 
 			panwrap_indent++;
@@ -858,7 +856,7 @@ ioctl_decode_post_mem_import(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_import *args = ptr;
 
-	panwrap_prop("gpu_va = " MALI_PTR_FMT, args->gpu_va);
+	panwrap_prop("gpu_va = 0x%" PRIx64, args->gpu_va);
 	panwrap_prop("va_pages = %" PRId64, args->va_pages);
 	panwrap_prop("flags = ");
 	panwrap_log_decoded_flags(mem_flag_info, args->flags);
@@ -1228,6 +1226,8 @@ static int ioctl_count = 0;
 int ioctl(int fd, int request, ...)
 {
 	const char *name;
+	char *lname;
+	int number;
 	union mali_ioctl_header *header;
 	PROLOG(ioctl);
 	int ioc_size = _IOC_SIZE(request);
@@ -1279,8 +1279,8 @@ int ioctl(int fd, int request, ...)
 		ignore = true;
 
 	if (do_replay) {
-		char *lname = panwrap_lower_string(name);
-		int number = ioctl_count++;
+		lname = panwrap_lower_string(name);
+		number = ioctl_count++;
 
 		if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_JOB_SUBMIT)) {
 			replay_memory();
