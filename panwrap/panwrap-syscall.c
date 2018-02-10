@@ -1325,9 +1325,9 @@ int ioctl(int fd, int request, ...)
 
 	/* TODO: Is there a better way to handle framebuffers in replay? */
 	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_IMPORT)) {
-		panwrap_log("void *framebuffer;\n");
-		panwrap_log("posix_memalign(&framebuffer, 0x10000, 1024*1024*4);\n");
-		panwrap_log("struct mali_mem_import_user_buffer framebuffer_handle = { .ptr = (uint64_t) (uintptr_t) framebuffer, .length = 1024*1024*4 };\n");
+		panwrap_log("uint32_t *framebuffer;\n");
+		panwrap_log("posix_memalign(&framebuffer, 0x10000, 4096*4096*4);\n");
+		panwrap_log("struct mali_mem_import_user_buffer framebuffer_handle = { .ptr = (uint64_t) (uintptr_t) framebuffer, .length = 4096*4096*4 };\n");
 	}
 
 
@@ -1386,6 +1386,13 @@ int ioctl(int fd, int request, ...)
 
 		/* just in case this ends up mattering... */
 		panwrap_log("uint64_t framebuffer_va = %s_%d.gpu_va;\n", lname, number);
+	}
+
+	/* Dump the framebuffer :D */
+	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_JOB_SUBMIT)) {
+		panwrap_log("FILE *fp = fopen(\"/dev/shm/framebuffer.bin\", \"wb\");\n");
+		panwrap_log("fwrite(framebuffer, 1, 4096*4096*4, fp);\n");
+		panwrap_log("fclose(fp);\n");
 	}
 
 	free(lname);
