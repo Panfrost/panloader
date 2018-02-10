@@ -701,6 +701,8 @@ static void emit_atoms(void *ptr) {
 		panwrap_prop("prio = %d", a->prio);
 		panwrap_prop("device_nr = %d", a->device_nr);
 
+		panwrap_msg("Job type = %s\n",
+			    ioctl_get_job_type_from_jd_core_req(a->core_req));
 		panwrap_prop("core_req = %d", a->core_req);
 
 		panwrap_indent--;
