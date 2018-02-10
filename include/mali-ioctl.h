@@ -702,16 +702,6 @@ enum mali_external_resource_access {
 };
 
 struct mali_external_resource {
-	/*
-	 * Lyude:
-	 * At first I thought this might be the count for what could be in
-	 * ext_resource, but it looks like there's not really a reason for
-	 * ext_resource being an array with a length of one?
-	 * Maybe this is some weird compatibility crap...
-	 *
-	 * (source for this from original kdriver: mali_kbase_jd.c)
-	 */
-//	u64 count;
 	u64 ext_resource[1];
 };
 
