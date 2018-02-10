@@ -173,8 +173,16 @@ void panwrap_track_munmap(void *addr)
 	}
 
 	list_del(&mapped_mem->node);
-	panwrap_msg("Unmapped GPU memory at %p\n",
-		    addr);
+
+	if (!do_replay) {
+		/* As the address is nondeterministic, don't send this message
+		 * for replays. It's not functionally important -- it will
+		 * become a comment anyway -- but source code reproducability
+		 * is important for debugging and understanding replays. */
+
+		panwrap_msg("Unmapped GPU memory at %p\n", addr);
+	}
+
 	free(mapped_mem);
 }
 
