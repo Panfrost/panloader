@@ -638,10 +638,7 @@ static void emit_atoms(void *ptr) {
 			panwrap_indent++;
 
 			for (int j = 0; j < a->nr_ext_res; j++) {
-				u64 rsrc = a->ext_res_list[j].ext_resource[0];
-
 				/* Substitute in our framebuffer (TODO: what about other kinds of extres?) */
-				//panwrap_log("{ .ext_resource = 0x%" PRIx64 "},\n", rsrc);
 				panwrap_log("{ .ext_resource = framebuffer_va | 1},\n");
 			}
 
