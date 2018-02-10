@@ -1155,12 +1155,12 @@ panwrap_open_wrap(open_func *func, const char *path, int flags, va_list args)
 
 	LOCK();
 	msleep(log_delay);
-	if (ret != -1 && !do_replay) {
+	if (ret != -1) {
 		if (strcmp(path, "/dev/mali0") == 0) {
-			panwrap_msg("/dev/mali0 fd == %d\n", ret);
+			if (!do_replay) panwrap_msg("/dev/mali0 fd == %d\n", ret);
 			mali_fd = ret;
 		} else if (strstr(path, "/dev/")) {
-			panwrap_msg("Unknown device %s opened at fd %d\n",
+			if (!do_replay) panwrap_msg("Unknown device %s opened at fd %d\n",
 				    path, ret);
 		}
 	}
