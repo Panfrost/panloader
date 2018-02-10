@@ -78,7 +78,7 @@ void replay_memory()
 			if (array[i]) {
 				struct panwrap_mapped_memory *mapped;
 
-				if (mapped = panwrap_find_mapped_mem_containing((void *) (uintptr_t) array[i])) {
+				if ((mapped = panwrap_find_mapped_mem_containing((void *) (uintptr_t) array[i]))) {
 					/* Address fix up */
 
 					panwrap_log("mali_memory_%d[%d] = (uintptr_t) mali_memory_%d + %d;\n", pos->allocation_number, i, mapped->allocation_number, array[i] - mapped->gpu_va);

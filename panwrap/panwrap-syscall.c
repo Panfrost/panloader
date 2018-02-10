@@ -454,13 +454,14 @@ static inline void
 ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_import *args = ptr;
-	const char *type;
 
 #ifdef DO_REPLAY
 	/* Imports afaik are just used for framebuffers, so we'll emit an allocation for that here */
 	panwrap_prop("phandle = (uint64_t) (uintptr_t) &framebuffer_handle");
 	panwrap_prop("type = MALI_MEM_IMPORT_TYPE_USER_BUFFER");
 #else
+	const char *type;
+
 	panwrap_prop("phandle = 0x%" PRIx64, args->phandle);
 
 	switch (args->type) {
@@ -547,7 +548,6 @@ static inline void
 ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_sync *args = ptr;
-	const char *type;
 	struct panwrap_mapped_memory *mem =
 		panwrap_find_mapped_gpu_mem(args->handle);
 
@@ -556,7 +556,7 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 	if (mem) {
 		/* Only fix up addresses if they are SAME_VA and therefore can be fixed*/
 
-		if (args->handle == mem->addr)
+		if (args->handle == (mali_ptr) (uintptr_t) mem->addr)
 			panwrap_prop("handle = (mali_ptr) (void*) mali_memory_%d", mem->allocation_number);
 		else
 			panwrap_prop("handle = " MALI_PTR_FMT, args->handle);
@@ -571,6 +571,7 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 	panwrap_prop("size = %" PRId64, args->size);
 	panwrap_prop("type = %d", args->type);
 #else
+	const char *type;
 
 	switch (args->type) {
 	case MALI_SYNC_TO_DEVICE: type = "device <- CPU"; break;
@@ -657,7 +658,7 @@ static void emit_atoms(void *ptr) {
 		panwrap_log("{\n");
 		panwrap_indent++;
 
-		struct panwrap_mapped_memory *mapped = panwrap_find_mapped_mem_containing(a->jc);
+		struct panwrap_mapped_memory *mapped = panwrap_find_mapped_mem_containing((void *) (uintptr_t) a->jc);
 		panwrap_prop("jc = (uintptr_t) mali_memory_%d + %d", mapped->allocation_number, a->jc - mapped->gpu_va);
 	
 		panwrap_prop("udata = {0x%" PRIx64 ", 0x%" PRIx64 "}",
@@ -1240,7 +1241,6 @@ int ioctl(int fd, int request, ...)
 	PROLOG(ioctl);
 	int ioc_size = _IOC_SIZE(request);
 	int ret;
-	uint32_t func;
 	void *ptr;
 
 	if (ioc_size) {
@@ -1272,8 +1272,6 @@ int ioctl(int fd, int request, ...)
 		panwrap_indent--;
 		goto out;
 	}
-
-	func = header->id;
 
 	bool ignore = false;
 
@@ -1309,8 +1307,8 @@ int ioctl(int fd, int request, ...)
 	if (!ignore)
 		panwrap_log("struct mali_ioctl_%s %s_%d = {\n", lname, lname, number);
 #else
-	panwrap_msg("<%-20s> (%02d) (%08x) (%04d) (%03d)\n",
-		    name, _IOC_NR(request), request, _IOC_SIZE(request), func);
+	panwrap_msg("<%-20s> (%02d) (%08x) (%04d)\n",
+		    name, _IOC_NR(request), request, _IOC_SIZE(request));
 #endif
 
 	panwrap_indent++;
@@ -1356,10 +1354,8 @@ int ioctl(int fd, int request, ...)
 		panwrap_log("\n");
 	}
 
+	/* Setup framebuffer (part II) */
 	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_IMPORT)) {
-		const struct mali_ioctl_mem_import *args = ptr;
-
-		/* just in case this ends up mattering... */
 		panwrap_log("uint64_t framebuffer_va = %s_%d.gpu_va;\n", lname, number);
 	}
 
