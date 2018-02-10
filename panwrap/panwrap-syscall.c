@@ -602,12 +602,20 @@ ioctl_decode_pre_set_flags(unsigned long int request, void *ptr)
 	panwrap_prop("create_flags = %08x", args->create_flags);
 }
 
+static int stream_count = 0;
+
 static inline void
 ioctl_decode_pre_stream_create(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_stream_create *args = ptr;
 
-	panwrap_prop("name = \"%s\"", args->name);
+	/* Stream name is not semantic as far as I know, but the blob allocates
+	 * them nondeterministically. Patch over this here for repro. */
+
+	if (do_replay)
+		panwrap_prop("name = \"stream_%d\"", stream_count++);
+	else
+		panwrap_prop("name = \"%s\"", args->name);
 }
 
 static int job_count = 0;
