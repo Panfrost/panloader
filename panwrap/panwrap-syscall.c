@@ -639,7 +639,7 @@ static void emit_atoms(void *ptr) {
 			}
 
 			panwrap_indent--;
-			panwrap_log("};\n");
+			panwrap_log("};\n\n");
 
 		}
 	}
@@ -691,7 +691,7 @@ static void emit_atoms(void *ptr) {
 	}
 
 	panwrap_indent--;
-	panwrap_log("};\n");
+	panwrap_log("};\n\n");
 }
 
 static void ioctl_pretty_print_job_submit(const struct mali_ioctl_job_submit *args, const struct mali_jd_atom_v2 *atoms)
@@ -1337,16 +1337,9 @@ int ioctl(int fd, int request, ...)
 
 	if (do_replay) {
 		if (!ignore) {
-			panwrap_log("};\n");
-			panwrap_log("\n");
-
+			panwrap_log("};\n\n");
 			panwrap_log("rc = pandev_ioctl(fd, MALI_IOCTL_%s, &%s_%d);\n", name, lname, number);
-			panwrap_log("if (rc) {\n");
-			panwrap_indent++;
-			panwrap_log("printf(\"Error %%d in %s_%d\\n\", rc);\n", name, number);
-			panwrap_indent--;
-			panwrap_log("}\n");
-			panwrap_log("\n");
+			panwrap_log("if (rc) printf(\"Error %%d in %s_%d\\n\", rc);\n\n", name, number);
 		}
 
 		/* Setup framebuffer (part II) */
