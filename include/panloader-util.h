@@ -74,18 +74,23 @@ typedef int64_t s64;
 
 #define msleep(n) (usleep(n * 1000))
 
-/* TODO: Replace entirely with environmental variable */
+/* Semantic logging type.
+ *
+ * Raw: for raw messages to be printed as is.
+ * Message: for helpful information to be commented out in replays.
+ * Property: for properties of a struct
+ *
+ * Use one of panwrap_log, panwrap_msg, or panwrap_prop as syntax sugar.
+ */
 
-#define DO_REPLAY
+enum panwrap_log_type {
+	PANWRAP_RAW,
+	PANWRAP_MESSAGE,
+	PANWRAP_PROPERTY
+};
 
-/* TODO: Replace by sane functions */
-
-#ifdef DO_REPLAY
-#define panwrap_msg(...) do{panwrap_log("// ");panwrap_log_cont(__VA_ARGS__);}while(0)
-#define panwrap_prop(...) do{panwrap_log(".");panwrap_log_cont(__VA_ARGS__);panwrap_log_cont(",\n");}while(0)
-#else
-#define panwrap_msg panwrap_log
-#define panwrap_prop(...) do{panwrap_log_cont(__VA_ARGS__);panwrap_log_cont("\n");}while(0)
-#endif
+#define panwrap_log(...)  panwrap_log_typed(PANWRAP_RAW,      __VA_ARGS__)
+#define panwrap_msg(...)  panwrap_log_typed(PANWRAP_MESSAGE,  __VA_ARGS__)
+#define panwrap_prop(...) panwrap_log_typed(PANWRAP_PROPERTY, __VA_ARGS__)
 
 #endif /* __PANLOADER_UTIL_H__ */

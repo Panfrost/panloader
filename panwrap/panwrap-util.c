@@ -184,7 +184,7 @@ panwrap_timestamp(struct timespec *tp)
 }
 
 void
-panwrap_log(const char *format, ...)
+panwrap_log_typed(enum panwrap_log_type type, const char *format, ...)
 {
 	struct timespec tp;
 	va_list ap;
@@ -203,9 +203,19 @@ panwrap_log(const char *format, ...)
 		fputs("  ", log_output);
 	}
 
+	if (enable_replay_source) {
+		if (type == PANWRAP_MESSAGE)
+			fputs("// ", log_output);
+		else if (type == PANWRAP_PROPERTY);
+			fputs(".", log_output);
+	}
+
 	va_start(ap, format);
 	vfprintf(log_output, format, ap);
 	va_end(ap);
+
+	if (type == PANWRAP_PROPERTY)
+		fputs(",\n", log_output);
 }
 
 /* Eventually this function might do more */

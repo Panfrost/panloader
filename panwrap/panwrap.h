@@ -37,7 +37,7 @@ struct panwrap_flag_info {
 	if (!orig_##func)				\
 		orig_##func = __rd_dlsym_helper(#func);	\
 
-void __attribute__((format (printf, 1, 2))) panwrap_log(const char *format, ...);
+void __attribute__((format (printf, 2, 3))) panwrap_log_typed(enum panwrap_log_type type, const char *format, ...);
 void __attribute__((format (printf, 1, 2))) panwrap_log_cont(const char *format, ...);
 void panwrap_log_flush();
 
