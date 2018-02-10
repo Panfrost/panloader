@@ -402,12 +402,12 @@ pandev_open()
 	if (rc)
 		return rc;
 
-	//pandev_fragment_job(fd);
-	//pandev_flush_jobs(fd);
+	pandev_fragment_job(fd);
+	pandev_flush_jobs(fd);
 
 	int stream_fd;
 
-	//rc = pandev_create_stream(fd, "insert-queer-pun-here", &stream_fd);
+	rc = pandev_create_stream(fd, "insert-queer-pun-here", &stream_fd);
 	if (rc)
 		return 0; /* This breaks, we know that, just not why */
 
