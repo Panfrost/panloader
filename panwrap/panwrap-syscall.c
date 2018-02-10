@@ -441,13 +441,13 @@ ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
 	panwrap_prop("commit_pages = %" PRId64, args->commit_pages);
 	panwrap_prop("extent = 0x%" PRIx64, args->extent);
 
-#ifdef DO_REPLAY
-	panwrap_prop("flags = 0x%" PRIx64, args->flags);
-#else
-	panwrap_prop("flags = ");
-	panwrap_log_decoded_flags(mem_flag_info, args->flags);
-	panwrap_log_cont("\n");
-#endif
+	if (do_replay)
+		panwrap_prop("flags = 0x%" PRIx64, args->flags);
+	else {
+		panwrap_prop("flags = ");
+		panwrap_log_decoded_flags(mem_flag_info, args->flags);
+		panwrap_log_cont("\n");
+	}
 }
 
 static inline void
@@ -455,34 +455,28 @@ ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 {
 	const struct mali_ioctl_mem_import *args = ptr;
 
-#ifdef DO_REPLAY
-	/* Imports afaik are just used for framebuffers, so we'll emit an allocation for that here */
-	panwrap_prop("phandle = (uint64_t) (uintptr_t) &framebuffer_handle");
-	panwrap_prop("type = MALI_MEM_IMPORT_TYPE_USER_BUFFER");
-#else
-	const char *type;
+	if (do_replay) {
+		/* Imports afaik are just used for framebuffers, so we'll emit an allocation for that here */
+		panwrap_prop("phandle = (uint64_t) (uintptr_t) &framebuffer_handle");
+		panwrap_prop("type = MALI_MEM_IMPORT_TYPE_USER_BUFFER");
+		panwrap_prop("flags = 0x%" PRIx64, args->flags);
+	} else {
+		const char *type;
 
-	panwrap_prop("phandle = 0x%" PRIx64, args->phandle);
+		panwrap_prop("phandle = 0x%" PRIx64, args->phandle);
 
-	switch (args->type) {
-	case MALI_MEM_IMPORT_TYPE_UMP:         type = "UMP"; break;
-	case MALI_MEM_IMPORT_TYPE_UMM:         type = "UMM"; break;
-	case MALI_MEM_IMPORT_TYPE_USER_BUFFER: type = "USER_BUFFER"; break;
-	default:                               type = "Invalid"; break;
+		switch (args->type) {
+		case MALI_MEM_IMPORT_TYPE_UMP:         type = "UMP"; break;
+		case MALI_MEM_IMPORT_TYPE_UMM:         type = "UMM"; break;
+		case MALI_MEM_IMPORT_TYPE_USER_BUFFER: type = "USER_BUFFER"; break;
+		default:                               type = "Invalid"; break;
+		}
+
+		panwrap_prop("type = MALI_MEM_IMPORT_TYPE_%s", type);
+		panwrap_prop("flags = ");
+		panwrap_log_decoded_flags(mem_flag_info, args->flags);
+		panwrap_log_cont("\n");
 	}
-
-	panwrap_prop("type = MALI_MEM_IMPORT_TYPE_%s", type);
-
-#endif
-
-
-#ifdef DO_REPLAY
-	panwrap_prop("flags = 0x%" PRIx64, args->flags);
-#else
-	panwrap_prop("flags = ");
-	panwrap_log_decoded_flags(mem_flag_info, args->flags);
-	panwrap_log_cont("\n");
-#endif
 }
 
 static inline void
@@ -551,10 +545,17 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 	struct panwrap_mapped_memory *mem =
 		panwrap_find_mapped_gpu_mem(args->handle);
 
+	panwrap_prop("size = %" PRId64, args->size);
 
-#ifdef DO_REPLAY
-	if (mem) {
-		/* Only fix up addresses if they are SAME_VA and therefore can be fixed*/
+	if (!mem) {
+		panwrap_msg("ERROR! Unknown handle specified\n");
+		panwrap_prop("handle = " MALI_PTR_FMT, args->handle);
+		panwrap_prop("user_addr = %p", args->user_addr);
+		return;
+	}
+
+	if (do_replay) {
+		/* Only fix up addresses if they are SAME_VA and therefore can be fixe d*/
 
 		if (args->handle == (mali_ptr) (uintptr_t) mem->addr)
 			panwrap_prop("handle = (mali_ptr) (void*) mali_memory_%d", mem->allocation_number);
@@ -562,24 +563,17 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 			panwrap_prop("handle = " MALI_PTR_FMT, args->handle);
 
 		panwrap_prop("user_addr = mali_memory_%d + %d", mem->allocation_number, args->user_addr - mem->addr);
+
+		panwrap_prop("type = %d", args->type);
 	} else {
-		panwrap_msg("ERROR! Unknown handle specified\n");
-		panwrap_prop("handle = " MALI_PTR_FMT, args->handle);
-		panwrap_prop("user_addr = %p", args->user_addr);
-	}
+		const char *type;
 
-	panwrap_prop("size = %" PRId64, args->size);
-	panwrap_prop("type = %d", args->type);
-#else
-	const char *type;
+		switch (args->type) {
+		case MALI_SYNC_TO_DEVICE: type = "device <- CPU"; break;
+		case MALI_SYNC_TO_CPU:    type = "device -> CPU"; break;
+		default:                  type = "???"; break;
+		}
 
-	switch (args->type) {
-	case MALI_SYNC_TO_DEVICE: type = "device <- CPU"; break;
-	case MALI_SYNC_TO_CPU:    type = "device -> CPU"; break;
-	default:                  type = "???"; break;
-	}
-
-	if (mem) {
 		panwrap_prop("handle = " MALI_PTR_FMT " (end=" MALI_PTR_FMT ", len=%zu)",
 			    args->handle,
 			    (mali_ptr)(args->handle + mem->length - 1),
@@ -587,24 +581,17 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 		panwrap_prop("user_addr = %p - %p (offset=%zu)",
 			    args->user_addr, args->user_addr + args->size - 1,
 			    args->user_addr - mem->addr);
-	} else {
-		panwrap_msg("ERROR! Unknown handle specified\n");
-		panwrap_prop("handle = " MALI_PTR_FMT, args->handle);
-		panwrap_prop("user_addr = %p - %p",
-			    args->user_addr, args->user_addr + args->size - 1);
-	}
-	panwrap_prop("size = %" PRId64, args->size);
 
-	panwrap_prop("type = %d (%s)", args->type, type);
+		panwrap_prop("type = %d (%s)", args->type, type);
 
-	if (args->type == MALI_SYNC_TO_DEVICE) {
-		dump_debugfs(request);
-		panwrap_msg("Dumping memory being synced to device:\n");
-		panwrap_indent++;
-		panwrap_log_hexdump(args->user_addr, args->size);
-		panwrap_indent--;
+		if (args->type == MALI_SYNC_TO_DEVICE) {
+			dump_debugfs(request);
+			panwrap_msg("Dumping memory being synced to device:\n");
+			panwrap_indent++;
+			panwrap_log_hexdump(args->user_addr, args->size);
+			panwrap_indent--;
+		}
 	}
-#endif
 }
 
 static inline void
@@ -699,34 +686,8 @@ static void emit_atoms(void *ptr) {
 	panwrap_log("};\n");
 }
 
-static inline void
-ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
+static void ioctl_pretty_print_job_submit(const struct mali_ioctl_job_submit *args, const struct mali_jd_atom_v2 *atoms)
 {
-	const struct mali_ioctl_job_submit *args = ptr;
-	const struct mali_jd_atom_v2 *atoms = args->addr;
-
-	dump_debugfs(request);
-
-#ifdef DO_REPLAY
-	panwrap_prop("addr = atoms_%d", job_count - 1); /* XXX */
-#else
-	panwrap_prop("addr = %p", args->addr);
-#endif
-	panwrap_prop("nr_atoms = %d", args->nr_atoms);
-	panwrap_prop("stride = %d", args->stride);
-
-	/* The stride should be equivalent to the length of the structure,
-	 * if it isn't then it's possible we're somehow tracing one of the
-	 * legacy job formats
-	 */
-	if (args->stride != sizeof(*atoms)) {
-		panwrap_msg("SIZE MISMATCH (stride should be %zd, was %d)\n",
-			    sizeof(*atoms), args->stride);
-		panwrap_msg("Cannot dump atoms :(, maybe it's a legacy job format?\n");
-		return;
-	}
-
-#ifndef DO_REPLAY
 	panwrap_msg("Atoms:\n");
 	panwrap_indent++;
 	for (int i = 0; i < args->nr_atoms; i++) {
@@ -791,7 +752,37 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 		panwrap_indent--;
 	}
 	panwrap_indent--;
-#endif
+}
+
+static inline void
+ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
+{
+	const struct mali_ioctl_job_submit *args = ptr;
+	const struct mali_jd_atom_v2 *atoms = args->addr;
+
+	dump_debugfs(request);
+
+	if (do_replay)
+		panwrap_prop("addr = atoms_%d", job_count - 1); /* XXX */
+	else
+		panwrap_prop("addr = %p", args->addr);
+
+	panwrap_prop("nr_atoms = %d", args->nr_atoms);
+	panwrap_prop("stride = %d", args->stride);
+
+	/* The stride should be equivalent to the length of the structure,
+	 * if it isn't then it's possible we're somehow tracing one of the
+	 * legacy job formats
+	 */
+	if (args->stride != sizeof(*atoms)) {
+		panwrap_msg("SIZE MISMATCH (stride should be %zd, was %d)\n",
+			    sizeof(*atoms), args->stride);
+		panwrap_msg("Cannot dump atoms :(, maybe it's a legacy job format?\n");
+		return;
+	}
+
+	if (!do_replay)
+		ioctl_pretty_print_job_submit(args, atoms);
 }
 
 static inline void
@@ -1287,29 +1278,29 @@ int ioctl(int fd, int request, ...)
 	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_DEBUGFS_MEM_PROFILE_ADD))
 		ignore = true;
 
-#ifdef DO_REPLAY
-	char *lname = panwrap_lower_string(name);
-	int number = ioctl_count++;
+	if (do_replay) {
+		char *lname = panwrap_lower_string(name);
+		int number = ioctl_count++;
 
-	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_JOB_SUBMIT)) {
-		replay_memory();
-		emit_atoms(ptr);
+		if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_JOB_SUBMIT)) {
+			replay_memory();
+			emit_atoms(ptr);
+		}
+
+		/* TODO: Is there a better way to handle framebuffers in replay? */
+		if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_IMPORT)) {
+			panwrap_log("uint32_t *framebuffer;\n");
+			panwrap_log("posix_memalign(&framebuffer, 0x10000, 4096*4096*4);\n");
+			panwrap_log("struct mali_mem_import_user_buffer framebuffer_handle = { .ptr = (uint64_t) (uintptr_t) framebuffer, .length = 4096*4096*4 };\n");
+		}
+
+
+		if (!ignore)
+			panwrap_log("struct mali_ioctl_%s %s_%d = {\n", lname, lname, number);
+	} else {
+		panwrap_msg("<%-20s> (%02d) (%08x) (%04d)\n",
+			    name, _IOC_NR(request), request, _IOC_SIZE(request));
 	}
-
-	/* TODO: Is there a better way to handle framebuffers in replay? */
-	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_IMPORT)) {
-		panwrap_log("uint32_t *framebuffer;\n");
-		panwrap_log("posix_memalign(&framebuffer, 0x10000, 4096*4096*4);\n");
-		panwrap_log("struct mali_mem_import_user_buffer framebuffer_handle = { .ptr = (uint64_t) (uintptr_t) framebuffer, .length = 4096*4096*4 };\n");
-	}
-
-
-	if (!ignore)
-		panwrap_log("struct mali_ioctl_%s %s_%d = {\n", lname, lname, number);
-#else
-	panwrap_msg("<%-20s> (%02d) (%08x) (%04d)\n",
-		    name, _IOC_NR(request), request, _IOC_SIZE(request));
-#endif
 
 	panwrap_indent++;
 	if (!ignore)
@@ -1317,18 +1308,14 @@ int ioctl(int fd, int request, ...)
 
 	ret = orig_ioctl(fd, request, ptr);
 
-#ifndef DO_REPLAY
-	panwrap_msg("= %02d, %02d\n",
- 		    ret, header->rc);
-#endif
-
 	/* If we're building up a replay, we don't care about the result; we
 	 * have to assume it's correct! It can be seperately viewed for
 	 * debugging, of course, in a seperate wrap. */
 
-#ifndef DO_REPLAY
-	ioctl_decode_post(request, ptr);
-#endif
+	if (!do_replay) {
+		panwrap_msg("= %02d, %02d\n", ret, header->rc);
+		ioctl_decode_post(request, ptr);
+	}
 
 	/* Track memory allocation if needed  */
 	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_ALLOC)) {
@@ -1340,34 +1327,35 @@ int ioctl(int fd, int request, ...)
 
 	panwrap_indent--;
 
-#ifdef DO_REPLAY
-	if (!ignore) {
-		panwrap_log("};\n");
-		panwrap_log("\n");
+	if (do_replay) {
+		if (!ignore) {
+			panwrap_log("};\n");
+			panwrap_log("\n");
 
-		panwrap_log("rc = pandev_ioctl(fd, MALI_IOCTL_%s, &%s_%d);\n", name, lname, number);
-		panwrap_log("if (rc) {\n");
-		panwrap_indent++;
-		panwrap_log("printf(\"Error %%d in %s_%d\\n\", rc);\n", name, number);
-		panwrap_indent--;
-		panwrap_log("}\n");
-		panwrap_log("\n");
+			panwrap_log("rc = pandev_ioctl(fd, MALI_IOCTL_%s, &%s_%d);\n", name, lname, number);
+			panwrap_log("if (rc) {\n");
+			panwrap_indent++;
+			panwrap_log("printf(\"Error %%d in %s_%d\\n\", rc);\n", name, number);
+			panwrap_indent--;
+			panwrap_log("}\n");
+			panwrap_log("\n");
+		}
+
+		/* Setup framebuffer (part II) */
+		if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_IMPORT)) {
+			panwrap_log("uint64_t framebuffer_va = %s_%d.gpu_va;\n", lname, number);
+		}
+
+		/* Dump the framebuffer :D */
+		if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_JOB_SUBMIT)) {
+			panwrap_log("FILE *fp = fopen(\"/dev/shm/framebuffer.bin\", \"wb\");\n");
+			panwrap_log("fwrite(framebuffer, 1, 4096*4096*4, fp);\n");
+			panwrap_log("fclose(fp);\n");
+		}
+
+		free(lname);
 	}
 
-	/* Setup framebuffer (part II) */
-	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_IMPORT)) {
-		panwrap_log("uint64_t framebuffer_va = %s_%d.gpu_va;\n", lname, number);
-	}
-
-	/* Dump the framebuffer :D */
-	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_JOB_SUBMIT)) {
-		panwrap_log("FILE *fp = fopen(\"/dev/shm/framebuffer.bin\", \"wb\");\n");
-		panwrap_log("fwrite(framebuffer, 1, 4096*4096*4, fp);\n");
-		panwrap_log("fclose(fp);\n");
-	}
-
-	free(lname);
-#endif
 
 	if (step_mode) {
 		panwrap_log("Paused, hit enter to continue\n");
@@ -1394,13 +1382,14 @@ static void inline *panwrap_mmap_wrap(mmap_func *func,
 
 	switch (offset) { /* offset == gpu_va */
 	case MALI_MEM_MAP_TRACKING_HANDLE:
-#ifdef DO_REPLAY
-		panwrap_log("pandev_map_mtp(fd);\n");
-		panwrap_log("\n");
-#else
-		panwrap_msg("Memory map tracking handle ("MALI_PTR_FMT") mapped to %p\n",
- 			    (mali_ptr) offset, ret);
-#endif
+		if (do_replay) {
+			panwrap_log("pandev_map_mtp(fd);\n");
+			panwrap_log("\n");
+		} else {
+			panwrap_msg("Memory map tracking handle ("MALI_PTR_FMT") mapped to %p\n",
+				    (mali_ptr) offset, ret);
+		}
+
 		break;
 	default:
 		panwrap_track_mmap(offset, ret, length, prot, flags);
