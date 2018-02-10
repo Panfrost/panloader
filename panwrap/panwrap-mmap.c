@@ -153,7 +153,7 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 
 		panwrap_log("if (mali_memory_%d == MAP_FAILED) {\n", mapped_mem->allocation_number);
 		panwrap_indent++;
-		panwrap_log("printf(\"Error mmaping mali_memory_%d (%%p)\\n\", mem_alloc_%d.gpu_va);\n", mapped_mem->allocation_number, mapped_mem->allocation_number);
+		panwrap_log("printf(\"Error mmaping mali_memory_%d\\n\");\n", mapped_mem->allocation_number);
 		panwrap_indent--;
 		panwrap_log("}\n");
 	} else {
