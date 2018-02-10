@@ -344,6 +344,7 @@ PANLOADER_CONSTRUCTOR {
 		/* XXX voodoo definitions because of 32-bit nonsense XXX */
 		panwrap_log("#define XXX_POINTER_VOODOO_XXX\n");
 		panwrap_log("#define _LARGEFILE64_SOURCE 1\n");
+		panwrap_log("#define CACHE_LINE_SIZE 1024 /* TODO */ \n");
 		panwrap_log("\n");
 
 		panwrap_log("#include <stdio.h>\n");

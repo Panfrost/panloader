@@ -1298,7 +1298,7 @@ int ioctl(int fd, int request, ...)
 		/* TODO: Is there a better way to handle framebuffers in replay? */
 		if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_IMPORT)) {
 			panwrap_log("uint32_t *framebuffer;\n");
-			panwrap_log("posix_memalign(&framebuffer, 0x10000, 4096*4096*4);\n");
+			panwrap_log("posix_memalign((void **) &framebuffer, CACHE_LINE_SIZE, 4096*4096*4);\n");
 			panwrap_log("struct mali_mem_import_user_buffer framebuffer_handle = { .ptr = (uint64_t) (uintptr_t) framebuffer, .length = 4096*4096*4 };\n");
 		}
 
