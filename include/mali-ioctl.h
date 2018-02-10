@@ -802,6 +802,11 @@ struct mali_ioctl_mem_alloc {
 } __attribute__((packed));
 ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_alloc, 56, 56);
 
+struct mali_mem_import_user_buffer {
+	u64 ptr;
+	u64 length;
+};
+
 struct mali_ioctl_mem_import {
 	union mali_ioctl_header header;
 	/* [in] */

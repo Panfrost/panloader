@@ -456,14 +456,8 @@ ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 	const struct mali_ioctl_mem_import *args = ptr;
 	const char *type;
 
-	switch (args->type) {
-	case MALI_MEM_IMPORT_TYPE_UMP:         type = "UMP"; break;
-	case MALI_MEM_IMPORT_TYPE_UMM:         type = "UMM"; break;
-	case MALI_MEM_IMPORT_TYPE_USER_BUFFER: type = "USER_BUFFER"; break;
-	default:                               type = "Invalid"; break;
-	}
-
 #ifdef DO_REPLAY
+#if 0
 	/* Like with syncs etc, where we need to fixup a GPU address, imports
 	 * require us to fixup a _CPU_ address. For UMMs, this means emitting a
 	 * pointer to a file descriptor fetched from the DRI... */
@@ -484,9 +478,24 @@ ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 		panwrap_msg("fd = %d\n", drm_fd);
 	}
 #endif
+
+	/* Imports afaik are just used for framebuffers, so we'll emit an allocation for that here */
+	panwrap_prop("phandle = (uint64_t) (uintptr_t) &framebuffer_handle");
+	panwrap_prop("type = MALI_MEM_IMPORT_TYPE_USER_BUFFER");
+#else
 	panwrap_prop("phandle = 0x%" PRIx64, args->phandle);
 
+	switch (args->type) {
+	case MALI_MEM_IMPORT_TYPE_UMP:         type = "UMP"; break;
+	case MALI_MEM_IMPORT_TYPE_UMM:         type = "UMM"; break;
+	case MALI_MEM_IMPORT_TYPE_USER_BUFFER: type = "USER_BUFFER"; break;
+	default:                               type = "Invalid"; break;
+	}
+
 	panwrap_prop("type = MALI_MEM_IMPORT_TYPE_%s", type);
+
+#endif
+
 
 #ifdef DO_REPLAY
 	panwrap_prop("flags = 0x%" PRIx64, args->flags);
@@ -653,9 +662,9 @@ static void emit_atoms(void *ptr) {
 			for (int j = 0; j < a->nr_ext_res; j++) {
 				u64 rsrc = a->ext_res_list[j].ext_resource[0];
 
-				/* Trap the resource, since it's the framebuffer and we haven't set that up yet */
-				rsrc = 0xCAFECAF1;
-				panwrap_log("{ .ext_resource = 0x%" PRIx64 "},\n", rsrc);
+				/* Substitute in our framebuffer (TODO: what about other kinds of extres?) */
+				//panwrap_log("{ .ext_resource = 0x%" PRIx64 "},\n", rsrc);
+				panwrap_log("{ .ext_resource = framebuffer_va | 1},\n");
 			}
 
 			panwrap_indent--;
@@ -1305,12 +1314,6 @@ int ioctl(int fd, int request, ...)
 	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_DEBUGFS_MEM_PROFILE_ADD))
 		ignore = true;
 
-	/* Imports -are-, but we can't replay them in any sane way, so we'll
-	 * just put some relevant comments afterwards */
-	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_IMPORT))
-		ignore = true;
-
-
 #ifdef DO_REPLAY
 	char *lname = panwrap_lower_string(name);
 	int number = ioctl_count++;
@@ -1319,6 +1322,14 @@ int ioctl(int fd, int request, ...)
 		replay_memory();
 		emit_atoms(ptr);
 	}
+
+	/* TODO: Is there a better way to handle framebuffers in replay? */
+	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_IMPORT)) {
+		panwrap_log("void *framebuffer;\n");
+		panwrap_log("posix_memalign(&framebuffer, 0x10000, 1024*1024*4);\n");
+		panwrap_log("struct mali_mem_import_user_buffer framebuffer_handle = { .ptr = (uint64_t) (uintptr_t) framebuffer, .length = sizeof(framebuffer) };\n");
+	}
+
 
 	if (!ignore)
 		panwrap_log("struct mali_ioctl_%s %s_%d = {\n", lname, lname, number);
@@ -1354,14 +1365,6 @@ int ioctl(int fd, int request, ...)
 			panwrap_track_allocation(args->gpu_va, args->flags, number);
 	}
 
-	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_IMPORT)) {
-		const struct mali_ioctl_mem_import *args = ptr;
-
-		/* just in case this ends up mattering... */
-		panwrap_msg("Import VA: 0x%" PRIx64 "\n", args->gpu_va);
-		panwrap_msg("va_pages 0x%" PRIx64 "\n", args->va_pages);
-	}
-
 	panwrap_indent--;
 
 #ifdef DO_REPLAY
@@ -1376,6 +1379,13 @@ int ioctl(int fd, int request, ...)
 		panwrap_indent--;
 		panwrap_log("}\n");
 		panwrap_log("\n");
+	}
+
+	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_IMPORT)) {
+		const struct mali_ioctl_mem_import *args = ptr;
+
+		/* just in case this ends up mattering... */
+		panwrap_log("uint64_t framebuffer_va = %s_%d.gpu_va;\n", lname, number);
 	}
 
 	free(lname);
