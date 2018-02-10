@@ -347,6 +347,7 @@ PANLOADER_CONSTRUCTOR {
 		panwrap_log("\n");
 
 		panwrap_log("#include <stdio.h>\n");
+		panwrap_log("#include <stdlib.h>\n");
 		panwrap_log("#include <sys/mman.h>\n");
 		panwrap_log("#include \"pandev.h\"\n");
 		panwrap_log("\n");
