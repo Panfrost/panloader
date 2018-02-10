@@ -208,7 +208,7 @@ panwrap_log_typed(enum panwrap_log_type type, const char *format, ...)
 	if (do_replay) {
 		if (type == PANWRAP_MESSAGE)
 			fputs("// ", log_output);
-		else if (type == PANWRAP_PROPERTY);
+		else if (type == PANWRAP_PROPERTY)
 			fputs(".", log_output);
 	}
 
