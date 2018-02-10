@@ -457,28 +457,6 @@ ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 	const char *type;
 
 #ifdef DO_REPLAY
-#if 0
-	/* Like with syncs etc, where we need to fixup a GPU address, imports
-	 * require us to fixup a _CPU_ address. For UMMs, this means emitting a
-	 * pointer to a file descriptor fetched from the DRI... */
-
-	if (args->type == MALI_MEM_IMPORT_TYPE_UMM) {
-		int* fd_p = (int*) (uintptr_t) args->phandle;
-		int drm_fd = *fd_p;
-
-		void *drm_buf;
-		drm_buf = mmap(NULL, 8, PROT_READ | PROT_WRITE, MAP_SHARED, drm_fd, 0);
-
-		if (drm_buf == MAP_FAILED) {
-			panwrap_msg("ruh roh\n");
-		} else {
-			panwrap_log_hexdump(drm_buf, 8);
-		}
-
-		panwrap_msg("fd = %d\n", drm_fd);
-	}
-#endif
-
 	/* Imports afaik are just used for framebuffers, so we'll emit an allocation for that here */
 	panwrap_prop("phandle = (uint64_t) (uintptr_t) &framebuffer_handle");
 	panwrap_prop("type = MALI_MEM_IMPORT_TYPE_USER_BUFFER");
