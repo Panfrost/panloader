@@ -442,7 +442,7 @@ ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
 	panwrap_prop("extent = 0x%" PRIx64, args->extent);
 
 	if (do_replay)
-		panwrap_prop("flags = 0x%" PRIx64, args->flags);
+		panwrap_prop("flags = 0x%" PRIx64, (args->flags | MALI_MEM_COHERENT_SYSTEM) & (~MALI_MEM_CACHED_CPU));
 	else {
 		panwrap_prop("flags = ");
 		panwrap_log_decoded_flags(mem_flag_info, args->flags);
