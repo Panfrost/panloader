@@ -1448,13 +1448,17 @@ int munmap(void *addr, size_t length)
 
 	msleep(log_delay);
 
-	/* Was it memory mapped from the GPU? */
-	if (mem->gpu_va)
-		panwrap_msg("Unmapped GPU memory " MALI_PTR_FMT "@%p\n",
-			    mem->gpu_va, mem->addr);
-	else
-		panwrap_msg("Unmapped unknown memory %p\n",
-			    mem->addr);
+	/* Was it memory mapped from the GPU? We only care to log for
+	 * non-replays, where the addresses are meaningful. */
+
+	if (!do_replay) {
+		if (mem->gpu_va)
+			panwrap_msg("Unmapped GPU memory " MALI_PTR_FMT "@%p\n",
+				    mem->gpu_va, mem->addr);
+		else
+			panwrap_msg("Unmapped unknown memory %p\n",
+				    mem->addr);
+	}
 
 	list_del(&mem->node);
 	free(mem);
