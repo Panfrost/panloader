@@ -630,12 +630,12 @@ static void emit_atoms(void *ptr) {
 		const struct mali_jd_atom_v2 *a = &atoms[i];
 
 		if (a->ext_res_list) {
-			panwrap_log("struct mali_external_resource resources_%d_%d[] = {\n", job_no, i);
+			panwrap_log("mali_external_resource resources_%d_%d[] = {\n", job_no, i);
 			panwrap_indent++;
 
 			for (int j = 0; j < a->nr_ext_res; j++) {
 				/* Substitute in our framebuffer (TODO: what about other kinds of extres?) */
-				panwrap_log("{ .ext_resource = framebuffer_va | 1},\n");
+				panwrap_log("framebuffer_va | MALI_EXT_RES_ACCESS_EXCLUSIVE,\n");
 			}
 
 			panwrap_indent--;
@@ -722,7 +722,7 @@ static void ioctl_pretty_print_job_submit(const struct mali_ioctl_job_submit *ar
 				panwrap_prop(" ");
 				panwrap_log_decoded_flags(
 					external_resources_access_flag_info,
-					a->ext_res_list[j].ext_resource[0]);
+					a->ext_res_list[j]);
 				panwrap_log_cont("\n");
 			}
 			panwrap_indent--;

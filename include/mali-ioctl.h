@@ -701,14 +701,13 @@ enum mali_external_resource_access {
 	MALI_EXT_RES_ACCESS_EXCLUSIVE,
 };
 
-struct mali_external_resource {
-	u64 ext_resource[1];
-};
+/* An aligned address to the resource | mali_external_resource_access */
+typedef u64 mali_external_resource;
 
 struct mali_jd_atom_v2 {
 	PAD_PTR(mali_ptr jc);           /**< job-chain GPU address */
 	struct mali_jd_udata udata;	    /**< user data */
-	PAD_PTR(struct mali_external_resource *ext_res_list); /**< list of external resources */
+	PAD_PTR(mali_external_resource *ext_res_list); /**< list of external resources */
 	u16 nr_ext_res;			    /**< nr of external resources */
 	u16 compat_core_req;	            /**< core requirements which
 					      correspond to the legacy support
