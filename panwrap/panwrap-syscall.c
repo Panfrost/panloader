@@ -660,7 +660,7 @@ static void emit_atoms(void *ptr) {
 
 		struct panwrap_mapped_memory *mapped = panwrap_find_mapped_mem_containing((void *) (uintptr_t) a->jc);
 		panwrap_prop("jc = (uintptr_t) mali_memory_%d + %d", mapped->allocation_number, a->jc - mapped->gpu_va);
-	
+
 		panwrap_prop("udata = {0x%" PRIx64 ", 0x%" PRIx64 "}",
 			    a->udata.blob[0], a->udata.blob[1]);
 		panwrap_prop("nr_ext_res = %d", a->nr_ext_res);
@@ -1220,7 +1220,7 @@ close(int fd)
 static char *panwrap_lower_string(const char *str)
 {
 	char *out = (char *) malloc(strlen(str) + 1);
-	
+
 	for (int i = 0; i < strlen(str); ++i)
 		out[i] = tolower(str[i]);
 

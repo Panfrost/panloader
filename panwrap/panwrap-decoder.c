@@ -258,7 +258,7 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		}
 
 		panwrap_log("Shader blob: @ " MALI_PTR_FMT " (@ " MALI_PTR_FMT ")\n",
-			       	meta_ptr, meta->shader & ~7);
+				meta_ptr, meta->shader & ~7);
 		panwrap_indent++;
 		panwrap_log_hexdump(
 		    panwrap_fetch_gpu_mem(NULL, meta->shader & ~7, 832), 832);
