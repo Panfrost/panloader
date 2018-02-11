@@ -49,7 +49,9 @@ panwrap_log_decoded_flags(const struct panwrap_flag_info *flag_info,
 
 		if (!decodable_flags_found) {
 			decodable_flags_found = true;
-			panwrap_log_cont(" (");
+
+			if (!do_replay)
+				panwrap_log_cont(" (");
 		} else {
 			panwrap_log_cont(" | ");
 		}
@@ -63,7 +65,8 @@ panwrap_log_decoded_flags(const struct panwrap_flag_info *flag_info,
 		if (flags)
 			panwrap_log_cont(" | 0x%" PRIx64, flags);
 
-		panwrap_log_cont(")");
+		if (!do_replay)
+			panwrap_log_cont(")");
 	}
 }
 

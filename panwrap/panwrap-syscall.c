@@ -175,7 +175,7 @@ static const struct panwrap_flag_info mem_flag_info[] = {
 };
 #undef FLAG_INFO
 
-#define FLAG_INFO(flag) { MALI_JD_REQ_##flag, #flag }
+#define FLAG_INFO(flag) { MALI_JD_REQ_##flag, "MALI_JD_REQ_" #flag }
 static const struct panwrap_flag_info jd_req_flag_info[] = {
 	FLAG_INFO(FS),
 	FLAG_INFO(CS),
@@ -211,7 +211,7 @@ static const struct panwrap_flag_info mali_jd_dep_type_flag_info[] = {
 };
 #undef FLAG_INFO
 
-#define FLAG_INFO(flag) { JS_FEATURE_##flag, #flag }
+#define FLAG_INFO(flag) { JS_FEATURE_##flag, "JS_FEATURE_" #flag }
 static const struct panwrap_flag_info js_feature_info[] = {
 	FLAG_INFO(NULL_JOB),
 	FLAG_INFO(SET_VALUE_JOB),
@@ -286,14 +286,19 @@ ioctl_get_job_type_from_jd_core_req(mali_jd_core_req req)
 
 #define SOFT_FLAG(flag)                                  \
 	case MALI_JD_REQ_SOFT_##flag:                    \
-		panwrap_log_cont("%s)", "SOFT_" #flag); \
+		panwrap_log_cont("MALI_JD_REQ_%s", "SOFT_" #flag); \
 		break
 /* Decodes the actual jd_core_req flags, but not their meanings */
 static inline void
 ioctl_log_decoded_jd_core_req(mali_jd_core_req req)
 {
 	if (req & MALI_JD_REQ_SOFT_JOB) {
-		panwrap_log_cont("0x%010x (", req);
+		/* External resources are allowed in e.g. replay jobs */
+
+		if (req & MALI_JD_REQ_EXTERNAL_RESOURCES) {
+			panwrap_log_cont("MALI_JD_REQ_EXTERNAL_RESOURCES | ");
+			req &= ~(MALI_JD_REQ_EXTERNAL_RESOURCES);
+		}
 
 		switch (req) {
 		SOFT_FLAG(DUMP_CPU_GPU_TIME);
@@ -308,7 +313,7 @@ ioctl_log_decoded_jd_core_req(mali_jd_core_req req)
 		SOFT_FLAG(JIT_FREE);
 		SOFT_FLAG(EXT_RES_MAP);
 		SOFT_FLAG(EXT_RES_UNMAP);
-		default: panwrap_log_cont("???" ")"); break;
+		default: panwrap_log_cont("0x%010x", req); break;
 		}
 	} else {
 		panwrap_log_decoded_flags(jd_req_flag_info, req);
@@ -455,7 +460,6 @@ ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 		/* Imports afaik are just used for framebuffers, so we'll emit an allocation for that here */
 		panwrap_prop("phandle = (uint64_t) (uintptr_t) &framebuffer_handle");
 		panwrap_prop("type = MALI_MEM_IMPORT_TYPE_USER_BUFFER");
-		panwrap_prop("flags = 0x%" PRIx64, args->flags);
 	} else {
 		const char *type;
 
@@ -469,10 +473,12 @@ ioctl_decode_pre_mem_import(unsigned long int request, void *ptr)
 		}
 
 		panwrap_prop("type = MALI_MEM_IMPORT_TYPE_%s", type);
-		panwrap_prop("flags = ");
-		panwrap_log_decoded_flags(mem_flag_info, args->flags);
-		panwrap_log_cont("\n");
 	}
+
+
+	panwrap_log(".flags = ");
+	panwrap_log_decoded_flags(mem_flag_info, args->flags);
+	panwrap_log_cont(",\n");
 }
 
 static inline void
@@ -560,7 +566,7 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 
 		panwrap_prop("user_addr = mali_memory_%d + %d", mem->allocation_number, args->user_addr - mem->addr);
 
-		panwrap_prop("type = %d", args->type);
+		panwrap_prop("type = %s", args->type == MALI_SYNC_TO_DEVICE ? "MALI_SYNC_TO_DEVICE" : "MALI_SYNC_TO_CPU");
 	} else {
 		const char *type;
 
@@ -677,9 +683,9 @@ static void emit_atoms(void *ptr) {
 		panwrap_prop("prio = %d", a->prio);
 		panwrap_prop("device_nr = %d", a->device_nr);
 
-		panwrap_msg("Job type = %s\n",
-			    ioctl_get_job_type_from_jd_core_req(a->core_req));
-		panwrap_prop("core_req = %d", a->core_req);
+		panwrap_log(".core_req = ");
+		ioctl_log_decoded_jd_core_req(a->core_req);
+		panwrap_log_cont("\n");
 
 		panwrap_indent--;
 		panwrap_log("},\n");
