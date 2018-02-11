@@ -560,11 +560,11 @@ ioctl_decode_pre_sync(unsigned long int request, void *ptr)
 		/* Only fix up addresses if they are SAME_VA and therefore can be fixe d*/
 
 		if (args->handle == (mali_ptr) (uintptr_t) mem->addr)
-			panwrap_prop("handle = (mali_ptr) (void*) mali_memory_%d", mem->allocation_number);
+			panwrap_prop("handle = (mali_ptr) (void*) %s", mem->name);
 		else
 			panwrap_prop("handle = " MALI_PTR_FMT, args->handle);
 
-		panwrap_prop("user_addr = mali_memory_%d + %d", mem->allocation_number, args->user_addr - mem->addr);
+		panwrap_prop("user_addr = %s + %d", mem->name, args->user_addr - mem->addr);
 
 		panwrap_prop("type = %s", args->type == MALI_SYNC_TO_DEVICE ? "MALI_SYNC_TO_DEVICE" : "MALI_SYNC_TO_CPU");
 	} else {
@@ -656,7 +656,7 @@ static void emit_atoms(void *ptr) {
 		panwrap_indent++;
 
 		struct panwrap_mapped_memory *mapped = panwrap_find_mapped_mem_containing((void *) (uintptr_t) a->jc);
-		panwrap_prop("jc = (uintptr_t) mali_memory_%d + %d", mapped->allocation_number, a->jc - mapped->gpu_va);
+		panwrap_prop("jc = (uintptr_t) %s + %d", mapped->name, a->jc - mapped->gpu_va);
 
 		/* Don't passthrough udata; it's nondeterministic and for userspace use only */
 

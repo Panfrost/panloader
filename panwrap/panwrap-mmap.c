@@ -81,9 +81,9 @@ void replay_memory()
 				if ((mapped = panwrap_find_mapped_mem_containing((void *) (uintptr_t) array[i]))) {
 					/* Address fix up */
 
-					panwrap_log("mali_memory_%d[%d] = (uintptr_t) mali_memory_%d + %d;\n", pos->allocation_number, i, mapped->allocation_number, array[i] - mapped->gpu_va);
+					panwrap_log("%s[%d] = (uintptr_t) %s + %d;\n", pos->name, i, mapped->name, array[i] - mapped->gpu_va);
 				} else if (array[i]) {
-					panwrap_log("mali_memory_%d[%d] = 0x%08X;\n", pos->allocation_number, i, array[i]);
+					panwrap_log("%s[%d] = 0x%08X;\n", pos->name, i, array[i]);
 				}
 			}
 		}
@@ -148,14 +148,19 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 	free(mem);
 
 	if (do_replay) {
-		panwrap_log("uint32_t *mali_memory_%d = mmap64(NULL, %d, %d, %d, fd, mem_alloc_%d.gpu_va);\n\n",
-			    mapped_mem->allocation_number, length, prot, flags, mapped_mem->allocation_number);
+		/* Generate somewhat semantic name for the region */
+		snprintf(mapped_mem->name, sizeof(mapped_mem->name),
+				"%s_%d",
+				mem->flags & MALI_MEM_PROT_GPU_EX ? "shader" : "memory",
+				mapped_mem->allocation_number);
 
-		panwrap_log("if (mali_memory_%d == MAP_FAILED) {\n", mapped_mem->allocation_number);
-		panwrap_indent++;
-		panwrap_log("printf(\"Error mmaping mali_memory_%d\\n\");\n", mapped_mem->allocation_number);
-		panwrap_indent--;
-		panwrap_log("}\n");
+		/* Map region itself */
+
+		panwrap_log("uint32_t *%s = mmap64(NULL, %d, %d, %d, fd, mem_alloc_%d.gpu_va);\n\n",
+			    mapped_mem->name, length, prot, flags, mapped_mem->allocation_number);
+
+		panwrap_log("if (%s == MAP_FAILED) printf(\"Error mapping %s\\n\");\n\n",
+				mapped_mem->name, mapped_mem->name);
 	} else {
 		panwrap_msg("GPU VA " MALI_PTR_FMT " mapped to %p - %p (length == %zu)\n",
 			    mapped_mem->gpu_va, addr, addr + length - 1, length);

@@ -36,7 +36,9 @@ struct panwrap_mapped_memory {
 	mali_ptr gpu_va;
 	int prot;
         int flags;
+
 	int allocation_number;
+	char name[32];
 
 	struct list node;
 };
