@@ -40,7 +40,8 @@ panwrap_log_decoded_flags(const struct panwrap_flag_info *flag_info,
 {
 	bool decodable_flags_found = false;
 
-	panwrap_log_cont("0x%" PRIx64, flags);
+	if (!do_replay)
+		panwrap_log_cont("0x%" PRIx64, flags);
 
 	for (int i = 0; flag_info[i].name; i++) {
 		if ((flags & flag_info[i].flag) != flag_info[i].flag)

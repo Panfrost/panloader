@@ -154,7 +154,7 @@ PANLOADER_CONSTRUCTOR {
 #define LOCK()   pthread_mutex_lock(&l);
 #define UNLOCK() panwrap_log_flush(); pthread_mutex_unlock(&l)
 
-#define FLAG_INFO(flag) { MALI_MEM_##flag, #flag }
+#define FLAG_INFO(flag) { MALI_MEM_##flag, "MALI_MEM_" #flag }
 static const struct panwrap_flag_info mem_flag_info[] = {
 	FLAG_INFO(PROT_CPU_RD),
 	FLAG_INFO(PROT_CPU_WR),
@@ -441,13 +441,9 @@ ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
 	panwrap_prop("commit_pages = %" PRId64, args->commit_pages);
 	panwrap_prop("extent = 0x%" PRIx64, args->extent);
 
-	if (do_replay)
-		panwrap_prop("flags = 0x%" PRIx64, args->flags & (~MALI_MEM_CACHED_CPU));
-	else {
-		panwrap_prop("flags = ");
-		panwrap_log_decoded_flags(mem_flag_info, args->flags);
-		panwrap_log_cont("\n");
-	}
+	panwrap_log(".flags = ");
+	panwrap_log_decoded_flags(mem_flag_info, args->flags);
+	panwrap_log_cont(",\n");
 }
 
 static inline void
