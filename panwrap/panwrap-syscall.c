@@ -662,19 +662,18 @@ static void emit_atoms(void *ptr) {
 
 		panwrap_prop("nr_ext_res = %d", a->nr_ext_res);
 
-		if (a->ext_res_list) {
+		if (a->ext_res_list)
 			panwrap_prop("ext_res_list = resources_%d_%d", job_no, i);
-		} else {
-			panwrap_prop("ext_res_list = 0");
-		}
 
-		panwrap_prop("compat_core_req = 0x%x", a->compat_core_req);
+		if (a->compat_core_req)
+			panwrap_prop("compat_core_req = 0x%x", a->compat_core_req);
 
 		panwrap_log(".pre_dep = {\n");
 		panwrap_indent++;
 		for (int j = 0; j < ARRAY_SIZE(a->pre_dep); j++) {
-			panwrap_log("{ .atom_id = %d, .dependency_type = %d },\n",
-				    a->pre_dep[i].atom_id, a->pre_dep[i].dependency_type);
+			if (a->pre_dep[i].dependency_type || a->pre_dep[i].atom_id)
+				panwrap_log("{ .atom_id = %d, .dependency_type = %d },\n",
+					    a->pre_dep[i].atom_id, a->pre_dep[i].dependency_type);
 		}
 		panwrap_indent--;
 		panwrap_log("},\n");
