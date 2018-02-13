@@ -577,7 +577,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		panwrap_log("};\n");
 
 		/* Touch the fields */
-		//TOUCH(mem, jc_gpu_va, *h);
+		TOUCH(mem, jc_gpu_va, *h, "job", job_no);
 
 		switch (h->job_type) {
 		case JOB_TYPE_SET_VALUE:

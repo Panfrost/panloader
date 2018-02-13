@@ -1299,8 +1299,8 @@ int ioctl(int fd, int request, ...)
 		number = ioctl_count++;
 
 		if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_JOB_SUBMIT)) {
-			replay_memory();
 			emit_atoms(ptr);
+			replay_memory();
 		}
 
 		/* TODO: Is there a better way to handle framebuffers in replay? */
