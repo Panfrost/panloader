@@ -16,6 +16,7 @@
 #define __PANDEV_H__
 
 #include <mali-ioctl.h>
+#include <mali-job.h>
 #include <linux/ioctl.h>
 
 int pandev_open();

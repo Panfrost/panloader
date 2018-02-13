@@ -65,7 +65,6 @@ static const struct panwrap_flag_info mmap_prot_flag_info[] = {
 
 void replay_memory()
 {
-#ifdef DO_REPLAY
 	struct panwrap_mapped_memory *pos;
 
 	list_for_each_entry(pos, &mmaps, node) {
@@ -91,7 +90,6 @@ void replay_memory()
 
 		panwrap_log("\n");
 	}
-#endif
 }
 
 void panwrap_track_allocation(mali_ptr addr, int flags, int number)
@@ -144,9 +142,8 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 	mapped_mem->flags = mem->flags;
 	mapped_mem->allocation_number = mem->allocation_number;
 
-#ifdef DO_REPLAY
-	mapped_mem->touched = calloc(length, sizeof(bool));
-#endif
+	if (do_replay)
+		mapped_mem->touched = calloc(length, sizeof(bool));
 
 	list_add(&mapped_mem->node, &mmaps);
 
