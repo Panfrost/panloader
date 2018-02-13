@@ -450,7 +450,7 @@ static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 	panwrap_log("},\n");
 	panwrap_indent--;
 	panwrap_log("};\n");
-	//TOUCH(mem, payload, *s);
+	TOUCH(mem, payload, *s, "fragment", job_no);
 }
 
 static void panwrap_decode_fragment_job(const struct panwrap_mapped_memory *mem,
