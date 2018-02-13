@@ -441,7 +441,13 @@ static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 	panwrap_indent++;
 	panwrap_prop("_min_tile_coord = 0x%" PRIX32, s->_min_tile_coord);
 	panwrap_prop("_max_tile_coord = 0x%" PRIX32, s->_max_tile_coord);
-	panwrap_prop("fbd = " MALI_PTR_FMT, s->fbd);
+	panwrap_log(".fbd = {\n");
+	panwrap_indent++;
+	panwrap_prop("type = %s", s->fbd.type == MALI_MFBD ? "MALI_MFBD" : "MALI_SFBD");
+	panwrap_prop("flags = %d", s->fbd.flags);
+	panwrap_prop("_ptr_upper = " MALI_PTR_FMT " >> 6", s->fbd._ptr_upper << 6);
+	panwrap_indent--;
+	panwrap_log("},\n");
 	panwrap_indent--;
 	panwrap_log("};\n");
 	TOUCH(mem, payload, *s);
