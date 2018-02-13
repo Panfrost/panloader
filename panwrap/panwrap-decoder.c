@@ -450,7 +450,7 @@ static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 	panwrap_log("},\n");
 	panwrap_indent--;
 	panwrap_log("};\n");
-	TOUCH(mem, payload, *s);
+	//TOUCH(mem, payload, *s);
 }
 
 static void panwrap_decode_fragment_job(const struct panwrap_mapped_memory *mem,
@@ -577,7 +577,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		panwrap_log("};\n");
 
 		/* Touch the fields */
-		TOUCH(mem, jc_gpu_va, *h);
+		//TOUCH(mem, jc_gpu_va, *h);
 
 		switch (h->job_type) {
 		case JOB_TYPE_SET_VALUE:
@@ -590,7 +590,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 				panwrap_prop("unknown = 0x%" PRIX64, s->unknown);
 				panwrap_indent--;
 				panwrap_log("};\n");
-				TOUCH(mem, payload_ptr, *s);
+				//TOUCH(mem, payload_ptr, *s);
 
 				break;
 			}
