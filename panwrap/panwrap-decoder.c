@@ -437,6 +437,9 @@ static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 {
 	const struct mali_payload_fragment *PANWRAP_PTR_VAR(s, mem, payload);
 
+	uintptr_t p = (uintptr_t) s->fbd._ptr_upper << 6;
+	struct panwrap_mapped_memory *fbd_map = panwrap_find_mapped_mem_containing((void *) p);
+
 	panwrap_log("struct mali_payload_fragment fragment_%d = {\n", job_no);
 	panwrap_indent++;
 	panwrap_prop("_min_tile_coord = 0x%" PRIX32, s->_min_tile_coord);
@@ -445,7 +448,7 @@ static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 	panwrap_indent++;
 	panwrap_prop("type = %s", s->fbd.type == MALI_MFBD ? "MALI_MFBD" : "MALI_SFBD");
 	panwrap_prop("flags = %d", s->fbd.flags);
-	panwrap_prop("_ptr_upper = " MALI_PTR_FMT " >> 6", s->fbd._ptr_upper << 6);
+	panwrap_prop("_ptr_upper = ((uintptr_t) %s + %d) >> 6", fbd_map->name, (p - fbd_map->gpu_va) / sizeof(uint32_t));
 	panwrap_indent--;
 	panwrap_log("},\n");
 	panwrap_indent--;
