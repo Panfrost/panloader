@@ -476,6 +476,16 @@ static void panwrap_replay_sfbd(const struct panwrap_mapped_memory *mem, uint64_
 
 	panwrap_indent--;
 	panwrap_log("};\n");
+
+	int zero_sum_pun = 0;
+	zero_sum_pun += s->zero1;
+	zero_sum_pun += s->zero2;
+	for (int i = 0; i < sizeof(s->zero3)/sizeof(s->zero3[0]); ++i) zero_sum_pun += s->zero3[i];
+	for (int i = 0; i < sizeof(s->zero5)/sizeof(s->zero5[0]); ++i) zero_sum_pun += s->zero5[i];
+	for (int i = 0; i < sizeof(s->zero6)/sizeof(s->zero6[0]); ++i) zero_sum_pun += s->zero6[i];
+
+	if (zero_sum_pun)
+		panwrap_msg("Zero sum tripped (%d), replay may be wrong\n", zero_sum_pun);
 }
 
 static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
