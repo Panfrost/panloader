@@ -58,6 +58,19 @@ static const struct panwrap_flag_info mmap_prot_flag_info[] = {
 };
 #undef FLAG_INFO
 
+char* pointer_as_memory_reference(uint64_t ptr)
+{
+	struct panwrap_mapped_memory *mapped;
+	char *out = malloc(128);
+
+	if (ptr == (uintptr_t) ptr && (mapped = panwrap_find_mapped_mem_containing((void*) (uintptr_t) ptr)))
+		snprintf(out, 128, "(uintptr_t) (%s + %d)", mapped->name, (ptr - mapped->gpu_va) / sizeof(uint32_t));
+	else 
+		snprintf(out, 128, "0x%08X", ptr);
+
+	return out;
+}
+
 /* On job submission, there will be a -lot- of structures built up in memory.
  * While we could decode them, for triangle #1 it's easier to just dump them
  * all verbatim, as hex arrays, and memcpy them into the allocated memory
@@ -75,19 +88,8 @@ void replay_memory()
 		uint32_t *array = (uint32_t *) pos->addr;
 
 		for (uint32_t i = 0; i < pos->length / sizeof(uint32_t); ++i) {
-			if (pos->touched[i]) panwrap_log("// %d\n", i);
-
-			if (array[i] && !pos->touched[i]) {
-				struct panwrap_mapped_memory *mapped;
-
-				if ((mapped = panwrap_find_mapped_mem_containing((void *) (uintptr_t) array[i]))) {
-					/* Address fix up */
-
-					panwrap_log("%s[%d] = (uintptr_t) %s + %d;\n", pos->name, i, mapped->name, array[i] - mapped->gpu_va);
-				} else if (array[i]) {
-					panwrap_log("%s[%d] = 0x%08X;\n", pos->name, i, array[i]);
-				}
-			}
+			if (array[i])
+				panwrap_log("%s%s[%d] = %s;\n", pos->touched[i] ? "// " : "", pos->name, i, pointer_as_memory_reference(array[i]));
 		}
 
 		panwrap_log("\n");

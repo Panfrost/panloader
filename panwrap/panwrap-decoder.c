@@ -458,8 +458,13 @@ static void panwrap_replay_sfbd(const struct panwrap_mapped_memory *mem, uint64_
 	panwrap_prop("clear_color_3 = 0x%" PRIx32, s->clear_color_3);
 	panwrap_prop("clear_color_4 = 0x%" PRIx32, s->clear_color_4);
 
-	panwrap_prop("unknown_address_1 = 0x%" PRIx64, s->unknown_address_1);
-	panwrap_prop("unknown_address_2 = 0x%" PRIx64, s->unknown_address_2);
+	char *a = pointer_as_memory_reference(s->unknown_address_1);
+	panwrap_prop("unknown_address_1 = %s", a);
+	free(a);
+	
+	a = pointer_as_memory_reference(s->unknown_address_2);
+	panwrap_prop("unknown_address_2 = %s", a);
+	free(a);
 
 	panwrap_prop("shader_1 = 0x%" PRIx64, s->shader_1);
 
@@ -486,7 +491,7 @@ static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 	panwrap_prop("_min_tile_coord = 0x%" PRIX32, s->_min_tile_coord);
 	panwrap_prop("_max_tile_coord = 0x%" PRIX32, s->_max_tile_coord);
 
-	panwrap_prop("fbd = (uintptr_t) %s + %d | MALI_%s", fbd_map->name, (p - fbd_map->gpu_va), s->fbd & MALI_MFBD ? "MFBD" : "SFBD");
+	panwrap_prop("fbd = %s | MALI_%s", pointer_as_memory_reference(p), s->fbd & MALI_MFBD ? "MFBD" : "SFBD");
 	panwrap_indent--;
 	panwrap_log("};\n");
 	TOUCH(mem, payload, *s, "fragment", job_no);
