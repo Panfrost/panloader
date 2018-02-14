@@ -177,7 +177,12 @@ struct mali_tentative_sfbd {
 	u32 clear_color_3; // always equal, but unclear function?
 	u32 clear_color_4; // always equal, but unclear function?
 
-	u32 zero6[12];
+	float clear_depth_1; // float32, ditto
+	float clear_depth_2; // float32, ditto
+	float clear_depth_3; // float32, ditto
+	float clear_depth_4; // float32, ditto
+
+	u32 zero6[8];
 
 	u32 unknown8; // 0x02000000
 	u32 unknown9; // 0x00000001

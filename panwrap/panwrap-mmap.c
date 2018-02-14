@@ -58,12 +58,12 @@ static const struct panwrap_flag_info mmap_prot_flag_info[] = {
 };
 #undef FLAG_INFO
 
-char* pointer_as_memory_reference(uint64_t ptr)
+char* pointer_as_memory_reference(uintptr_t ptr)
 {
 	struct panwrap_mapped_memory *mapped;
 	char *out = malloc(128);
 
-	if (ptr == (uintptr_t) ptr && (mapped = panwrap_find_mapped_mem_containing((void*) (uintptr_t) ptr)))
+	if (ptr == (uintptr_t) ptr && (mapped = panwrap_find_mapped_mem_containing((void*) ptr)))
 		snprintf(out, 128, "(uintptr_t) (%s + %d)", mapped->name, (ptr - mapped->gpu_va) / sizeof(uint32_t));
 	else 
 		snprintf(out, 128, "0x%08X", ptr);

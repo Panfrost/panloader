@@ -458,6 +458,11 @@ static void panwrap_replay_sfbd(const struct panwrap_mapped_memory *mem, uint64_
 	panwrap_prop("clear_color_3 = 0x%" PRIx32, s->clear_color_3);
 	panwrap_prop("clear_color_4 = 0x%" PRIx32, s->clear_color_4);
 
+	panwrap_prop("clear_depth_1 = %f", s->clear_depth_1);
+	panwrap_prop("clear_depth_2 = %f", s->clear_depth_2);
+	panwrap_prop("clear_depth_3 = %f", s->clear_depth_3);
+	panwrap_prop("clear_depth_4 = %f", s->clear_depth_4);
+
 	char *a = pointer_as_memory_reference(s->unknown_address_1);
 	panwrap_prop("unknown_address_1 = %s", a);
 	free(a);
@@ -486,6 +491,8 @@ static void panwrap_replay_sfbd(const struct panwrap_mapped_memory *mem, uint64_
 
 	if (zero_sum_pun)
 		panwrap_msg("Zero sum tripped (%d), replay may be wrong\n", zero_sum_pun);
+
+	TOUCH(mem, (mali_ptr) gpu_va, *s, "fbd", job_no);
 }
 
 static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
