@@ -448,7 +448,7 @@ static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 	panwrap_prop("fbd = (uintptr_t) %s + %d | MALI_%s", fbd_map->name, (p - fbd_map->gpu_va), s->fbd & MALI_MFBD ? "MFBD" : "SFBD");
 	panwrap_indent--;
 	panwrap_log("};\n");
-	//TOUCH(mem, payload, *s, "fragment", job_no);
+	TOUCH(mem, payload, *s, "fragment", job_no);
 }
 
 static void panwrap_decode_fragment_job(const struct panwrap_mapped_memory *mem,
