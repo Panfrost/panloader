@@ -91,9 +91,9 @@ void panwrap_decode_attributes(const struct panwrap_mapped_memory *mem,
 }
 
 static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
-			      const struct mali_fbd_meta *fbd_meta)
+			      const u64 *fbd_meta)
 {
-	mali_ptr fbd_ptr = fbd_meta->_ptr_upper << 6;
+	mali_ptr fbd_ptr = *fbd_meta & FBD_MASK;
 	struct mali_tentative_mfbd *mfbd;
 
 	if (!fbd_ptr) {
@@ -104,7 +104,7 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 	mfbd = panwrap_fetch_gpu_mem(NULL, fbd_ptr, sizeof(*mfbd));
 
 	panwrap_log("%s @ " MALI_PTR_FMT ":\n",
-		    panwrap_decode_fbd_type(fbd_meta->type), fbd_ptr);
+		    panwrap_decode_fbd_type(*fbd_meta & FBD_TYPE), fbd_ptr);
 	panwrap_indent++;
 
 	/* XXX We're not entirely sure which parts of the fbd format that we
@@ -437,23 +437,18 @@ static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 {
 	const struct mali_payload_fragment *PANWRAP_PTR_VAR(s, mem, payload);
 
-	uintptr_t p = (uintptr_t) s->fbd._ptr_upper << 6;
+	uintptr_t p = (uintptr_t) s->fbd & FBD_MASK;
 	struct panwrap_mapped_memory *fbd_map = panwrap_find_mapped_mem_containing((void *) p);
 
 	panwrap_log("struct mali_payload_fragment fragment_%d = {\n", job_no);
 	panwrap_indent++;
 	panwrap_prop("_min_tile_coord = 0x%" PRIX32, s->_min_tile_coord);
 	panwrap_prop("_max_tile_coord = 0x%" PRIX32, s->_max_tile_coord);
-	panwrap_log(".fbd = {\n");
-	panwrap_indent++;
-	panwrap_prop("type = %s", s->fbd.type == MALI_MFBD ? "MALI_MFBD" : "MALI_SFBD");
-	panwrap_prop("flags = %d", s->fbd.flags);
-	panwrap_prop("_ptr_upper = ((uintptr_t) %s + %d) >> 6", fbd_map->name, (p - fbd_map->gpu_va) / sizeof(uint32_t));
-	panwrap_indent--;
-	panwrap_log("},\n");
+
+	panwrap_prop("fbd = (uintptr_t) %s + %d | MALI_%s", fbd_map->name, (p - fbd_map->gpu_va), s->fbd & MALI_MFBD ? "MFBD" : "SFBD");
 	panwrap_indent--;
 	panwrap_log("};\n");
-	TOUCH(mem, payload, *s, "fragment", job_no);
+	//TOUCH(mem, payload, *s, "fragment", job_no);
 }
 
 static void panwrap_decode_fragment_job(const struct panwrap_mapped_memory *mem,

@@ -102,13 +102,8 @@ enum mali_fbd_type {
 	MALI_MFBD = 1,
 };
 
-struct mali_fbd_meta {
-	enum mali_fbd_type type : 1;
-	u8 flags : 5;
-	mali_ptr _ptr_upper : MALI_PTR_BITS - 6;   /* struct tentative_fbd */
-} __attribute__((packed));
-ASSERT_SIZEOF_TYPE(struct mali_fbd_meta,
-		   sizeof(mali_ptr), sizeof(mali_ptr));
+#define FBD_TYPE (1)
+#define FBD_MASK (~0x3f)
 
 /* TODO: using 32 bit datatypes is kind of awkward when you're just dealing
  * with binary data. Eventually remove all of them and replace them with proper
@@ -132,7 +127,7 @@ struct mali_payload_vertex_tiler {
 	mali_ptr unknown6; /* pointer */
 	mali_ptr nullForVertex;
 	mali_ptr null4;
-	struct mali_fbd_meta fbd;
+	u64 fbd;
 	mali_ptr unknown7; /* pointer */
 
 	u32 block2[36];
@@ -154,9 +149,9 @@ struct mali_payload_fragment {
 	 */
 	u32 _min_tile_coord;
 	u32 _max_tile_coord;
-	struct mali_fbd_meta fbd;
+	u64 fbd;
 } __attribute__((packed));
-ASSERT_SIZEOF_TYPE(struct mali_payload_fragment, 12, 16);
+//ASSERT_SIZEOF_TYPE(struct mali_payload_fragment, 12, 16);
 
 /* TODO: Figure out what FBD means. Cafe didn't seem to know, my guess:
  * FrameBuffer Descriptor

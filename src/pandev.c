@@ -272,11 +272,7 @@ pandev_fragment_job(int fd)
 		.job_index = 1, /* TODO: Allocate these correctly */
 	};
 
-	struct mali_fbd_meta fbd_meta = {
-		.type = MALI_MFBD,
-		.flags = 0,
-		._ptr_upper = (mali_ptr) 0, /* TODO */
-	};
+	u64 fbd_meta = MALI_MFBD;
 
 	struct mali_payload_fragment payload = {
 		._min_tile_coord = MAKE_TILE_COORD(0, 0, 0),

@@ -76,6 +76,7 @@ void replay_memory()
 
 		for (uint32_t i = 0; i < pos->length / sizeof(uint32_t); ++i) {
 			if (pos->touched[i]) panwrap_log("// %d\n", i);
+
 			if (array[i] && !pos->touched[i]) {
 				struct panwrap_mapped_memory *mapped;
 
