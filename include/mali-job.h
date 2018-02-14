@@ -182,7 +182,9 @@ struct mali_tentative_sfbd {
 	float clear_depth_3; // float32, ditto
 	float clear_depth_4; // float32, ditto
 
-	u32 zero6[8];
+	u32 clear_stencil; // Exactly as it appears in OpenGL
+
+	u32 zero6[7];
 
 	u32 unknown8; // 0x02000000
 	u32 unknown9; // 0x00000001
