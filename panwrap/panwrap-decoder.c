@@ -432,6 +432,47 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_indent--;
 }
 
+static void panwrap_replay_sfbd(const struct panwrap_mapped_memory *mem, uint64_t gpu_va, int job_no)
+{
+	const struct mali_tentative_sfbd *PANWRAP_PTR_VAR(s, mem, (mali_ptr) gpu_va);
+
+	panwrap_log("struct mali_tentative_sfbd fbd_%d = {\n", job_no);
+	panwrap_indent++;
+
+	panwrap_prop("unknown1 = 0x%" PRIx32, s->unknown1);
+	panwrap_prop("flags = 0x%" PRIx32, s->flags);
+	panwrap_prop("heap_free_address = 0x%" PRIx64, s->heap_free_address);
+	panwrap_prop("unknown2 = 0x%" PRIx32, s->unknown2);
+	panwrap_prop("unknown3 = 0x%" PRIx32, s->unknown3);
+	panwrap_prop("unknown4 = 0x%" PRIx32, s->unknown4);
+
+	panwrap_log(".weights = { ");
+	panwrap_indent++;
+	for (int i = 0; i < MALI_FBD_HIERARCHY_WEIGHTS; ++i)
+		panwrap_log_cont("0x%" PRIx32 ", ", s->weights[i]);
+	panwrap_indent--;
+	panwrap_log_cont("},\n");
+
+	panwrap_prop("clear_color_1 = 0x%" PRIx32, s->clear_color_1);
+	panwrap_prop("clear_color_2 = 0x%" PRIx32, s->clear_color_2);
+	panwrap_prop("clear_color_3 = 0x%" PRIx32, s->clear_color_3);
+	panwrap_prop("clear_color_4 = 0x%" PRIx32, s->clear_color_4);
+
+	panwrap_prop("unknown_address_1 = 0x%" PRIx64, s->unknown_address_1);
+	panwrap_prop("unknown_address_2 = 0x%" PRIx64, s->unknown_address_2);
+
+	panwrap_prop("shader_1 = 0x%" PRIx64, s->shader_1);
+
+	panwrap_prop("unknown8 = 0x%" PRIx32, s->unknown8);
+	panwrap_prop("unknown9 = 0x%" PRIx32, s->unknown9);
+
+	panwrap_prop("shader_3 = 0x%" PRIx64, s->shader_3);
+	panwrap_prop("shader_4 = 0x%" PRIx64, s->shader_4);
+
+	panwrap_indent--;
+	panwrap_log("};\n");
+}
+
 static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 					mali_ptr payload, int job_no)
 {
@@ -449,6 +490,9 @@ static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 	panwrap_indent--;
 	panwrap_log("};\n");
 	TOUCH(mem, payload, *s, "fragment", job_no);
+
+	if ((s->fbd & FBD_TYPE) == MALI_SFBD)
+		panwrap_replay_sfbd(fbd_map, s->fbd & FBD_MASK, job_no);
 }
 
 static void panwrap_decode_fragment_job(const struct panwrap_mapped_memory *mem,

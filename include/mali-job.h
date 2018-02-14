@@ -153,31 +153,59 @@ struct mali_payload_fragment {
 } __attribute__((packed));
 //ASSERT_SIZEOF_TYPE(struct mali_payload_fragment, 12, 16);
 
-/* TODO: Figure out what FBD means. Cafe didn't seem to know, my guess:
- * FrameBuffer Descriptor
- *
- * XXX: naming convention note from chai, uga = unknown GPU address
- *
- * XXX: here cafe seems to define all of what look to be memory addresses as 64
- * bit, which -supposedly- means that it follows the PAD_PTR format that the
- * ioctls use, yet I remember them telling me that native GPU structs didn't do
- * that? Figure out what's really going on here
+/* FBD: Fragment B[unknown] D[escriptor?]
  */
+struct mali_tentative_sfbd {
+	u32 unknown1;
+	u32 flags;
+	u64 shader_1;
+	u64 zero1;
+	u64 heap_free_address;
+
+	u32 unknown2; // 0xB8..
+	u32 unknown3; // 0x10..
+	u32 zero2;
+	u32 unknown4; // 0x00EF...
+	u32 zero3[4];
+
+	u32 weights[8];
+
+	u32 zero5[8];
+
+	u32 clear_color_1; // RGBA8888 from glClear, actually used by hardware
+	u32 clear_color_2; // always equal, but unclear function?
+	u32 clear_color_3; // always equal, but unclear function?
+	u32 clear_color_4; // always equal, but unclear function?
+
+	u32 zero6[12];
+
+	u32 unknown8; // 0x02000000
+	u32 unknown9; // 0x00000001
+
+	u64 unknown_address_1; /* Pointing towards... a zero buffer? */
+	u64 unknown_address_2;
+
+	u64 shader_3;
+	u64 shader_4;
+
+	/* More below this, maybe */
+} __attribute__((packed));
+
 struct mali_tentative_mfbd {
 	u64 blah; /* XXX: what the fuck is this? */
 	/* This GPU address is unknown, except for the fact there's something
 	 * executable here... */
-	PAD_PTR(mali_ptr ugaT);
+	u64 ugaT;
 	u32 block1[10];
 	u32 unknown1;
 	u32 flags;
 	u8 block2[16];
-	PAD_PTR(mali_ptr heap_free_address);
-	PAD_PTR(mali_ptr unknown2);
+	u64 heap_free_address;
+	u64 unknown2;
 	u32 weights[MALI_FBD_HIERARCHY_WEIGHTS];
-	PAD_PTR(mali_ptr unknown_gpu_addressN);
+	u64 unknown_gpu_addressN;
 	u8 block3[88];
-	PAD_PTR(mali_ptr unknown_gpu_address);
+	u64 unknown_gpu_address;
 	u64 unknown3;
 	u8 block4[40];
 } __attribute__((packed));
