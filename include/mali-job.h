@@ -22,12 +22,6 @@
 
 #define MALI_FBD_HIERARCHY_WEIGHTS 8
 
-#ifdef __LP64__
-#define PAD_PTR(p) p
-#else
-#define PAD_PTR(p) p
-#endif
-
 #define MALI_PAYLOAD_SIZE 256
 
 enum mali_job_type {
@@ -51,9 +45,9 @@ enum mali_gl_mode {
 };
 
 struct mali_shader_meta {
-	PAD_PTR(mali_ptr shader);
-	PAD_PTR(mali_ptr unknown1);
-	PAD_PTR(mali_ptr unknown2);
+	mali_ptr shader;
+	mali_ptr unknown1;
+	mali_ptr unknown2;
 };
 
 /* FIXME: This might only concern fragment/vertex jobs? notes unclear */
@@ -75,7 +69,7 @@ struct mali_job_descriptor_header {
 	u16 job_index;
 	u16 job_dependency_index_1;
 	u16 job_dependency_index_2;
-	PAD_PTR(mali_ptr next_job);
+	mali_ptr next_job;
 } __attribute__((packed));
 
 struct mali_payload_set_value {
@@ -218,7 +212,5 @@ struct mali_tentative_mfbd {
 } __attribute__((packed));
 
 /* Originally from chai, which found it from mali_kase_reply.c */
-
-#undef PAD_PTR
 
 #endif /* __MALI_JOB_H__ */

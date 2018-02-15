@@ -659,7 +659,6 @@ struct mali_gpu_raw_props {
  * variable length is used.
  */
 #ifdef __LP64__
-#define PAD_PTR(p) p
 #define PAD_CPU_PTR(p) p
 typedef u64 mali_ptr;
 typedef u64 mali_short_ptr;
@@ -668,7 +667,6 @@ typedef u64 mali_short_ptr;
 
 #else
 
-#define PAD_PTR(p) p
 #define PAD_CPU_PTR(p) p; u32 :32;
 typedef u64 mali_ptr;
 typedef u32 mali_short_ptr;
@@ -711,7 +709,7 @@ enum mali_external_resource_access {
 typedef u64 mali_external_resource;
 
 struct mali_jd_atom_v2 {
-	PAD_PTR(mali_ptr jc);           /**< job-chain GPU address */
+	mali_ptr jc;           /**< job-chain GPU address */
 	struct mali_jd_udata udata;	    /**< user data */
 	PAD_CPU_PTR(mali_external_resource *ext_res_list); /**< list of external resources */
 	u16 nr_ext_res;			    /**< nr of external resources */
@@ -788,7 +786,7 @@ struct mali_ioctl_mem_alloc {
 #ifdef XXX_POINTER_VOODOO_XXX
 	u64 gpu_va;
 #else
-	PAD_PTR(mali_ptr gpu_va);
+	mali_ptr gpu_va;
 #endif
 	u16 va_alignment;
 
@@ -824,7 +822,7 @@ ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_import, 48, 48);
 struct mali_ioctl_mem_commit {
 	union mali_ioctl_header header;
 	/* [in] */
-	PAD_PTR(mali_ptr gpu_addr);
+	mali_ptr gpu_addr;
 	u64 pages;
 	/* [out] */
 	u32 result_subcode;
@@ -851,14 +849,14 @@ ASSERT_SIZEOF_TYPE(struct mali_ioctl_mem_query, 32, 32);
 
 struct mali_ioctl_mem_free {
 	union mali_ioctl_header header;
-	PAD_PTR(mali_ptr gpu_addr); /* [in] */
+	mali_ptr gpu_addr; /* [in] */
 } __attribute__((packed));
 /* FIXME: Size unconfirmed (haven't seen in a trace yet) */
 
 struct mali_ioctl_mem_flags_change {
 	union mali_ioctl_header header;
 	/* [in] */
-	PAD_PTR(mali_ptr gpu_va);
+	mali_ptr gpu_va;
 	u64 flags;
 	u64 mask;
 } __attribute__((packed));
@@ -873,13 +871,13 @@ struct mali_ioctl_mem_alias {
 	u64 nents;
 	u64 ai;
 	/* [out] */
-	PAD_PTR(mali_ptr gpu_va);
+	mali_ptr gpu_va;
 	u64 va_pages;
 } __attribute__((packed));
 
 struct mali_ioctl_sync {
 	union mali_ioctl_header header;
-	PAD_PTR(mali_ptr handle);
+	mali_ptr handle;
 	PAD_CPU_PTR(void* user_addr);
 	u64 size;
 	enum {
