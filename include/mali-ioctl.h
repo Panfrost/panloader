@@ -644,20 +644,6 @@ struct mali_gpu_raw_props {
 };
 
 
-/*
- * The original mali driver from ARM has two different representations of
- * pointers depending on which kind of structure we're looking at:
- *
- * - "Padded pointers" (as I've taken to calling them), which will always take
- *   up at least 64 bits of space regardless of whether the system is 32 or 64
- *   bit. When the system is 32 bit, the other half of the data is just
- *   padding.
- * - Variable length pointers, the length of which is equivalent to the native
- *   length of a pointer on the host system.
- *
- * For normal ioctls, padded pointers are used. For actual job submissions,
- * variable length is used.
- */
 #ifdef __LP64__
 #define PAD_CPU_PTR(p) p
 typedef u64 mali_ptr;
