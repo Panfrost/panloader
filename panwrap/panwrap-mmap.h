@@ -47,7 +47,7 @@ struct panwrap_mapped_memory {
 
 #define TOUCH(mem, addr, obj, ename, number) \
 	memset(mem->touched + ((addr - mem->gpu_va) / sizeof(uint32_t)), 1, sizeof(obj) / sizeof(uint32_t)); \
-	panwrap_log("memcpy(%s + %d, &%s_%d, sizeof(%s_%d));\n", mem->name, ((addr - mem->gpu_va) / sizeof(uint32_t)), ename, number, ename, number);
+	panwrap_log("memcpy(%s + %d, &%s_%d, sizeof(%s_%d));\n", mem->name, (int) ((addr - mem->gpu_va) / sizeof(uint32_t)), ename, number, ename, number);
 
 void replay_memory();
 char *pointer_as_memory_reference(uintptr_t ptr);
@@ -86,7 +86,7 @@ __panwrap_fetch_gpu_mem(const struct panwrap_mapped_memory *mem,
 	    !(mem->prot & MALI_MEM_PROT_CPU_RD))
 		__panwrap_fetch_mem_err(mem, gpu_va, size, line, filename);
 
-	return (void*)gpu_va - (void*)mem->gpu_va + mem->addr;
+	return mem->addr + gpu_va - mem->gpu_va;
 }
 
 #define panwrap_fetch_gpu_mem(mem, gpu_va, size) \

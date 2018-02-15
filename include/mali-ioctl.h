@@ -660,14 +660,20 @@ struct mali_gpu_raw_props {
  */
 #ifdef __LP64__
 #define PAD_PTR(p) p
+#define PAD_CPU_PTR(p) p
 typedef u64 mali_ptr;
+typedef u64 mali_short_ptr;
 #define MALI_PTR_FMT "0x%lx"
+#define MALI_SHORT_PTR_FMT "0x%lx"
 
 #else
 
-#define PAD_PTR(p) p; u32 :32
-typedef u32 mali_ptr;
-#define MALI_PTR_FMT "0x%x"
+#define PAD_PTR(p) p
+#define PAD_CPU_PTR(p) p; u32 :32;
+typedef u64 mali_ptr;
+typedef u32 mali_short_ptr;
+#define MALI_PTR_FMT "0x%llx"
+#define MALI_SHORT_PTR_FMT "0x%x"
 #endif
 
 /* FIXME: Again, they don't specify any of these as packed structs. However,
@@ -707,7 +713,7 @@ typedef u64 mali_external_resource;
 struct mali_jd_atom_v2 {
 	PAD_PTR(mali_ptr jc);           /**< job-chain GPU address */
 	struct mali_jd_udata udata;	    /**< user data */
-	PAD_PTR(mali_external_resource *ext_res_list); /**< list of external resources */
+	PAD_CPU_PTR(mali_external_resource *ext_res_list); /**< list of external resources */
 	u16 nr_ext_res;			    /**< nr of external resources */
 	u16 compat_core_req;	            /**< core requirements which
 					      correspond to the legacy support
@@ -835,7 +841,7 @@ enum mali_ioctl_mem_query_type {
 struct mali_ioctl_mem_query {
 	union mali_ioctl_header header;
 	/* [in] */
-	PAD_PTR(mali_ptr gpu_addr);
+	mali_ptr gpu_addr;
 	enum mali_ioctl_mem_query_type query : 32;
 	u32 :32;
 	/* [out] */
@@ -874,7 +880,7 @@ struct mali_ioctl_mem_alias {
 struct mali_ioctl_sync {
 	union mali_ioctl_header header;
 	PAD_PTR(mali_ptr handle);
-	PAD_PTR(void* user_addr);
+	PAD_CPU_PTR(void* user_addr);
 	u64 size;
 	enum {
 		MALI_SYNC_TO_DEVICE = 1,
@@ -919,7 +925,7 @@ ASSERT_SIZEOF_TYPE(struct mali_ioctl_stream_create, 48, 48);
 struct mali_ioctl_job_submit {
 	union mali_ioctl_header header;
 	/* [in] */
-	PAD_PTR(struct mali_jd_atom_v2 *addr);
+	PAD_CPU_PTR(struct mali_jd_atom_v2 *addr);
 	u32 nr_atoms;
 	u32 stride;
 } __attribute__((packed));

@@ -18,14 +18,14 @@
 #include <config.h>
 #include <mali-ioctl.h>
 
-#define MALI_PTR_BITS (sizeof(mali_ptr)*8)
+#define MALI_SHORT_PTR_BITS (sizeof(mali_short_ptr)*8)
 
 #define MALI_FBD_HIERARCHY_WEIGHTS 8
 
 #ifdef __LP64__
 #define PAD_PTR(p) p
 #else
-#define PAD_PTR(p) p; u32 :32
+#define PAD_PTR(p) p
 #endif
 
 #define MALI_PAYLOAD_SIZE 256
@@ -85,7 +85,7 @@ struct mali_payload_set_value {
 
 struct mali_attr {
 	u8 flags : 2;
-	mali_ptr elements_upper : MALI_PTR_BITS - 2;
+	mali_ptr elements_upper : MALI_SHORT_PTR_BITS - 2;
 	u32 stride;
 	u32 size;
 } __attribute__((packed));
@@ -113,22 +113,22 @@ struct mali_payload_vertex_tiler {
 	u32 block1[10];
 
 	/* Lyude: no idea what the null's were supposed to represent here. */
-	mali_ptr null0;
-	mali_ptr unknown0;
-	mali_ptr unknown1; /* pointer */
-	mali_ptr texture_meta_address;
-	mali_ptr texture_unknown;
-	mali_ptr uniforms;
+	mali_short_ptr null0;
+	mali_short_ptr unknown0;
+	mali_short_ptr unknown1; /* pointer */
+	mali_short_ptr texture_meta_address;
+	mali_short_ptr texture_unknown;
+	mali_short_ptr uniforms;
 	u8 flags : 4;
-	mali_ptr _shader_upper : MALI_PTR_BITS - 4; /* struct shader_meta */
-	mali_ptr attributes; /* struct attribute_buffer[] */
-	mali_ptr attribute_meta; /* attribute_meta[] */
-	mali_ptr unknown5; /* pointer */
-	mali_ptr unknown6; /* pointer */
-	mali_ptr nullForVertex;
-	mali_ptr null4;
+	mali_short_ptr _shader_upper : MALI_SHORT_PTR_BITS - 4; /* struct shader_meta */
+	mali_short_ptr attributes; /* struct attribute_buffer[] */
+	mali_short_ptr attribute_meta; /* attribute_meta[] */
+	mali_short_ptr unknown5; /* pointer */
+	mali_short_ptr unknown6; /* pointer */
+	mali_short_ptr nullForVertex;
+	mali_short_ptr null4;
 	u64 fbd;
-	mali_ptr unknown7; /* pointer */
+	mali_short_ptr unknown7; /* pointer */
 
 	u32 block2[36];
 } __attribute__((packed));

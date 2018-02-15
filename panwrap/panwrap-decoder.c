@@ -75,7 +75,7 @@ void panwrap_decode_attributes(const struct panwrap_mapped_memory *mem,
 	vertex_count = attr->size / attr->stride;
 	component_count = attr->stride / sizeof(float);
 
-	panwrap_log(MALI_PTR_FMT " (%x):\n",
+	panwrap_log(MALI_SHORT_PTR_FMT " (%x):\n",
 		    attr->elements_upper << 2, attr->flags);
 
 	panwrap_indent++;
@@ -290,8 +290,8 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	if (v->texture_meta_address || v->texture_unknown) {
 		panwrap_log("Texture:");
 		panwrap_indent++;
-		panwrap_log("Meta address: " MALI_PTR_FMT "\n", v->texture_meta_address);
-		panwrap_log("Unknown address: " MALI_PTR_FMT "\n", v->texture_unknown);
+		panwrap_log("Meta address: " MALI_SHORT_PTR_FMT "\n", v->texture_meta_address);
+		panwrap_log("Unknown address: " MALI_SHORT_PTR_FMT "\n", v->texture_unknown);
 		panwrap_indent--;
 	}
 
@@ -416,14 +416,14 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_indent--;
 	}
 
-	panwrap_log("nulls: " MALI_PTR_FMT ", " MALI_PTR_FMT "\n",
+	panwrap_log("nulls: " MALI_SHORT_PTR_FMT ", " MALI_SHORT_PTR_FMT "\n",
 		    v->null0, v->null4);
 
 	if (v->texture_meta_address || v->texture_unknown) {
 		panwrap_log("Texture:");
 		panwrap_indent++;
-		panwrap_log("Meta address: " MALI_PTR_FMT "\n", v->texture_meta_address);
-		panwrap_log("Unknown address: " MALI_PTR_FMT "\n", v->texture_unknown);
+		panwrap_log("Meta address: " MALI_SHORT_PTR_FMT "\n", v->texture_meta_address);
+		panwrap_log("Unknown address: " MALI_SHORT_PTR_FMT "\n", v->texture_unknown);
 		panwrap_indent--;
 	}
 
