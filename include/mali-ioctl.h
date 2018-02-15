@@ -647,7 +647,6 @@ struct mali_gpu_raw_props {
 #ifdef __LP64__
 #define PAD_CPU_PTR(p) p
 typedef u64 mali_ptr;
-typedef u64 mali_short_ptr;
 #define MALI_PTR_FMT "0x%lx"
 #define MALI_SHORT_PTR_FMT "0x%lx"
 
@@ -655,7 +654,6 @@ typedef u64 mali_short_ptr;
 
 #define PAD_CPU_PTR(p) p; u32 :32;
 typedef u64 mali_ptr;
-typedef u32 mali_short_ptr;
 #define MALI_PTR_FMT "0x%llx"
 #define MALI_SHORT_PTR_FMT "0x%x"
 #endif
