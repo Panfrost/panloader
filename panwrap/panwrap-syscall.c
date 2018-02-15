@@ -664,7 +664,7 @@ static void emit_atoms(void *ptr) {
 		panwrap_indent++;
 
 		struct panwrap_mapped_memory *mapped = panwrap_find_mapped_mem_containing((void *) (uintptr_t) a->jc);
-		panwrap_prop("jc = (uintptr_t) %s + %d", mapped->name, a->jc - mapped->gpu_va);
+		panwrap_prop("jc = (uintptr_t) %s + %d", mapped->name, (int) (a->jc - mapped->gpu_va));
 
 		/* Don't passthrough udata; it's nondeterministic and for userspace use only */
 
@@ -1336,8 +1336,7 @@ int ioctl(int fd, int request, ...)
 	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_ALLOC)) {
 		const struct mali_ioctl_mem_alloc *args = ptr;
 
-		if (args->flags & (MALI_MEM_NEED_MMAP | MALI_MEM_SAME_VA) || args->gpu_va < 0xb0000000)
-			panwrap_track_allocation(args->gpu_va, args->flags, number);
+		panwrap_track_allocation(args->gpu_va, args->flags, number);
 	}
 
 	panwrap_indent--;
