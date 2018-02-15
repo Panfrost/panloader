@@ -764,11 +764,7 @@ struct mali_ioctl_mem_alloc {
 	/* [in/out] */
 	u64 flags;
 	/* [out] */
-#ifdef XXX_POINTER_VOODOO_XXX
-	u64 gpu_va;
-#else
 	mali_ptr gpu_va;
-#endif
 	u16 va_alignment;
 
 	u32 :32;
