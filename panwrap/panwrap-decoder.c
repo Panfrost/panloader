@@ -298,8 +298,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	}
 
 	//panwrap_trace_fbd(mem, &v->fbd);
-
-	panwrap_indent--;
 }
 
 void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
@@ -654,7 +652,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		if (h->_reserved_01 | h->_reserved_1 | h->_reserved_02
 		  | h->_reserved_03 | h->_reserved_2 | h->_reserved_04
 		  | h->_reserved_05) {
-			panwrap_msg("XXX Reserved flag in job descriptor header set, replay may be wrong XXX");
+			panwrap_msg("XXX Reserved flag in job descriptor header set, replay may be wrong XXX\n");
 		}
 
 		panwrap_indent--;
