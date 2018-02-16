@@ -646,7 +646,9 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		panwrap_prop("job_dependency_index_1 = %d", h->job_dependency_index_1);
 		panwrap_prop("job_dependency_index_1 = %d", h->job_dependency_index_2);
 
-		panwrap_prop("next_job = " MALI_PTR_FMT, h->next_job);
+		char *a = pointer_as_memory_reference(h->next_job);
+		panwrap_prop("next_job = %s", a);
+		free(a);
 
 		/* If any of these bits are set, then the replay is wrong... */
 		if (h->_reserved_01 | h->_reserved_1 | h->_reserved_02
