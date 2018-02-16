@@ -631,9 +631,8 @@ static void emit_atoms(void *ptr) {
 	for (int i = 0; i < args->nr_atoms; i++) {
 		const struct mali_jd_atom_v2 *a = &atoms[i];
 
-		if (a->jc) {
+		if (a->jc)
 			panwrap_replay_jc(a->jc);
-		}
 	}
 
 	for (int i = 0; i < args->nr_atoms; i++) {
@@ -664,7 +663,9 @@ static void emit_atoms(void *ptr) {
 		panwrap_indent++;
 
 		struct panwrap_mapped_memory *mapped = panwrap_find_mapped_mem_containing((void *) (uintptr_t) a->jc);
-		panwrap_prop("jc = (uintptr_t) %s + %d", mapped->name, (int) (a->jc - mapped->gpu_va));
+		char *jc_name = pointer_as_memory_reference(a->jc);
+		panwrap_prop("jc = %s", jc_name);
+		free(jc_name);
 
 		/* Don't passthrough udata; it's nondeterministic and for userspace use only */
 
