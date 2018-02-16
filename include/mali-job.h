@@ -199,16 +199,22 @@ struct mali_tentative_sfbd {
 
 	u32 weights[8];
 
-	mali_ptr pdcm_1_1; // not SAME_VA, large, probably stencil/depth buffers
-	u64 pdcm_1_2; // 0x6400
+	/* Depth and stencil buffers are interleaved, it appears, as they are
+	 * set to the same address in captures. Both fields set to zero if the
+	 * buffer is not being cleared. */
 
-	mali_ptr pdcm_2_1; // not SAME_VA, large, probably stencil/depth buffers
-	u64 pdcm_2_2; // 0x6400
+	mali_ptr depth_buffer; // not SAME_VA
+	u64 depth_buffer_unknown; // =0x6400?
+
+	mali_ptr stencil_buffer; // not SAME_VA
+	u64 stencil_buffer_unknown; // =0x6400?
 
 	u32 clear_color_1; // RGBA8888 from glClear, actually used by hardware
 	u32 clear_color_2; // always equal, but unclear function?
 	u32 clear_color_3; // always equal, but unclear function?
 	u32 clear_color_4; // always equal, but unclear function?
+
+	/* Set to zero if not cleared */
 
 	float clear_depth_1; // float32, ditto
 	float clear_depth_2; // float32, ditto

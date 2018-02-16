@@ -453,10 +453,11 @@ static void panwrap_replay_sfbd(const struct panwrap_mapped_memory *mem, uint64_
 	panwrap_indent--;
 	panwrap_log_cont("},\n");
 
-	panwrap_prop("pdcm_1_1 = " MALI_PTR_FMT, s->pdcm_1_1);
-	panwrap_prop("pdcm_1_2 = 0x%" PRIx64, s->pdcm_1_2);
-	panwrap_prop("pdcm_2_1 = " MALI_PTR_FMT, s->pdcm_1_1);
-	panwrap_prop("pdcm_2_2 = 0x%" PRIx64, s->pdcm_1_2);
+	panwrap_prop("depth_buffer = " MALI_PTR_FMT, s->depth_buffer);
+	panwrap_prop("depth_buffer_unknown = 0x%" PRIx64, s->depth_buffer_unknown);
+
+	panwrap_prop("stencil_buffer = " MALI_PTR_FMT, s->depth_buffer);
+	panwrap_prop("stencil_buffer_unknown = 0x%" PRIx64, s->stencil_buffer_unknown);
 
 	panwrap_prop("clear_color_1 = 0x%" PRIx32, s->clear_color_1);
 	panwrap_prop("clear_color_2 = 0x%" PRIx32, s->clear_color_2);
