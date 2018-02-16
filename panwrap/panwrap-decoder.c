@@ -507,8 +507,20 @@ static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 
 	panwrap_log("struct mali_payload_fragment fragment_%d = {\n", job_no);
 	panwrap_indent++;
-	panwrap_prop("_min_tile_coord = 0x%" PRIX32, s->_min_tile_coord);
-	panwrap_prop("_max_tile_coord = 0x%" PRIX32, s->_max_tile_coord);
+
+	/* See the comments by the macro definitions for mathematical context
+	 * on why this is so weird */
+
+#define TILE_PROP(n, c, bias) \
+	panwrap_prop("_" n "_tile_coord = MALI_COORDINATE_TO_TILE(%d, %d, %d)", \
+			(MALI_TILE_COORD_X(c) + bias) << MALI_TILE_SHIFT, \
+			(MALI_TILE_COORD_Y(c) + bias) << MALI_TILE_SHIFT, \
+			MALI_TILE_COORD_FLAGS(c));
+
+	TILE_PROP("min", s->_min_tile_coord, 0);
+	TILE_PROP("max", s->_max_tile_coord, 1);
+
+#undef TILE_PROP
 
 	panwrap_prop("fbd = %s | MALI_%s", pointer_as_memory_reference(p), s->fbd & MALI_MFBD ? "MFBD" : "SFBD");
 	panwrap_indent--;

@@ -128,12 +128,45 @@ struct mali_payload_vertex_tiler {
 } __attribute__((packed));
 //ASSERT_SIZEOF_TYPE(struct mali_payload_vertex_tiler, 256, 256);
 
+/* From presentations, 16x16 tiles externally. Use shift for fast computation
+ * of tile numbers. */
+
+#define MALI_TILE_SHIFT 4
+#define MALI_TILE_LENGTH (1 << MALI_TILE_SHIFT)
+
+/* Tile coordinates are stored as a compact u32, as only 12 bits are needed to
+ * each component. Notice that this provides a theoretical upper bound of (1 <<
+ * 12) = 4096 tiles in each direction, addressing a maximum framebuffer of size
+ * 65536x65536. Multiplying that together, times another four given that Mali
+ * framebuffers are 32-bit ARGB8888, means that this upper bound would take 16
+ * gigabytes of RAM just to store the uncompressed framebuffer itself, let
+ * alone rendering in real-time to such a buffer.
+ *
+ * Nice job, guys.*/
+
 /* From mali_kbase_10969_workaround.c */
 #define MALI_X_COORD_MASK 0x00000FFF
 #define MALI_Y_COORD_MASK 0x0FFF0000
+
+/* Extract parts of a tile coordinate */
+
 #define MALI_TILE_COORD_X(coord) ((coord) & MALI_X_COORD_MASK)
 #define MALI_TILE_COORD_Y(coord) (((coord) & MALI_Y_COORD_MASK) >> 16)
 #define MALI_TILE_COORD_FLAGS(coord) ((coord) & ~(MALI_X_COORD_MASK | MALI_Y_COORD_MASK))
+
+/* No known flags yet, but just in case...? */
+
+#define MALI_TILE_NO_FLAG (0)
+
+/* Helpers to generate tile coordinates based on the boundary coordinates in
+ * screen space. So, with the bounds (0, 0) to (128, 128) for the screen, these
+ * functions would convert it to the bounding tiles (0, 0) to (7, 7).
+ * Intentional "off-by-one"; finding the tile number is a form of fencepost
+ * problem. */
+
+#define MALI_MAKE_TILE_COORDS(X, Y, flag) ((X) | ((Y) << 16) | (flag))
+#define MALI_BOUND_TO_TILE(B) ((B - 1) >> MALI_TILE_SHIFT)
+#define MALI_COORDINATE_TO_TILE(W, H, flag) MALI_MAKE_TILE_COORDS(MALI_BOUND_TO_TILE(W), MALI_BOUND_TO_TILE(H), flag)
 
 struct mali_payload_fragment {
 	/* XXX: we might be able to translate these into bitfields someday, but
