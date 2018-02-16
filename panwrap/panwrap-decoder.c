@@ -453,6 +453,11 @@ static void panwrap_replay_sfbd(const struct panwrap_mapped_memory *mem, uint64_
 	panwrap_indent--;
 	panwrap_log_cont("},\n");
 
+	panwrap_prop("pdcm_1_1 = " MALI_PTR_FMT, s->pdcm_1_1);
+	panwrap_prop("pdcm_1_2 = 0x%" PRIx64, s->pdcm_1_2);
+	panwrap_prop("pdcm_2_1 = " MALI_PTR_FMT, s->pdcm_1_1);
+	panwrap_prop("pdcm_2_2 = 0x%" PRIx64, s->pdcm_1_2);
+
 	panwrap_prop("clear_color_1 = 0x%" PRIx32, s->clear_color_1);
 	panwrap_prop("clear_color_2 = 0x%" PRIx32, s->clear_color_2);
 	panwrap_prop("clear_color_3 = 0x%" PRIx32, s->clear_color_3);
@@ -488,7 +493,6 @@ static void panwrap_replay_sfbd(const struct panwrap_mapped_memory *mem, uint64_
 	zero_sum_pun += s->zero1;
 	zero_sum_pun += s->zero2;
 	for (int i = 0; i < sizeof(s->zero3)/sizeof(s->zero3[0]); ++i) zero_sum_pun += s->zero3[i];
-	for (int i = 0; i < sizeof(s->zero5)/sizeof(s->zero5[0]); ++i) zero_sum_pun += s->zero5[i];
 	for (int i = 0; i < sizeof(s->zero6)/sizeof(s->zero6[0]); ++i) zero_sum_pun += s->zero6[i];
 
 	if (zero_sum_pun)

@@ -197,7 +197,11 @@ struct mali_tentative_sfbd {
 
 	u32 weights[8];
 
-	u32 zero5[8];
+	mali_ptr pdcm_1_1; // not SAME_VA, large, probably stencil/depth buffers
+	u64 pdcm_1_2; // 0x6400
+
+	mali_ptr pdcm_2_1; // not SAME_VA, large, probably stencil/depth buffers
+	u64 pdcm_2_2; // 0x6400
 
 	u32 clear_color_1; // RGBA8888 from glClear, actually used by hardware
 	u32 clear_color_2; // always equal, but unclear function?
