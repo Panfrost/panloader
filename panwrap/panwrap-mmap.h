@@ -50,7 +50,7 @@ struct panwrap_mapped_memory {
 	panwrap_log("memcpy(%s + %d, &%s_%d, sizeof(%s_%d));\n", mem->name, (int) ((addr - mem->gpu_va) / sizeof(uint32_t)), ename, number, ename, number);
 
 void replay_memory();
-char *pointer_as_memory_reference(uintptr_t ptr);
+char *pointer_as_memory_reference(mali_ptr ptr);
 
 void panwrap_track_allocation(mali_ptr gpu_va, int flags, int number);
 void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
