@@ -64,7 +64,7 @@ char* pointer_as_memory_reference(uintptr_t ptr)
 	char *out = malloc(128);
 
 	if (ptr == (uintptr_t) ptr && (mapped = panwrap_find_mapped_mem_containing((void*) ptr)))
-		snprintf(out, 128, "(uintptr_t) (%s + %d)", mapped->name, (int) (ptr - mapped->gpu_va) / sizeof(uint32_t));
+		snprintf(out, 128, "mem_alloc_%d.gpu_va + %d", mapped->allocation_number, (int) (ptr - mapped->gpu_va));
 	else 
 		snprintf(out, 128, "0x%08X", ptr);
 

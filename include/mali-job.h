@@ -165,8 +165,10 @@ struct mali_payload_vertex_tiler {
  * problem. */
 
 #define MALI_MAKE_TILE_COORDS(X, Y, flag) ((X) | ((Y) << 16) | (flag))
-#define MALI_BOUND_TO_TILE(B) ((B - 1) >> MALI_TILE_SHIFT)
-#define MALI_COORDINATE_TO_TILE(W, H, flag) MALI_MAKE_TILE_COORDS(MALI_BOUND_TO_TILE(W), MALI_BOUND_TO_TILE(H), flag)
+#define MALI_BOUND_TO_TILE(B, bias) ((B - bias) >> MALI_TILE_SHIFT)
+#define MALI_COORDINATE_TO_TILE(W, H, flag, bias) MALI_MAKE_TILE_COORDS(MALI_BOUND_TO_TILE(W, bias), MALI_BOUND_TO_TILE(H, bias), flag)
+#define MALI_COORDINATE_TO_TILE_MIN(W, H, flag) MALI_COORDINATE_TO_TILE(W, H, flag, 0) 
+#define MALI_COORDINATE_TO_TILE_MAX(W, H, flag) MALI_COORDINATE_TO_TILE(W, H, flag, 1)
 
 struct mali_payload_fragment {
 	/* XXX: we might be able to translate these into bitfields someday, but
