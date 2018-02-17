@@ -691,9 +691,12 @@ static void emit_atoms(void *ptr) {
 		panwrap_prop("prio = %d", a->prio);
 		panwrap_prop("device_nr = %d", a->device_nr);
 
-		panwrap_log(".core_req = ");
-		ioctl_log_decoded_jd_core_req(a->core_req);
-		panwrap_log_cont("\n");
+		/* XXX This probably breaks replay on new kernels XXX */
+		if (!a->compat_core_req) {
+			panwrap_log(".compat_core_req = ");
+			ioctl_log_decoded_jd_core_req(a->core_req);
+			panwrap_log_cont("\n");
+		}
 
 		panwrap_indent--;
 		panwrap_log("},\n");
