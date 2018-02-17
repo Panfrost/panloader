@@ -56,11 +56,88 @@ static char *panwrap_gl_mode_name(enum mali_gl_mode mode)
 #undef DEFINE_CASE
 }
 
+static void panwrap_property_u32_list(const char *name, const u32 *lst, size_t c)
+{
+	panwrap_log(".%s = { ", name);
+	panwrap_indent++;
+	for (int i = 0; i < c; ++i)
+		panwrap_log_cont("0x%" PRIx32 ", ", lst[i]);
+	panwrap_indent--;
+	panwrap_log_cont("},\n");
+}
+
+
+
 static inline char *panwrap_decode_fbd_type(enum mali_fbd_type type)
 {
 	if (type == MALI_SFBD)      return "SFBD";
 	else if (type == MALI_MFBD) return "MFBD";
 	else return "WTF!?";
+}
+
+static void panwrap_replay_sfbd(const struct panwrap_mapped_memory *mem, uint64_t gpu_va, int job_no)
+{
+	const struct mali_tentative_sfbd *PANWRAP_PTR_VAR(s, mem, (mali_ptr) gpu_va);
+
+	panwrap_log("struct mali_tentative_sfbd fbd_%d = {\n", job_no);
+	panwrap_indent++;
+
+	panwrap_prop("unknown1 = 0x%" PRIx32, s->unknown1);
+	panwrap_prop("flags = 0x%" PRIx32, s->flags);
+	panwrap_prop("heap_free_address = 0x%" PRIx64, s->heap_free_address);
+	panwrap_prop("unknown2 = 0x%" PRIx32, s->unknown2);
+	panwrap_prop("unknown3 = 0x%" PRIx32, s->unknown3);
+	panwrap_prop("unknown4 = 0x%" PRIx32, s->unknown4);
+
+	panwrap_property_u32_list("weights", s->weights, MALI_FBD_HIERARCHY_WEIGHTS);
+
+	panwrap_prop("depth_buffer = " MALI_PTR_FMT, s->depth_buffer);
+	panwrap_prop("depth_buffer_unknown = 0x%" PRIx64, s->depth_buffer_unknown);
+
+	panwrap_prop("stencil_buffer = " MALI_PTR_FMT, s->depth_buffer);
+	panwrap_prop("stencil_buffer_unknown = 0x%" PRIx64, s->stencil_buffer_unknown);
+
+	panwrap_prop("clear_color_1 = 0x%" PRIx32, s->clear_color_1);
+	panwrap_prop("clear_color_2 = 0x%" PRIx32, s->clear_color_2);
+	panwrap_prop("clear_color_3 = 0x%" PRIx32, s->clear_color_3);
+	panwrap_prop("clear_color_4 = 0x%" PRIx32, s->clear_color_4);
+
+	panwrap_prop("clear_depth_1 = %f", s->clear_depth_1);
+	panwrap_prop("clear_depth_2 = %f", s->clear_depth_2);
+	panwrap_prop("clear_depth_3 = %f", s->clear_depth_3);
+	panwrap_prop("clear_depth_4 = %f", s->clear_depth_4);
+
+	panwrap_prop("clear_stencil = 0x%x", s->clear_stencil);
+
+	char *a = pointer_as_memory_reference(s->unknown_address_1);
+	panwrap_prop("unknown_address_1 = %s", a);
+	free(a);
+	
+	a = pointer_as_memory_reference(s->unknown_address_2);
+	panwrap_prop("unknown_address_2 = %s", a);
+	free(a);
+
+	panwrap_prop("shader_1 = 0x%" PRIx64, s->shader_1);
+
+	panwrap_prop("unknown8 = 0x%" PRIx32, s->unknown8);
+	panwrap_prop("unknown9 = 0x%" PRIx32, s->unknown9);
+
+	panwrap_prop("shader_3 = 0x%" PRIx64, s->shader_3);
+	panwrap_prop("shader_4 = 0x%" PRIx64, s->shader_4);
+
+	panwrap_indent--;
+	panwrap_log("};\n");
+
+	int zero_sum_pun = 0;
+	zero_sum_pun += s->zero1;
+	zero_sum_pun += s->zero2;
+	for (int i = 0; i < sizeof(s->zero3)/sizeof(s->zero3[0]); ++i) zero_sum_pun += s->zero3[i];
+	for (int i = 0; i < sizeof(s->zero6)/sizeof(s->zero6[0]); ++i) zero_sum_pun += s->zero6[i];
+
+	if (zero_sum_pun)
+		panwrap_msg("Zero sum tripped (%d), replay may be wrong\n", zero_sum_pun);
+
+	TOUCH(mem, (mali_ptr) gpu_va, *s, "fbd", job_no);
 }
 
 void panwrap_decode_attributes(const struct panwrap_mapped_memory *mem,
@@ -213,16 +290,6 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 #undef END
 }
 
-static void panwrap_property_u32_list(const char *name, const u32 *lst, size_t c)
-{
-	panwrap_log(".%s = { ", name);
-	panwrap_indent++;
-	for (int i = 0; i < c; ++i)
-		panwrap_log_cont("0x%" PRIx32 ", ", lst[i]);
-	panwrap_indent--;
-	panwrap_log_cont("},\n");
-}
-
 void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
 					const struct panwrap_mapped_memory *mem,
 					mali_ptr payload, int job_no)
@@ -350,7 +417,10 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_indent--;
 	panwrap_log("};\n");
 
-	//panwrap_trace_fbd(mem, &v->fbd);
+	TOUCH(mem, payload, *v, "vertex_tiler", job_no);
+
+	/* TODO: Isn't this an -M-FBD? What's the difference? */
+	panwrap_replay_sfbd(mem, v->fbd, job_no);
 }
 
 void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
@@ -483,70 +553,6 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_indent--;
 }
 
-static void panwrap_replay_sfbd(const struct panwrap_mapped_memory *mem, uint64_t gpu_va, int job_no)
-{
-	const struct mali_tentative_sfbd *PANWRAP_PTR_VAR(s, mem, (mali_ptr) gpu_va);
-
-	panwrap_log("struct mali_tentative_sfbd fbd_%d = {\n", job_no);
-	panwrap_indent++;
-
-	panwrap_prop("unknown1 = 0x%" PRIx32, s->unknown1);
-	panwrap_prop("flags = 0x%" PRIx32, s->flags);
-	panwrap_prop("heap_free_address = 0x%" PRIx64, s->heap_free_address);
-	panwrap_prop("unknown2 = 0x%" PRIx32, s->unknown2);
-	panwrap_prop("unknown3 = 0x%" PRIx32, s->unknown3);
-	panwrap_prop("unknown4 = 0x%" PRIx32, s->unknown4);
-
-	panwrap_property_u32_list("weights", s->weights, MALI_FBD_HIERARCHY_WEIGHTS);
-
-	panwrap_prop("depth_buffer = " MALI_PTR_FMT, s->depth_buffer);
-	panwrap_prop("depth_buffer_unknown = 0x%" PRIx64, s->depth_buffer_unknown);
-
-	panwrap_prop("stencil_buffer = " MALI_PTR_FMT, s->depth_buffer);
-	panwrap_prop("stencil_buffer_unknown = 0x%" PRIx64, s->stencil_buffer_unknown);
-
-	panwrap_prop("clear_color_1 = 0x%" PRIx32, s->clear_color_1);
-	panwrap_prop("clear_color_2 = 0x%" PRIx32, s->clear_color_2);
-	panwrap_prop("clear_color_3 = 0x%" PRIx32, s->clear_color_3);
-	panwrap_prop("clear_color_4 = 0x%" PRIx32, s->clear_color_4);
-
-	panwrap_prop("clear_depth_1 = %f", s->clear_depth_1);
-	panwrap_prop("clear_depth_2 = %f", s->clear_depth_2);
-	panwrap_prop("clear_depth_3 = %f", s->clear_depth_3);
-	panwrap_prop("clear_depth_4 = %f", s->clear_depth_4);
-
-	panwrap_prop("clear_stencil = 0x%x", s->clear_stencil);
-
-	char *a = pointer_as_memory_reference(s->unknown_address_1);
-	panwrap_prop("unknown_address_1 = %s", a);
-	free(a);
-	
-	a = pointer_as_memory_reference(s->unknown_address_2);
-	panwrap_prop("unknown_address_2 = %s", a);
-	free(a);
-
-	panwrap_prop("shader_1 = 0x%" PRIx64, s->shader_1);
-
-	panwrap_prop("unknown8 = 0x%" PRIx32, s->unknown8);
-	panwrap_prop("unknown9 = 0x%" PRIx32, s->unknown9);
-
-	panwrap_prop("shader_3 = 0x%" PRIx64, s->shader_3);
-	panwrap_prop("shader_4 = 0x%" PRIx64, s->shader_4);
-
-	panwrap_indent--;
-	panwrap_log("};\n");
-
-	int zero_sum_pun = 0;
-	zero_sum_pun += s->zero1;
-	zero_sum_pun += s->zero2;
-	for (int i = 0; i < sizeof(s->zero3)/sizeof(s->zero3[0]); ++i) zero_sum_pun += s->zero3[i];
-	for (int i = 0; i < sizeof(s->zero6)/sizeof(s->zero6[0]); ++i) zero_sum_pun += s->zero6[i];
-
-	if (zero_sum_pun)
-		panwrap_msg("Zero sum tripped (%d), replay may be wrong\n", zero_sum_pun);
-
-	TOUCH(mem, (mali_ptr) gpu_va, *s, "fbd", job_no);
-}
 
 static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 					mali_ptr payload, int job_no)
