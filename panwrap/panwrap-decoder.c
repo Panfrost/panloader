@@ -640,6 +640,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		panwrap_prop("fault_pointer = 0x%" PRIx64, h->fault_pointer);
 		panwrap_prop("job_barrier = %d", h->job_barrier);
 		panwrap_prop("job_index = %d", h->job_index);
+		panwrap_prop("unknown_flags = %d", h->unknown_flags);
 
 		panwrap_prop("job_dependency_index_1 = %d", h->job_dependency_index_1);
 		panwrap_prop("job_dependency_index_1 = %d", h->job_dependency_index_2);
@@ -647,13 +648,6 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		char *a = pointer_as_memory_reference(h->next_job);
 		panwrap_prop("next_job = %s", a);
 		free(a);
-
-		/* If any of these bits are set, then the replay is wrong... */
-		if (h->_reserved_01 | h->_reserved_1 | h->_reserved_02
-		  | h->_reserved_03 | h->_reserved_2 | h->_reserved_04
-		  | h->_reserved_05) {
-			panwrap_msg("XXX Reserved flag in job descriptor header set, replay may be wrong XXX\n");
-		}
 
 		panwrap_indent--;
 		panwrap_log("};\n");

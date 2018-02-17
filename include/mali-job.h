@@ -59,13 +59,7 @@ struct mali_job_descriptor_header {
 	u8 job_descriptor_size : 1;
 	enum mali_job_type job_type : 7;
 	u8 job_barrier : 1;
-	u8 _reserved_01 : 1;
-	u8 _reserved_1 : 1;
-	u8 _reserved_02 : 1;
-	u8 _reserved_03 : 1;
-	u8 _reserved_2 : 1;
-	u8 _reserved_04 : 1;
-	u8 _reserved_05 : 1;
+	u8 unknown_flags : 7;
 	u16 job_index;
 	u16 job_dependency_index_1;
 	u16 job_dependency_index_2;
