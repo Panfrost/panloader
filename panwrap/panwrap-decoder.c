@@ -79,6 +79,9 @@ static void panwrap_replay_sfbd(const struct panwrap_mapped_memory *mem, uint64_
 {
 	const struct mali_tentative_sfbd *PANWRAP_PTR_VAR(s, mem, (mali_ptr) gpu_va);
 
+	/* FBDs are frequently duplicated, so watch for this */
+	if (mem->touched[(gpu_va - mem->gpu_va) / sizeof(uint32_t)]) return;
+
 	panwrap_log("struct mali_tentative_sfbd fbd_%d = {\n", job_no);
 	panwrap_indent++;
 
