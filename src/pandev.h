@@ -18,6 +18,7 @@
 #include <mali-ioctl.h>
 #include <mali-job.h>
 #include <linux/ioctl.h>
+#include "slow-framebuffer.h"
 
 int pandev_open();
 int pandev_query_mem(int fd, mali_ptr addr, enum mali_ioctl_mem_query_type attr,

@@ -14,8 +14,7 @@ void slowfb_init(int width, int height) {
 }
 
 void slowfb_update(uint8_t *framebuffer, int width, int height) {
-	SDL_UpdateTexture(sdlTexture, NULL, framebuffer, width * sizeof (u32));
-	SDL_RenderClear(sdlRenderer);
+	SDL_UpdateTexture(sdlTexture, NULL, framebuffer, width * sizeof (uint32_t));
 	SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
 	SDL_RenderPresent(sdlRenderer);
 }

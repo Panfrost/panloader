@@ -75,8 +75,9 @@ static inline char *panwrap_decode_fbd_type(enum mali_fbd_type type)
 	else return "WTF!?";
 }
 
-static void panwrap_replay_sfbd(const struct panwrap_mapped_memory *mem, uint64_t gpu_va, int job_no)
+static void panwrap_replay_sfbd(uint64_t gpu_va, int job_no)
 {
+	struct panwrap_mapped_memory *mem = panwrap_find_mapped_gpu_mem_containing(gpu_va);
 	const struct mali_tentative_sfbd *PANWRAP_PTR_VAR(s, mem, (mali_ptr) gpu_va);
 
 	/* FBDs are frequently duplicated, so watch for this */
@@ -402,7 +403,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	TOUCH(mem, payload, *v, "vertex_tiler", job_no);
 
 	/* TODO: Isn't this an -M-FBD? What's the difference? */
-	panwrap_replay_sfbd(mem, v->fbd, job_no);
+	panwrap_replay_sfbd(v->fbd, job_no);
 
 	if (shader_meta_ptr) {
 		struct panwrap_mapped_memory *smem = panwrap_find_mapped_gpu_mem_containing(shader_meta_ptr);
@@ -589,7 +590,7 @@ static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 	TOUCH(mem, payload, *s, "fragment", job_no);
 
 	if ((s->fbd & FBD_TYPE) == MALI_SFBD)
-		panwrap_replay_sfbd(fbd_map, s->fbd & FBD_MASK, job_no);
+		panwrap_replay_sfbd(s->fbd & FBD_MASK, job_no);
 }
 
 static void panwrap_decode_fragment_job(const struct panwrap_mapped_memory *mem,
@@ -674,11 +675,12 @@ static int job_descriptor_number = 0;
 
 void panwrap_replay_jc(mali_ptr jc_gpu_va)
 {
-	struct panwrap_mapped_memory *mem =
-		panwrap_find_mapped_gpu_mem_containing(jc_gpu_va);
 	struct mali_job_descriptor_header *h;
 
 	do {
+		struct panwrap_mapped_memory *mem =
+			panwrap_find_mapped_gpu_mem_containing(jc_gpu_va);
+
 		mali_ptr payload_ptr = jc_gpu_va + sizeof(*h);
 		void *payload;
 
