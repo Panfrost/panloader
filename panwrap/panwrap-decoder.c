@@ -310,8 +310,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 	panwrap_property_u32_list("block1", v->block1, 10);
 	panwrap_property_u32_list("block2", v->block2, 36);
-	panwrap_prop("null0 = " MALI_SHORT_PTR_FMT, v->null0);
-	panwrap_prop("unknown0 = " MALI_SHORT_PTR_FMT, v->unknown0);
 
 #define MEMORY_PROP(p) {\
 	char *a = pointer_as_memory_reference(v->p); \
@@ -319,7 +317,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	free(a); \
 }
 
-	MEMORY_PROP(unknown1);
 	MEMORY_PROP(null0);
 	MEMORY_PROP(unknown0);
 	MEMORY_PROP(unknown1); /* pointer */
