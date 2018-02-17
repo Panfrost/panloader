@@ -643,7 +643,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		panwrap_prop("unknown_flags = %d", h->unknown_flags);
 
 		panwrap_prop("job_dependency_index_1 = %d", h->job_dependency_index_1);
-		panwrap_prop("job_dependency_index_1 = %d", h->job_dependency_index_2);
+		panwrap_prop("job_dependency_index_2 = %d", h->job_dependency_index_2);
 
 		char *a = pointer_as_memory_reference(h->next_job);
 		panwrap_prop("next_job = %s", a);
