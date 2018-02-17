@@ -334,6 +334,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 #undef MEMORY_PROP
 
+	panwrap_msg("meta " MALI_PTR_FMT, shader_meta_ptr);
 	char *a = pointer_as_memory_reference(shader_meta_ptr);
 	panwrap_prop("_shader_upper = (%s) >> 4", a);
 	free(a);
@@ -423,7 +424,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 		panwrap_indent--;
 		panwrap_log("};\n");
-		TOUCH(mem, shader_meta_ptr, *meta, "shader_meta", job_no);
+		TOUCH(smem, shader_meta_ptr, *meta, "shader_meta", job_no);
 	} else
 		panwrap_msg("<no shader>\n");
 }
