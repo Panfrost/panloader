@@ -213,6 +213,16 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 #undef END
 }
 
+static void panwrap_property_u32_list(const char *name, const u32 *lst, size_t c)
+{
+	panwrap_log(".%s = { ", name);
+	panwrap_indent++;
+	for (int i = 0; i < c; ++i)
+		panwrap_log_cont("0x%" PRIx32 ", ", lst[i]);
+	panwrap_indent--;
+	panwrap_log_cont("},\n");
+}
+
 void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
 					const struct panwrap_mapped_memory *mem,
 					mali_ptr payload, int job_no)
@@ -228,22 +238,40 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_log("struct mali_payload_vertex_tiler vertex_tiler_%d = {\n", job_no);
 	panwrap_indent++;
 
+	panwrap_property_u32_list("block1", v->block1, 10);
+	panwrap_property_u32_list("block2", v->block2, 36);
 	panwrap_prop("null0 = " MALI_SHORT_PTR_FMT, v->null0);
 	panwrap_prop("unknown0 = " MALI_SHORT_PTR_FMT, v->unknown0);
-	panwrap_prop("unknown1 = " MALI_SHORT_PTR_FMT, v->unknown1); 
-	panwrap_prop("texture_meta_address = " MALI_SHORT_PTR_FMT, v->texture_meta_address);
-	panwrap_prop("texture_unknown = " MALI_SHORT_PTR_FMT, v->texture_unknown);
-	panwrap_prop("uniforms = " MALI_SHORT_PTR_FMT, v->uniforms);
-	panwrap_prop("_shader_upper = (" MALI_SHORT_PTR_FMT ") >> 4", v->_shader_upper << 4); 
+
+#define MEMORY_PROP(p) {\
+	char *a = pointer_as_memory_reference(v->p); \
+	panwrap_prop("%s = %s", #p, a); \
+	free(a); \
+}
+
+	MEMORY_PROP(unknown1);
+	MEMORY_PROP(null0);
+	MEMORY_PROP(unknown0);
+	MEMORY_PROP(unknown1); /* pointer */
+	MEMORY_PROP(texture_meta_address);
+	MEMORY_PROP(texture_unknown);
+	MEMORY_PROP(uniforms);
+	MEMORY_PROP(attributes); /* struct attribute_buffer[] */
+	MEMORY_PROP(attribute_meta); /* attribute_meta[] */
+	MEMORY_PROP(unknown5); /* pointer */
+	MEMORY_PROP(unknown6); /* pointer */
+	MEMORY_PROP(nullForVertex);
+	MEMORY_PROP(null4);
+	MEMORY_PROP(fbd);
+	MEMORY_PROP(unknown7); /* pointer */
+
+#undef MEMORY_PROP
+
+	char *a = pointer_as_memory_reference((u64) v->_shader_upper << 4);
+	panwrap_prop("_shader_upper = (%s) >> 4", a);
+	free(a);
+
 	panwrap_prop("flags = %d", v->flags); 
-	panwrap_prop("attributes = " MALI_SHORT_PTR_FMT, v->attributes); 
-	panwrap_prop("attribute_meta = " MALI_SHORT_PTR_FMT, v->attribute_meta); 
-	panwrap_prop("unknown5 = " MALI_SHORT_PTR_FMT, v->unknown5); 
-	panwrap_prop("unknown6 = " MALI_SHORT_PTR_FMT, v->unknown6);
-	panwrap_prop("nullForVertex = " MALI_SHORT_PTR_FMT, v->nullForVertex);
-	panwrap_prop("null4 = " MALI_SHORT_PTR_FMT, v->null4);
-	panwrap_prop("fbd = " MALI_PTR_FMT, v->fbd);
-	panwrap_prop("unknown7 = " MALI_SHORT_PTR_FMT, v->unknown7); 
 
 #if 0
 	attr_mem = panwrap_find_mapped_gpu_mem_containing(v->attribute_meta);
@@ -469,12 +497,7 @@ static void panwrap_replay_sfbd(const struct panwrap_mapped_memory *mem, uint64_
 	panwrap_prop("unknown3 = 0x%" PRIx32, s->unknown3);
 	panwrap_prop("unknown4 = 0x%" PRIx32, s->unknown4);
 
-	panwrap_log(".weights = { ");
-	panwrap_indent++;
-	for (int i = 0; i < MALI_FBD_HIERARCHY_WEIGHTS; ++i)
-		panwrap_log_cont("0x%" PRIx32 ", ", s->weights[i]);
-	panwrap_indent--;
-	panwrap_log_cont("},\n");
+	panwrap_property_u32_list("weights", s->weights, MALI_FBD_HIERARCHY_WEIGHTS);
 
 	panwrap_prop("depth_buffer = " MALI_PTR_FMT, s->depth_buffer);
 	panwrap_prop("depth_buffer_unknown = 0x%" PRIx64, s->depth_buffer_unknown);
