@@ -46,8 +46,9 @@ enum mali_gl_mode {
 
 struct mali_shader_meta {
 	mali_ptr shader;
-	mali_ptr unknown1;
-	mali_ptr unknown2;
+	u32 zero;
+	u32 unknown1;
+	u32 unknown2;
 };
 
 /* FIXME: This might only concern fragment/vertex jobs? notes unclear */

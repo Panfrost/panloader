@@ -302,7 +302,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	struct panwrap_mapped_memory *attr_mem;
 	struct mali_attr_meta *attr_meta;
 	u8 *shader;
-	mali_ptr meta_ptr = (u64) (uintptr_t) (v->_shader_upper << 4);
+	mali_ptr shader_meta_ptr = (u64) (uintptr_t) (v->_shader_upper << 4);
 	mali_ptr p;
 
 	panwrap_log("struct mali_payload_vertex_tiler vertex_tiler_%d = {\n", job_no);
@@ -337,7 +337,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 #undef MEMORY_PROP
 
-	char *a = pointer_as_memory_reference((u64) v->_shader_upper << 4);
+	char *a = pointer_as_memory_reference(shader_meta_ptr);
 	panwrap_prop("_shader_upper = (%s) >> 4", a);
 	free(a);
 
@@ -349,24 +349,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_msg("%s shader @ " MALI_PTR_FMT " (flags 0x%x)\n",
 		    h->job_type == JOB_TYPE_VERTEX ? "Vertex" : "Fragment",
 		    meta_ptr, v->flags);
-
-	panwrap_indent++;
-
-	if (meta_ptr) {
-		meta = panwrap_fetch_gpu_mem(NULL, meta_ptr, sizeof(*meta));
-		shader = panwrap_fetch_gpu_mem(NULL, meta->shader, 64);
-
-		panwrap_msg("Shader blob: @ " MALI_PTR_FMT " (@ " MALI_PTR_FMT ")\n",
-			       	meta_ptr, meta->shader & ~7);
-		panwrap_indent++;
-		/*panwrap_log_hexdump(
-		    panwrap_fetch_gpu_mem(NULL, meta->shader & ~7, 832), 832);*/
-		panwrap_indent--;
-
-	} else
-		panwrap_log("<no shader>\n");
-
-	panwrap_indent--;
 
 	if (v->attribute_meta) {
 		panwrap_msg("Attribute list:\n");
@@ -424,6 +406,29 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 	/* TODO: Isn't this an -M-FBD? What's the difference? */
 	panwrap_replay_sfbd(mem, v->fbd, job_no);
+
+	if (shader_meta_ptr) {
+		struct panwrap_mapped_memory *smem = panwrap_find_mapped_gpu_mem_containing(shader_meta_ptr);
+
+		struct mali_shader_meta *PANWRAP_PTR_VAR(s, smem, shader_meta_ptr);
+
+		panwrap_log("struct mali_shader_meta shader_meta_%d = {\n", job_no);
+		panwrap_indent++;
+
+		/* TODO: Decode flags */
+		char *a = pointer_as_memory_reference(s->shader & ~7);
+		panwrap_prop("shader = (%s) | %d", a, (int) (s->shader & 7));
+		free(a);
+
+		panwrap_prop("zero = 0x%" PRIx32, s->zero);
+		panwrap_prop("unknown1 = 0x%" PRIx32, s->unknown1);
+		panwrap_prop("unknown2 = 0x%" PRIx32, s->unknown2);
+
+		panwrap_indent--;
+		panwrap_log("};\n");
+		TOUCH(mem, shader_meta_ptr, *meta, "shader_meta", job_no);
+	} else
+		panwrap_msg("<no shader>\n");
 }
 
 void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
