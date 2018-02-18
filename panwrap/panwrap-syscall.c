@@ -447,7 +447,8 @@ ioctl_decode_pre_mem_alloc(unsigned long int request, void *ptr)
 	panwrap_prop("extent = 0x%" PRIx64, args->extent);
 
 	panwrap_log(".flags = ");
-	panwrap_log_decoded_flags(mem_flag_info, args->flags);
+	panwrap_log_decoded_flags(mem_flag_info,
+			do_replay ? args->flags & ~MALI_MEM_CACHED_CPU : args->flags);
 	panwrap_log_cont(",\n");
 }
 
@@ -1297,7 +1298,11 @@ int ioctl(int fd, int request, ...)
 	/* Neither is debugfs nonsense */
 	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_DEBUGFS_MEM_PROFILE_ADD))
 		ignore = true;
-
+	
+	/* Syncs -are-, but we disable caching */
+	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_SYNC))
+		ignore = true;
+	
 	if (do_replay) {
 		lname = panwrap_lower_string(name);
 		number = ioctl_count++;
