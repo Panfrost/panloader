@@ -632,8 +632,12 @@ static void emit_atoms(void *ptr) {
 	for (int i = 0; i < args->nr_atoms; i++) {
 		const struct mali_jd_atom_v2 *a = &atoms[i];
 
-		if (a->jc)
-			panwrap_replay_jc(a->jc);
+		if (a->jc) {
+			/* We don't care about soft jobs, at least not yet */
+
+			if (!(a->core_req & MALI_JD_REQ_SOFT_JOB))
+				panwrap_replay_jc(a->jc);
+		}
 	}
 
 	for (int i = 0; i < args->nr_atoms; i++) {
