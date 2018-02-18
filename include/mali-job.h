@@ -51,7 +51,7 @@ struct mali_shader_meta {
 	u32 unknown2;
 };
 
-/* FIXME: This might only concern fragment/vertex jobs? notes unclear */
+/* This only concerns hardware jobs */
 
 struct mali_job_descriptor_header {
 	u32 exception_status;
@@ -101,7 +101,6 @@ enum mali_fbd_type {
 struct mali_payload_vertex_tiler {
 	u32 block1[10];
 
-	/* Lyude: no idea what the null's were supposed to represent here. */
 	uintptr_t null0;
 	uintptr_t unknown0;
 	uintptr_t unknown1; /* pointer */
@@ -186,8 +185,8 @@ struct mali_payload_fragment {
 } __attribute__((packed));
 //ASSERT_SIZEOF_TYPE(struct mali_payload_fragment, 12, 16);
 
-/* FBD: Fragment B[unknown] D[escriptor?]
- */
+/* FBD: Fragment Descriptor? Framebuffer Descriptor? Who knows?! */
+
 struct mali_tentative_sfbd {
 	u32 unknown1;
 	u32 flags;
