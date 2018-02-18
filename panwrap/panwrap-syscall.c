@@ -1311,6 +1311,7 @@ int ioctl(int fd, int request, ...)
 		if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_IMPORT)) {
 			panwrap_log("uint32_t *framebuffer;\n");
 			panwrap_log("posix_memalign((void **) &framebuffer, CACHE_LINE_SIZE, 4096*4096*4);\n");
+			panwrap_log("slowfb_init(framebuffer, 400, 320);\n");
 			panwrap_log("struct mali_mem_import_user_buffer framebuffer_handle = { .ptr = (uint64_t) (uintptr_t) framebuffer, .length = 4096*4096*4 };\n");
 		}
 
@@ -1359,6 +1360,7 @@ int ioctl(int fd, int request, ...)
 
 		/* Dump the framebuffer :D */
 		if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_JOB_SUBMIT)) {
+			panwrap_log("slowfb_update(framebuffer, 400, 320);\n");
 			panwrap_log("FILE *fp = fopen(\"/dev/shm/framebuffer.bin\", \"wb\");\n");
 			panwrap_log("fwrite(framebuffer, 1, 4096*4096*4, fp);\n");
 			panwrap_log("fclose(fp);\n");
