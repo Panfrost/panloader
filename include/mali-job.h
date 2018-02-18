@@ -184,7 +184,7 @@ struct mali_payload_fragment {
 } __attribute__((packed));
 //ASSERT_SIZEOF_TYPE(struct mali_payload_fragment, 12, 16);
 
-/* FBD: Fragment Descriptor? Framebuffer Descriptor? Who knows?! */
+/* (Single?) Framebuffer Descriptor */
 
 struct mali_tentative_sfbd {
 	u32 unknown1;
@@ -238,6 +238,8 @@ struct mali_tentative_sfbd {
 
 	/* More below this, maybe */
 } __attribute__((packed));
+
+/* Multi? Framebuffer Descriptor */
 
 struct mali_tentative_mfbd {
 	u64 blah; /* XXX: what the fuck is this? */
