@@ -333,6 +333,8 @@ void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
 
 	panwrap_indent++;
 	for (int row = 0; row < vertex_count; row++) {
+		panwrap_log("");
+
 		for (int i = 0; i < component_count; i++)
 			panwrap_log_cont("%ff, ", buffer[i]);
 
