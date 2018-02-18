@@ -363,7 +363,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_log("struct mali_payload_vertex_tiler vertex_tiler_%d = {\n", job_no);
 	panwrap_indent++;
 
-	panwrap_property_u32_list("block1", v->block1, 10);
 	panwrap_property_u32_list("block2", v->block2, 36);
 
 #define MEMORY_PROP(p) {\
@@ -371,6 +370,12 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_prop("%s = %s", #p, a); \
 	free(a); \
 }
+	panwrap_prop("unk1 = 0x%" PRIx32, v->unk1);
+	panwrap_prop("unk2 = 0x%" PRIx32, v->unk2);
+	panwrap_prop("unk3 = 0x%" PRIx32, v->unk3);
+
+	if (v->zero0 | v->zero1 | v->zero2)
+		panwrap_msg("Early zero tripped, replay may be wrong\n");
 
 	MEMORY_PROP(null0);
 	MEMORY_PROP(unknown0);
@@ -536,11 +541,6 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 	panwrap_indent++;
 
-	panwrap_log("Block #1:\n");
-	panwrap_indent++;
-	panwrap_log_hexdump(v->block1, sizeof(v->block1));
-	panwrap_indent--;
-
 	if (meta_ptr) {
 		meta = panwrap_fetch_gpu_mem(NULL, meta_ptr, sizeof(*meta));
 		shader = panwrap_fetch_gpu_mem(NULL, meta->shader, 64);
@@ -601,11 +601,13 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_log_hexdump(v->block2, sizeof(v->block2));
 	panwrap_indent--;
 
+	/*
 	if (h->job_type == JOB_TYPE_TILER && v->block1[7]) {
 		panwrap_log("GL draw mode: %s\n",
 			    panwrap_gl_mode_name(
 				*PANWRAP_PTR(attr_mem, v->block1[7], u8)));
 	}
+	*/
 
 	if (v->uniforms) {
 		/* XXX: How do we know how many to print? How do we know to use

@@ -98,7 +98,13 @@ enum mali_fbd_type {
  * unsigned char types
  */
 struct mali_payload_vertex_tiler {
-	u32 block1[10];
+	u32 unk0;
+	u32 unk1;
+	u32 unk2;
+	u32 zero0;
+	u64 zero1;
+	u64 zero2;
+	u64 unk3;
 
 	uintptr_t null0;
 	uintptr_t unknown0;
