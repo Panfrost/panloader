@@ -407,7 +407,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 	if (shader_meta_ptr) {
 		struct panwrap_mapped_memory *smem = panwrap_find_mapped_gpu_mem_containing(shader_meta_ptr);
-
 		struct mali_shader_meta *PANWRAP_PTR_VAR(s, smem, shader_meta_ptr);
 
 		panwrap_log("struct mali_shader_meta shader_meta_%d = {\n", job_no);
@@ -427,6 +426,21 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		TOUCH(smem, shader_meta_ptr, *meta, "shader_meta", job_no);
 	} else
 		panwrap_msg("<no shader>\n");
+	
+	if (v->nullForVertex) {
+		struct panwrap_mapped_memory *fmem = panwrap_find_mapped_gpu_mem_containing(v->nullForVertex);
+		struct nullForVertex *PANWRAP_PTR_VAR(f, fmem, v->nullForVertex);
+
+		panwrap_log("struct nullForVertex nullForVertex_%d = { .floats = {\n", job_no);
+		panwrap_indent++;
+
+		for (int i = 0; i < sizeof(f->floats) / sizeof(f->floats[0]); i += 2)
+			panwrap_log("%ff, %ff,\n", f->floats[i], f->floats[i + 1]);
+
+		panwrap_indent--;
+		panwrap_log("}};\n");
+		TOUCH(fmem, v->nullForVertex, *f, "nullForVertex", job_no);
+	}
 }
 
 void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,

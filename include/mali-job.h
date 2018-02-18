@@ -123,6 +123,15 @@ struct mali_payload_vertex_tiler {
 } __attribute__((packed));
 //ASSERT_SIZEOF_TYPE(struct mali_payload_vertex_tiler, 256, 256);
 
+/* TODO: What is this? In practice, it looks like { -inf, -inf, inf, inf, 0.0,
+ * 1.0, }, followed by a hex thingy, and then zeroes, which suggests some kind
+ * of bounds, perhaps mapping coordinate systems. But why only for tiler jobs?
+ * */
+
+struct nullForVertex {
+	float floats[6];
+};
+
 /* From presentations, 16x16 tiles externally. Use shift for fast computation
  * of tile numbers. */
 

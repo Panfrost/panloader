@@ -29,4 +29,7 @@ int pandev_raw_open();
 u8* pandev_map_mtp(int fd);
 int pandev_ioctl(int fd, unsigned long request, void *args);
 
+#include <math.h>
+#define inff INFINITY
+
 #endif /* __PANDEV_H__ */
