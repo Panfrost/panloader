@@ -147,6 +147,7 @@ static void panwrap_replay_sfbd(uint64_t gpu_va, int job_no)
 void panwrap_decode_attributes(const struct panwrap_mapped_memory *mem,
 			       mali_ptr addr)
 {
+#if 0
 	struct mali_attr *PANWRAP_PTR_VAR(attr, mem, addr);
 	float *buffer = panwrap_fetch_gpu_mem(
 	    mem, attr->elements_upper << 2, attr->size);
@@ -169,6 +170,7 @@ void panwrap_decode_attributes(const struct panwrap_mapped_memory *mem,
 		panwrap_log_cont(">\n");
 	}
 	panwrap_indent--;
+#endif
 }
 
 static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
@@ -292,6 +294,56 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 	panwrap_indent--;
 #undef OFFSET
 #undef END
+}
+
+void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
+			       mali_ptr addr, int job_no, int attr_no)
+{
+	struct mali_attr *PANWRAP_PTR_VAR(attr, mem, addr);
+	mali_ptr raw_elements = attr->elements & ~3;
+	int flags = attr->elements & 3;
+	float *buffer = panwrap_fetch_gpu_mem(
+	    mem, raw_elements, attr->size);
+	size_t vertex_count;
+	size_t component_count;
+
+
+	int human_attr_number = (job_no * 100) + attr_no;
+	panwrap_log("struct mali_attr attr_%d = {\n", human_attr_number);
+	panwrap_indent++;
+
+	char *a = pointer_as_memory_reference(raw_elements);
+	panwrap_prop("elements = (%s) | %d", a, flags);
+	free(a);
+
+	panwrap_prop("stride = 0x%" PRIx32, attr->stride);
+	panwrap_prop("size = 0x%" PRIx32, attr->size);
+	panwrap_indent--;
+	panwrap_log("};\n");
+
+	TOUCH(mem, addr, *attr, "attr", human_attr_number);
+
+	/* TODO: Attributes are not necessarily float32 vectors in general;
+	 * decoding like this is unsafe all things considered */
+
+	vertex_count = attr->size / attr->stride;
+	component_count = attr->stride / sizeof(float);
+
+	panwrap_log("float attributes_%d[] = {\n", human_attr_number);
+
+	panwrap_indent++;
+	for (int row = 0; row < vertex_count; row++) {
+		for (int i = 0; i < component_count; i++)
+			panwrap_log_cont("%ff, ", buffer[i]);
+
+		panwrap_log_cont("\n");
+
+		buffer += component_count;
+	}
+	panwrap_indent--;
+	panwrap_log("};\n");
+
+	TOUCH_LEN(mem, raw_elements, attr->size, "attributes", human_attr_number);
 }
 
 void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
@@ -444,6 +496,21 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_log("};\n");
 
 		TOUCH_LEN(attr_mem, v->attribute_meta, sizeof(struct mali_attr_meta) * count, "attributes", job_no);
+
+		attr_mem = panwrap_find_mapped_gpu_mem_containing(v->attributes);
+
+		for (p = v->attribute_meta;
+		     *PANWRAP_PTR(attr_mem, p, u64) != 0;
+		     p += sizeof(struct mali_attr_meta), count++) {
+			attr_meta = panwrap_fetch_gpu_mem(attr_mem, p,
+							  sizeof(*attr_mem));
+
+			panwrap_replay_attributes(
+			    attr_mem,
+			    v->attributes + (attr_meta->index *
+					     sizeof(struct mali_attr)),
+			    job_no, attr_meta->index);
+		}
 	}
 }
 

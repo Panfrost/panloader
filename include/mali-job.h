@@ -73,8 +73,7 @@ struct mali_payload_set_value {
 } __attribute__((packed));
 
 struct mali_attr {
-	u8 flags : 2;
-	mali_ptr elements_upper : MALI_SHORT_PTR_BITS - 2;
+	mali_ptr elements;
 	u32 stride;
 	u32 size;
 } __attribute__((packed));
