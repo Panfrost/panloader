@@ -342,32 +342,9 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_prop("flags = %d", v->flags); 
 
 #if 0
-	attr_mem = panwrap_find_mapped_gpu_mem_containing(v->attribute_meta);
-
 	panwrap_msg("%s shader @ " MALI_PTR_FMT " (flags 0x%x)\n",
 		    h->job_type == JOB_TYPE_VERTEX ? "Vertex" : "Fragment",
 		    meta_ptr, v->flags);
-
-	if (v->attribute_meta) {
-		panwrap_msg("Attribute list:\n");
-		panwrap_indent++;
-		for (p = v->attribute_meta;
-		     *PANWRAP_PTR(attr_mem, p, u64) != 0;
-		     p += sizeof(u64)) {
-			attr_meta = panwrap_fetch_gpu_mem(attr_mem, p,
-							  sizeof(*attr_mem));
-
-			panwrap_msg("%x:\n", attr_meta->index);
-			panwrap_indent++;
-
-			panwrap_msg("flags = 0x%014" PRIx64 "\n",
-				    (u64) attr_meta->flags);
-
-			panwrap_indent--;
-		}
-		panwrap_indent--;
-	} else
-		panwrap_msg("<no attributes>\n");
 
 	if (h->job_type == JOB_TYPE_TILER && v->block1[7]) {
 		panwrap_msg("GL draw mode: %s\n",
@@ -440,6 +417,33 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_indent--;
 		panwrap_log("}};\n");
 		TOUCH(fmem, v->nullForVertex, *f, "nullForVertex", job_no);
+	}
+
+	if (v->attribute_meta) {
+		panwrap_log("struct mali_attr_meta attributes_%d[] = {\n", job_no);
+		panwrap_indent++;
+
+		size_t count = 0;
+
+		struct mali_attr_meta *attr_meta;
+		mali_ptr p;
+
+		attr_mem = panwrap_find_mapped_gpu_mem_containing(v->attribute_meta);
+
+		for (p = v->attribute_meta;
+		     *PANWRAP_PTR(attr_mem, p, u64) != 0;
+		     p += sizeof(struct mali_attr_meta), count++) {
+			attr_meta = panwrap_fetch_gpu_mem(attr_mem, p,
+							  sizeof(*attr_mem));
+
+			panwrap_log("{ .index = %d, .flags = 0x%" PRIx64 "},\n",
+					attr_meta->index, attr_meta->flags);
+		}
+
+		panwrap_indent--;
+		panwrap_log("};\n");
+
+		TOUCH_LEN(attr_mem, v->attribute_meta, sizeof(struct mali_attr_meta) * count, "attributes", job_no);
 	}
 }
 
