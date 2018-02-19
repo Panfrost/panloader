@@ -126,7 +126,34 @@ struct mali_payload_vertex_tiler {
 	u64 fbd;
 	uintptr_t unknown7; /* pointer */
 
-	u32 block2[36];
+	u64 zero5;
+	mali_ptr unknown8;
+	u32 zero6;
+	u32 unknown9;
+	u32 unknown10;
+	u32 unknown11;
+	u32 unknown12;
+	u64 zero7;
+	u32 unknown13;
+	u64 zero8;
+	u32 unknown14;
+	u64 zero9;
+	uintptr_t unknown15;
+	u64 zero10;
+	u64 zero11;
+	uintptr_t unknown16;
+	u64 zero12;
+	uintptr_t unknown17;
+	uintptr_t unknown18;
+	uintptr_t unknown19;
+	u32 zero13;
+	uintptr_t unknown20;
+	u32 unknown21;
+	u32 unknown22;
+	u32 unknown23;
+	u32 unknown24;
+	u32 unknown25;
+	u32 unknown26;
 } __attribute__((packed));
 //ASSERT_SIZEOF_TYPE(struct mali_payload_vertex_tiler, 256, 256);
 
