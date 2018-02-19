@@ -148,12 +148,6 @@ struct mali_payload_vertex_tiler {
 	uintptr_t unknown19;
 	u32 zero13;
 	uintptr_t unknown20;
-	u32 unknown21;
-	u32 unknown22;
-	u32 unknown23;
-	u32 unknown24;
-	u32 unknown25;
-	u32 unknown26;
 } __attribute__((packed));
 //ASSERT_SIZEOF_TYPE(struct mali_payload_vertex_tiler, 256, 256);
 

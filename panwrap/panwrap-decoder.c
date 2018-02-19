@@ -416,12 +416,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	MEMORY_PROP(unknown18);
 	MEMORY_PROP(unknown19);
 	MEMORY_PROP(unknown20);
-	panwrap_prop("unknown21 = 0x%" PRIx32, v->unknown21);
-	panwrap_prop("unknown22 = 0x%" PRIx32, v->unknown22);
-	panwrap_prop("unknown23 = 0x%" PRIx32, v->unknown23);
-	panwrap_prop("unknown24 = 0x%" PRIx32, v->unknown24);
-	panwrap_prop("unknown25 = 0x%" PRIx32, v->unknown25);
-	panwrap_prop("unknown26 = 0x%" PRIx32, v->unknown26);
 
 	panwrap_indent--;
 	panwrap_log("};\n");
