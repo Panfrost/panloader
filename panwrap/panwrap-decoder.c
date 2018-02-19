@@ -433,6 +433,30 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	}
 #endif
 
+	if (v->zero5 | v->zero6 | v->zero7 | v->zero8 | v->zero9 | v->zero10 | v->zero11 | v->zero12 | v->zero13) {
+		panwrap_msg("Late zero tripped, replay may be wrong\n");
+	}
+
+	panwrap_prop("unknown9 = 0x%" PRIx32, v->unknown9);
+	panwrap_prop("unknown10 = 0x%" PRIx32, v->unknown10);
+	panwrap_prop("unknown11 = 0x%" PRIx32, v->unknown11);
+	panwrap_prop("unknown12 = 0x%" PRIx32, v->unknown12);
+	panwrap_prop("unknown13 = 0x%" PRIx32, v->unknown13);
+	panwrap_prop("unknown14 = 0x%" PRIx32, v->unknown14);
+	panwrap_prop("unknown15 = 0x%" PRIx32, v->unknown15);
+	panwrap_prop("unknown16 = 0x%" PRIx32, v->unknown16);
+	panwrap_prop("unknown17 = 0x%" PRIx32, v->unknown17);
+	panwrap_prop("unknown18 = 0x%" PRIx32, v->unknown18);
+	panwrap_prop("unknown19 = 0x%" PRIx32, v->unknown19);
+	panwrap_prop("unknown20 = 0x%" PRIx32, v->unknown20);
+	panwrap_prop("unknown21 = 0x%" PRIx32, v->unknown21);
+	panwrap_prop("unknown22 = 0x%" PRIx32, v->unknown22);
+	panwrap_prop("unknown23 = 0x%" PRIx32, v->unknown23);
+	panwrap_prop("unknown24 = 0x%" PRIx32, v->unknown24);
+	panwrap_prop("unknown25 = 0x%" PRIx32, v->unknown25);
+	panwrap_prop("unknown26 = 0x%" PRIx32, v->unknown26);
+
+
 	panwrap_indent--;
 	panwrap_log("};\n");
 
@@ -519,29 +543,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			    job_no, attr_meta->index);
 		}
 	}
-
-	if (v->zero5 | v->zero6 | v->zero7 | v->zero8 | v->zero9 | v->zero10 | v->zero11 | v->zero12 | v->zero13) {
-		panwrap_msg("Late zero tripped, replay may be wrong\n");
-	}
-
-	panwrap_prop("unknown9 = 0x%" PRIx32, v->unknown9);
-	panwrap_prop("unknown10 = 0x%" PRIx32, v->unknown10);
-	panwrap_prop("unknown11 = 0x%" PRIx32, v->unknown11);
-	panwrap_prop("unknown12 = 0x%" PRIx32, v->unknown12);
-	panwrap_prop("unknown13 = 0x%" PRIx32, v->unknown13);
-	panwrap_prop("unknown14 = 0x%" PRIx32, v->unknown14);
-	panwrap_prop("unknown15 = 0x%" PRIx32, v->unknown15);
-	panwrap_prop("unknown16 = 0x%" PRIx32, v->unknown16);
-	panwrap_prop("unknown17 = 0x%" PRIx32, v->unknown17);
-	panwrap_prop("unknown18 = 0x%" PRIx32, v->unknown18);
-	panwrap_prop("unknown19 = 0x%" PRIx32, v->unknown19);
-	panwrap_prop("unknown20 = 0x%" PRIx32, v->unknown20);
-	panwrap_prop("unknown21 = 0x%" PRIx32, v->unknown21);
-	panwrap_prop("unknown22 = 0x%" PRIx32, v->unknown22);
-	panwrap_prop("unknown23 = 0x%" PRIx32, v->unknown23);
-	panwrap_prop("unknown24 = 0x%" PRIx32, v->unknown24);
-	panwrap_prop("unknown25 = 0x%" PRIx32, v->unknown25);
-	panwrap_prop("unknown26 = 0x%" PRIx32, v->unknown26);
 }
 
 void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
