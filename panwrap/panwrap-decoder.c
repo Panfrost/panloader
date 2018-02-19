@@ -496,8 +496,10 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			uint8_t flags = *u & 0xFF;
 
 			char *a = pointer_as_memory_reference(ptr);
-			panwrap_msg("(%s << 8) | %d\n", a, flags);
+			panwrap_log("u64 unknown1_%d = ((%s) << 8) | %d;\n", job_no, a, flags);
 			free(a);
+
+			TOUCH(umem, v->unknown1, u64, "unknown1", job_no);
 		}
 	}
 }
