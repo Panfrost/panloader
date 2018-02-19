@@ -390,32 +390,12 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	MEMORY_PROP(nullForVertex);
 	MEMORY_PROP(null4);
 	MEMORY_PROP(fbd);
-	MEMORY_PROP(unknown7); /* pointer */
-
 
 	char *a = pointer_as_memory_reference(shader_meta_ptr);
 	panwrap_prop("_shader_upper = (%s) >> 4", a);
 	free(a);
 
 	panwrap_prop("flags = %d", v->flags); 
-
-	if (v->zero5 | v->zero6 | v->zero7 | v->zero8 | v->zero9 | v->zero10 | v->zero11 | v->zero12 | v->zero13) {
-		panwrap_msg("Late zero tripped, replay may be wrong\n");
-	}
-
-	MEMORY_PROP(unknown8);
-	panwrap_prop("unknown9 = 0x%" PRIx32, v->unknown9);
-	panwrap_prop("unknown10 = 0x%" PRIx32, v->unknown10);
-	panwrap_prop("unknown11 = 0x%" PRIx32, v->unknown11);
-	panwrap_prop("unknown12 = 0x%" PRIx32, v->unknown12);
-	panwrap_prop("unknown13 = 0x%" PRIx32, v->unknown13);
-	panwrap_prop("unknown14 = 0x%" PRIx32, v->unknown14);
-	MEMORY_PROP(unknown15);
-	MEMORY_PROP(unknown16);
-	MEMORY_PROP(unknown17);
-	MEMORY_PROP(unknown18);
-	MEMORY_PROP(unknown19);
-	MEMORY_PROP(unknown20);
 
 	panwrap_indent--;
 	panwrap_log("};\n");
