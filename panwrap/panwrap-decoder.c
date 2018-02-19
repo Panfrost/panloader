@@ -485,6 +485,21 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			    job_no, attr_meta->index);
 		}
 	}
+
+	if (v->unknown1) {
+		struct panwrap_mapped_memory *umem = panwrap_find_mapped_gpu_mem_containing(v->unknown1);
+
+		if (umem) {
+			u64 *PANWRAP_PTR_VAR(u, umem, v->unknown1);
+
+			mali_ptr ptr = *u >> 8;
+			uint8_t flags = *u & 0xFF;
+
+			char *a = pointer_as_memory_reference(ptr);
+			panwrap_msg("(%s << 8) | %d\n", a, flags);
+			free(a);
+		}
+	}
 }
 
 void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
