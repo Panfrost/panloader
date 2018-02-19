@@ -400,39 +400,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 	panwrap_prop("flags = %d", v->flags); 
 
-#if 0
-	panwrap_msg("%s shader @ " MALI_PTR_FMT " (flags 0x%x)\n",
-		    h->job_type == JOB_TYPE_VERTEX ? "Vertex" : "Fragment",
-		    meta_ptr, v->flags);
-
-	if (h->job_type == JOB_TYPE_TILER && v->block1[7]) {
-		panwrap_msg("GL draw mode: %s\n",
-			    panwrap_gl_mode_name(
-				*PANWRAP_PTR(attr_mem, v->block1[7], u8)));
-	}
-
-	if (v->uniforms) {
-		/* XXX: How do we know how many to print? How do we know to use
-		 * half-floats? */
-
-		panwrap_msg("Uniforms: \n");
-		struct panwrap_mapped_memory *uniform_mem = panwrap_find_mapped_gpu_mem_containing(v->uniforms);
-
-		panwrap_fetch_gpu_mem(uniform_mem, v->uniforms, 4 * sizeof(__fp16));
-	}
-
-	if (v->null0 || v->null4)
-		panwrap_msg("Fragment/tiler null tripped; replay may be wrong\n");
-
-	if (v->texture_meta_address || v->texture_unknown) {
-		panwrap_msg("Texture:");
-		panwrap_indent++;
-		panwrap_msg("Meta address: " MALI_SHORT_PTR_FMT "\n", v->texture_meta_address);
-		panwrap_msg("Unknown address: " MALI_SHORT_PTR_FMT "\n", v->texture_unknown);
-		panwrap_indent--;
-	}
-#endif
-
 	if (v->zero5 | v->zero6 | v->zero7 | v->zero8 | v->zero9 | v->zero10 | v->zero11 | v->zero12 | v->zero13) {
 		panwrap_msg("Late zero tripped, replay may be wrong\n");
 	}
@@ -455,7 +422,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_prop("unknown24 = 0x%" PRIx32, v->unknown24);
 	panwrap_prop("unknown25 = 0x%" PRIx32, v->unknown25);
 	panwrap_prop("unknown26 = 0x%" PRIx32, v->unknown26);
-
 
 	panwrap_indent--;
 	panwrap_log("};\n");
