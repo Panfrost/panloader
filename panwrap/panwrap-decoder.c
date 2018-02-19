@@ -370,11 +370,13 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_prop("%s = %s", #p, a); \
 	free(a); \
 }
+	panwrap_prop("unk0 = 0x%" PRIx32, v->unk0);
 	panwrap_prop("unk1 = 0x%" PRIx32, v->unk1);
 	panwrap_prop("unk2 = 0x%" PRIx32, v->unk2);
-	panwrap_prop("unk3 = 0x%" PRIx32, v->unk3);
+	panwrap_prop("unk5 = 0x%" PRIx32, v->unk5);
+	panwrap_prop("unk8 = 0x%" PRIx32, v->unk8);
 
-	if (v->zero0 | v->zero1 | v->zero2)
+	if (v->zero0 | v->zero1 | v->zero2 | v->zero3 | v->zero4)
 		panwrap_msg("Early zero tripped, replay may be wrong\n");
 
 	MEMORY_PROP(null0);
