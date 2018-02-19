@@ -392,7 +392,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	MEMORY_PROP(fbd);
 	MEMORY_PROP(unknown7); /* pointer */
 
-#undef MEMORY_PROP
 
 	char *a = pointer_as_memory_reference(shader_meta_ptr);
 	panwrap_prop("_shader_upper = (%s) >> 4", a);
@@ -404,18 +403,19 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_msg("Late zero tripped, replay may be wrong\n");
 	}
 
+	MEMORY_PROP(unknown8);
 	panwrap_prop("unknown9 = 0x%" PRIx32, v->unknown9);
 	panwrap_prop("unknown10 = 0x%" PRIx32, v->unknown10);
 	panwrap_prop("unknown11 = 0x%" PRIx32, v->unknown11);
 	panwrap_prop("unknown12 = 0x%" PRIx32, v->unknown12);
 	panwrap_prop("unknown13 = 0x%" PRIx32, v->unknown13);
 	panwrap_prop("unknown14 = 0x%" PRIx32, v->unknown14);
-	panwrap_prop("unknown15 = 0x%" PRIx32, v->unknown15);
-	panwrap_prop("unknown16 = 0x%" PRIx32, v->unknown16);
-	panwrap_prop("unknown17 = 0x%" PRIx32, v->unknown17);
-	panwrap_prop("unknown18 = 0x%" PRIx32, v->unknown18);
-	panwrap_prop("unknown19 = 0x%" PRIx32, v->unknown19);
-	panwrap_prop("unknown20 = 0x%" PRIx32, v->unknown20);
+	MEMORY_PROP(unknown15);
+	MEMORY_PROP(unknown16);
+	MEMORY_PROP(unknown17);
+	MEMORY_PROP(unknown18);
+	MEMORY_PROP(unknown19);
+	MEMORY_PROP(unknown20);
 	panwrap_prop("unknown21 = 0x%" PRIx32, v->unknown21);
 	panwrap_prop("unknown22 = 0x%" PRIx32, v->unknown22);
 	panwrap_prop("unknown23 = 0x%" PRIx32, v->unknown23);
@@ -425,6 +425,8 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 	panwrap_indent--;
 	panwrap_log("};\n");
+
+#undef MEMORY_PROP
 
 	TOUCH(mem, payload, *v, "vertex_tiler", job_no);
 
