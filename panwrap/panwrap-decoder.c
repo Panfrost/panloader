@@ -23,7 +23,7 @@ extern char* replace_vertex;
 
 static char *panwrap_job_type_name(enum mali_job_type type)
 {
-#define DEFINE_CASE(name) case JOB_TYPE_ ## name: return #name
+#define DEFINE_CASE(name) case JOB_TYPE_ ## name: return "JOB_TYPE_" #name
 	switch (type) {
 	DEFINE_CASE(NULL);
 	DEFINE_CASE(SET_VALUE);
@@ -765,18 +765,30 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		panwrap_log("struct mali_job_descriptor_header job_%d = {\n", job_no);
 		panwrap_indent++;
 
-		panwrap_prop("job_type = %d", h->job_type);
+		panwrap_prop("job_type = %s", panwrap_job_type_name(h->job_type));
 		panwrap_prop("job_descriptor_size = %d", h->job_descriptor_size);
-		panwrap_prop("exception_status = %d", h->exception_status);
-		panwrap_prop("first_incomplete_task = %d", h->first_incomplete_task);
 
-		panwrap_prop("fault_pointer = 0x%" PRIx64, h->fault_pointer);
-		panwrap_prop("job_barrier = %d", h->job_barrier);
+		if (h->exception_status)
+			panwrap_prop("exception_status = %d", h->exception_status);
+
+		if (h->first_incomplete_task)
+			panwrap_prop("first_incomplete_task = %d", h->first_incomplete_task);
+
+		if (h->fault_pointer)
+			panwrap_prop("fault_pointer = 0x%" PRIx64, h->fault_pointer);
+
+		if (h->job_barrier)
+			panwrap_prop("job_barrier = %d", h->job_barrier);
+
 		panwrap_prop("job_index = %d", h->job_index);
-		panwrap_prop("unknown_flags = %d", h->unknown_flags);
 
-		panwrap_prop("job_dependency_index_1 = %d", h->job_dependency_index_1);
-		panwrap_prop("job_dependency_index_2 = %d", h->job_dependency_index_2);
+		if (h->unknown_flags)
+			panwrap_prop("unknown_flags = %d", h->unknown_flags);
+
+		if (h->job_dependency_index_1 | h->job_dependency_index_2) {
+			panwrap_prop("job_dependency_index_1 = %d", h->job_dependency_index_1);
+			panwrap_prop("job_dependency_index_2 = %d", h->job_dependency_index_2);
+		} 
 
 		char *a = pointer_as_memory_reference(h->next_job);
 		panwrap_prop("next_job = %s", a);
