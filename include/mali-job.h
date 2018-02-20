@@ -42,6 +42,8 @@ enum mali_gl_mode {
 	MALI_GL_TRIANGLES      = 0x08,
 	MALI_GL_TRIANGLE_STRIP = 0x0A,
 	MALI_GL_TRIANGLE_FAN   = 0x0C,
+	MALI_GL_LINE_STRIP     = 0x18038004,
+	MALI_GL_LINE_LOOP      = 0x18038006
 };
 
 struct mali_shader_meta {
