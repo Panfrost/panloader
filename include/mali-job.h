@@ -119,7 +119,7 @@ struct mali_payload_vertex_tiler {
 	uintptr_t _shader_upper : MALI_SHORT_PTR_BITS - 4; /* struct shader_meta */
 	uintptr_t attributes; /* struct attribute_buffer[] */
 	uintptr_t attribute_meta; /* attribute_meta[] */
-	uintptr_t unknown5; /* pointer */
+	uintptr_t varyings; /* struct attr */
 	uintptr_t unknown6; /* pointer */
 	uintptr_t nullForVertex;
 	uintptr_t null4;

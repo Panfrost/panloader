@@ -297,19 +297,23 @@ static void panwrap_trace_fbd(const struct panwrap_mapped_memory *mem,
 }
 
 void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
-			       mali_ptr addr, int job_no, int attr_no)
+			       mali_ptr addr, int job_no, int attr_no,
+			       bool varying)
 {
+	/* Varyings in particlar get duplicated between parts of the job */
+	if (mem->touched[(addr - mem->gpu_va) / sizeof(uint32_t)]) return;
+
 	struct mali_attr *PANWRAP_PTR_VAR(attr, mem, addr);
 	mali_ptr raw_elements = attr->elements & ~3;
 	int flags = attr->elements & 3;
-	float *buffer = panwrap_fetch_gpu_mem(
-	    mem, raw_elements, attr->size);
 	size_t vertex_count;
 	size_t component_count;
 
 
-	int human_attr_number = (job_no * 100) + attr_no;
-	panwrap_log("struct mali_attr attr_%d = {\n", human_attr_number);
+	int human_attr_number = varying ? job_no : ((job_no * 100) + attr_no);
+	char *prefix = varying ? "varying" : "attr";
+
+	panwrap_log("struct mali_attr %s_%d = {\n", prefix, human_attr_number);
 	panwrap_indent++;
 
 	char *a = pointer_as_memory_reference(raw_elements);
@@ -321,31 +325,35 @@ void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
 	panwrap_indent--;
 	panwrap_log("};\n");
 
-	TOUCH(mem, addr, *attr, "attr", human_attr_number);
+	TOUCH(mem, addr, *attr, prefix, human_attr_number);
 
-	/* TODO: Attributes are not necessarily float32 vectors in general;
-	 * decoding like this is unsafe all things considered */
+	if (!varying) {
+		/* TODO: Attributes are not necessarily float32 vectors in general;
+		 * decoding like this is unsafe all things considered */
 
-	vertex_count = attr->size / attr->stride;
-	component_count = attr->stride / sizeof(float);
+		float *buffer = panwrap_fetch_gpu_mem(mem, raw_elements, attr->size);
 
-	panwrap_log("float attributes_%d[] = {\n", human_attr_number);
+		vertex_count = attr->size / attr->stride;
+		component_count = attr->stride / sizeof(float);
 
-	panwrap_indent++;
-	for (int row = 0; row < vertex_count; row++) {
-		panwrap_log("");
+		panwrap_log("float attributes_%d[] = {\n", human_attr_number);
 
-		for (int i = 0; i < component_count; i++)
-			panwrap_log_cont("%ff, ", buffer[i]);
+		panwrap_indent++;
+		for (int row = 0; row < vertex_count; row++) {
+			panwrap_log("");
 
-		panwrap_log_cont("\n");
+			for (int i = 0; i < component_count; i++)
+				panwrap_log_cont("%ff, ", buffer[i]);
 
-		buffer += component_count;
+			panwrap_log_cont("\n");
+
+			buffer += component_count;
+		}
+		panwrap_indent--;
+		panwrap_log("};\n");
+
+		TOUCH_LEN(mem, raw_elements, attr->size, "attributes", human_attr_number);
 	}
-	panwrap_indent--;
-	panwrap_log("};\n");
-
-	TOUCH_LEN(mem, raw_elements, attr->size, "attributes", human_attr_number);
 }
 
 void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
@@ -385,7 +393,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	MEMORY_PROP(uniforms);
 	MEMORY_PROP(attributes); /* struct attribute_buffer[] */
 	MEMORY_PROP(attribute_meta); /* attribute_meta[] */
-	MEMORY_PROP(unknown5); /* pointer */
+	MEMORY_PROP(varyings); /* pointer */
 	MEMORY_PROP(unknown6); /* pointer */
 	MEMORY_PROP(nullForVertex);
 	MEMORY_PROP(null4);
@@ -482,8 +490,17 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			    attr_mem,
 			    v->attributes + (attr_meta->index *
 					     sizeof(struct mali_attr)),
-			    job_no, attr_meta->index);
+			    job_no, attr_meta->index, false);
 		}
+	}
+
+	/* Varyings are encoded like attributes but not actually sent; we just
+	 * pass a zero buffer with the right stride/size set, (or whatever)
+	 * since the GPU will write to it itself */
+
+	if (v->varyings) {
+		attr_mem = panwrap_find_mapped_gpu_mem_containing(v->varyings);
+		panwrap_replay_attributes(attr_mem, v->varyings, job_no, 0, true);
 	}
 
 	if (v->unknown1) {
