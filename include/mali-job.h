@@ -145,6 +145,14 @@ struct nullForVertex {
 	u32 unknown0;
 };
 
+/* TODO: I have no idea what this could possibly be, whatsoever. */
+
+struct unknown6 {
+	u64 unknown0;
+	u64 unknown1;
+	u64 unknown2;
+};
+
 /* From presentations, 16x16 tiles externally. Use shift for fast computation
  * of tile numbers. */
 

@@ -566,6 +566,27 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			TOUCH(umem, v->unknown1, u64, "unknown1", job_no);
 		}
 	}
+
+	if (v->unknown6) {
+		struct panwrap_mapped_memory *umem = panwrap_find_mapped_gpu_mem_containing(v->unknown6);
+
+		if (umem) {
+			struct unknown6 *PANWRAP_PTR_VAR(u, umem, v->unknown6);
+
+			panwrap_log("struct mali_unknown6 unknown6_%d = {\n", job_no);
+			panwrap_indent++;
+
+			panwrap_prop("unknown0 = 0x%" PRIx64, u->unknown0);
+			panwrap_prop("unknown1 = 0x%" PRIx64, u->unknown1);
+			panwrap_prop("unknown2 = 0x%" PRIx64, u->unknown2);
+
+
+			panwrap_indent--;
+			panwrap_log("};\n");
+
+			TOUCH(umem, v->unknown6, u, "unknown6", job_no);
+		}
+	}
 }
 
 void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
