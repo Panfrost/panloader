@@ -390,10 +390,9 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_prop("unk5 = 0x%" PRIx32, v->unk5);
 	panwrap_prop("unk8 = 0x%" PRIx32, v->unk8);
 
-	if (v->zero0 | v->zero1 | v->zero2 | v->zero3 | v->zero4)
-		panwrap_msg("Early zero tripped, replay may be wrong\n");
+	if (v->zero0 | v->zero1 | v->zero2 | v->zero3 | v->zero4 | v->zero5 | v->zero6)
+		panwrap_msg("Zero tripped, replay may be wrong\n");
 
-	MEMORY_PROP(null0);
 	MEMORY_PROP(unknown0);
 	MEMORY_PROP(unknown1); /* pointer */
 	MEMORY_PROP(texture_meta_address);
@@ -404,7 +403,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	MEMORY_PROP(varyings); /* pointer */
 	MEMORY_PROP(unknown6); /* pointer */
 	MEMORY_PROP(nullForVertex);
-	MEMORY_PROP(null4);
 	MEMORY_PROP(fbd);
 
 	char *a = pointer_as_memory_reference(shader_meta_ptr);
@@ -642,8 +640,10 @@ void panwrap_decode_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_indent--;
 	}
 
+	/*
 	panwrap_log("nulls: " MALI_SHORT_PTR_FMT ", " MALI_SHORT_PTR_FMT "\n",
 		    v->null0, v->null4);
+	    */
 
 	if (v->texture_meta_address || v->texture_unknown) {
 		panwrap_log("Texture:");

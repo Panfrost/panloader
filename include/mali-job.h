@@ -111,7 +111,7 @@ struct mali_payload_vertex_tiler {
 	u32 unk8; // 0x5
 	u32 zero4;
 
-	uintptr_t null0;
+	u32 zero5;
 	uintptr_t unknown0;
 	uintptr_t unknown1; /* pointer */
 	uintptr_t texture_meta_address;
@@ -124,7 +124,7 @@ struct mali_payload_vertex_tiler {
 	uintptr_t varyings; /* struct attr */
 	uintptr_t unknown6; /* pointer */
 	uintptr_t nullForVertex;
-	uintptr_t null4;
+	u32 zero6;
 	u64 fbd;
 } __attribute__((packed));
 //ASSERT_SIZEOF_TYPE(struct mali_payload_vertex_tiler, 256, 256);
