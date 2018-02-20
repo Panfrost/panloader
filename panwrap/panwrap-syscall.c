@@ -637,6 +637,8 @@ static void emit_atoms(void *ptr) {
 
 			if (!(a->core_req & MALI_JD_REQ_SOFT_JOB))
 				panwrap_replay_jc(a->jc);
+			else if (a->core_req & MALI_JD_REQ_SOFT_REPLAY)
+				panwrap_replay_soft_replay(a->jc);
 		}
 	}
 

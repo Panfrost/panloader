@@ -21,5 +21,6 @@
 
 void panwrap_trace_hw_chain(mali_ptr jc_gpu_va);
 void panwrap_replay_jc(mali_ptr jc_gpu_va);
+void panwrap_replay_soft_replay(mali_ptr jc_gpu_va);
 
 #endif /* !PANWRAP_DECODER_H */

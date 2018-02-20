@@ -18,6 +18,12 @@
 #include <stdio.h>
 #include <memory.h>
 
+#define MEMORY_PROP(p) {\
+	char *a = pointer_as_memory_reference(v->p); \
+	panwrap_prop("%s = %s", #p, a); \
+	free(a); \
+}
+
 extern char* replace_fragment;
 extern char* replace_vertex;
 
@@ -373,11 +379,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_log("struct mali_payload_vertex_tiler vertex_tiler_%d = {\n", job_no);
 	panwrap_indent++;
 
-#define MEMORY_PROP(p) {\
-	char *a = pointer_as_memory_reference(v->p); \
-	panwrap_prop("%s = %s", #p, a); \
-	free(a); \
-}
+
 	panwrap_prop("unk0 = 0x%" PRIx32, v->unk0);
 	panwrap_prop("unk1 = 0x%" PRIx32, v->unk1);
 
@@ -413,8 +415,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 	panwrap_indent--;
 	panwrap_log("};\n");
-
-#undef MEMORY_PROP
 
 	TOUCH(mem, payload, *v, "vertex_tiler", job_no);
 
@@ -863,4 +863,28 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 			break;
 		}
 	} while ((jc_gpu_va = ((u64) (uintptr_t) h->next_job) & (((u64)1<<55) - 1)));
+}
+
+void panwrap_replay_soft_replay(mali_ptr jc_gpu_va)
+{
+	struct mali_jd_replay_jc *v;
+
+	do {
+		struct panwrap_mapped_memory *mem =
+			panwrap_find_mapped_gpu_mem_containing(jc_gpu_va);
+
+		v = PANWRAP_PTR(mem, jc_gpu_va, typeof(*v));
+
+		int job_no = job_descriptor_number++;
+		panwrap_log("struct mali_jd_replay_jc soft_replay_%d = {\n", job_no);
+		panwrap_indent++;
+
+		MEMORY_PROP(next);
+		MEMORY_PROP(jc);
+
+		panwrap_indent--;
+		panwrap_log("};\n");
+
+		TOUCH(mem, jc_gpu_va, *v, "soft_replay", job_no);
+	} while ((jc_gpu_va = v->next));
 }
