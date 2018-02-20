@@ -204,7 +204,7 @@ struct mali_payload_fragment {
 struct mali_tentative_sfbd {
 	u32 unknown1;
 	u32 flags;
-	u64 shader_1;
+	u64 unknown_address_0;
 	u64 zero1;
 	u64 heap_free_address;
 
@@ -248,8 +248,8 @@ struct mali_tentative_sfbd {
 	u64 unknown_address_1; /* Pointing towards... a zero buffer? */
 	u64 unknown_address_2;
 
-	u64 shader_3;
-	u64 shader_4;
+	u64 unknown_address_3;
+	u64 unknwon_address_4;
 
 	/* More below this, maybe */
 } __attribute__((packed));

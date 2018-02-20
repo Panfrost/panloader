@@ -129,13 +129,13 @@ static void panwrap_replay_sfbd(uint64_t gpu_va, int job_no)
 	panwrap_prop("unknown_address_2 = %s", a);
 	free(a);
 
-	panwrap_prop("shader_1 = 0x%" PRIx64, s->shader_1);
+	panwrap_prop("unknown_address_0 = 0x%" PRIx64, s->unknown_address_0);
 
 	panwrap_prop("unknown8 = 0x%" PRIx32, s->unknown8);
 	panwrap_prop("unknown9 = 0x%" PRIx32, s->unknown9);
 
-	panwrap_prop("shader_3 = 0x%" PRIx64, s->shader_3);
-	panwrap_prop("shader_4 = 0x%" PRIx64, s->shader_4);
+	panwrap_prop("unknown_address_3 = 0x%" PRIx64, s->unknown_address_3);
+	panwrap_prop("unknown_address_4 = 0x%" PRIx64, s->unknown_address_4);
 
 	panwrap_indent--;
 	panwrap_log("};\n");
