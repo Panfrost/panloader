@@ -518,6 +518,35 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_replay_attributes(attr_mem, v->varyings, job_no, 0, true);
 	}
 
+	/* XXX: This entire block is such a hack... where are uniforms configured exactly? */
+
+	if (v->uniforms) {
+		int rows = 2, width = 4;
+		size_t sz = rows * width * sizeof(float);
+
+		struct panwrap_mapped_memory *uniform_mem = panwrap_find_mapped_gpu_mem_containing(v->uniforms);
+		panwrap_fetch_gpu_mem(uniform_mem, v->uniforms, sz);
+		float *PANWRAP_PTR_VAR(uniforms, uniform_mem, v->uniforms);
+
+		panwrap_log("float uniforms_%d[] = {\n", job_no);
+
+		panwrap_indent++;
+		for (int row = 0; row < rows; row++) {
+			panwrap_log("");
+
+			for (int i = 0; i < width; i++)
+				panwrap_log_cont("%ff, ", uniforms[i]);
+
+			panwrap_log_cont("\n");
+
+			uniforms += width;
+		}
+		panwrap_indent--;
+		panwrap_log("};\n");
+
+		TOUCH_LEN(mem, v->uniforms, sz, "uniforms", job_no);
+	}
+
 	if (v->unknown1) {
 		struct panwrap_mapped_memory *umem = panwrap_find_mapped_gpu_mem_containing(v->unknown1);
 
