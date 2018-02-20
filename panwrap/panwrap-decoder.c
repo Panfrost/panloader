@@ -44,14 +44,16 @@ static char *panwrap_job_type_name(enum mali_job_type type)
 
 static char *panwrap_gl_mode_name(enum mali_gl_mode mode)
 {
-#define DEFINE_CASE(name) case MALI_ ## name: return #name
+#define DEFINE_CASE(name) case MALI_ ## name: return "MALI_" #name
 	switch(mode) {
 	DEFINE_CASE(GL_POINTS);
 	DEFINE_CASE(GL_LINES);
 	DEFINE_CASE(GL_TRIANGLES);
 	DEFINE_CASE(GL_TRIANGLE_STRIP);
 	DEFINE_CASE(GL_TRIANGLE_FAN);
-	default: return "!!! GL_UNKNOWN !!!";
+	DEFINE_CASE(GL_LINE_STRIP);
+	DEFINE_CASE(GL_LINE_LOOP);
+	default: return "GL_TRIANGLES /* XXX: Unknown GL mode, check dump */";
 	}
 #undef DEFINE_CASE
 }
@@ -378,7 +380,13 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 }
 	panwrap_prop("unk0 = 0x%" PRIx32, v->unk0);
 	panwrap_prop("unk1 = 0x%" PRIx32, v->unk1);
-	panwrap_prop("unk2 = 0x%" PRIx32, v->unk2);
+
+	if (h->job_type == JOB_TYPE_TILER) {
+		panwrap_prop("draw_mode = %s", panwrap_gl_mode_name(v->draw_mode));
+	} else {
+		panwrap_prop("draw_mode = 0x%" PRIx32, v->draw_mode);
+	}
+
 	panwrap_prop("unk5 = 0x%" PRIx32, v->unk5);
 	panwrap_prop("unk8 = 0x%" PRIx32, v->unk8);
 

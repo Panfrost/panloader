@@ -102,7 +102,7 @@ enum mali_fbd_type {
 struct mali_payload_vertex_tiler {
 	u32 unk0; // 0x2
 	u32 unk1; // 0x28000000
-	u32 unk2; // 0x18030008
+	u32 draw_mode; 
 	u32 zero0;
 	u32 zero1;
 	u32 unk5; // 0x2
