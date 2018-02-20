@@ -251,7 +251,7 @@ struct mali_tentative_sfbd {
 	/* Determined by symmetry with the replay soft job, documented in the kernel */
 	u64 tiler_jc_list;
 
-	u64 unknwon_address_4;
+	u64 unknown_address_4;
 
 	/* More below this, maybe */
 } __attribute__((packed));
