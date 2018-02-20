@@ -571,7 +571,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		struct panwrap_mapped_memory *umem = panwrap_find_mapped_gpu_mem_containing(v->unknown6);
 
 		if (umem) {
-			struct unknown6 *PANWRAP_PTR_VAR(u, umem, v->unknown6);
+			struct mali_unknown6 *PANWRAP_PTR_VAR(u, umem, v->unknown6);
 
 			panwrap_log("struct mali_unknown6 unknown6_%d = {\n", job_no);
 			panwrap_indent++;
@@ -584,7 +584,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			panwrap_indent--;
 			panwrap_log("};\n");
 
-			TOUCH(umem, v->unknown6, u, "unknown6", job_no);
+			TOUCH(umem, v->unknown6, *u, "unknown6", job_no);
 		}
 	}
 }

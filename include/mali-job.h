@@ -147,7 +147,7 @@ struct nullForVertex {
 
 /* TODO: I have no idea what this could possibly be, whatsoever. */
 
-struct unknown6 {
+struct mali_unknown6 {
 	u64 unknown0;
 	u64 unknown1;
 	u64 unknown2;
