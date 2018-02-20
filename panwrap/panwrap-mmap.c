@@ -84,12 +84,31 @@ void replay_memory()
 		/* If we don't have write access, no replay :) */
 		if (!(pos->flags & MALI_MEM_PROT_CPU_WR)) continue;
 
-		/* Fill it with dumped memory, skipping zeroes */
-		uint32_t *array = (uint32_t *) pos->addr;
+		if (pos->flags & MALI_MEM_PROT_GPU_EX) {
+			/* Shaders need to be dumped but, given that the disassembler
+			 * is out of tree and that compiled shaders are blobs of
+			 * unclear licensing, they should not be dumped as replay
+			 * memory. Thankfully, there is no fixup needed (or even
+			 * allowed), so we can just dump and load a file wholesale */
 
-		for (uint32_t i = 0; i < pos->length / sizeof(uint32_t); ++i) {
-			if (array[i])
-				panwrap_log("%s%s[%d] = %s;\n", pos->touched[i] ? "// " : "", pos->name, i, pointer_as_memory_reference(array[i]));
+			char filename[128];
+			snprintf(filename, 128, "%s.bin", pos->name);
+
+			FILE *fp = fopen(filename, "wb");
+			fwrite(pos->addr, 1, pos->length, fp);
+			fclose(fp);
+
+			panwrap_log("FILE *f_%s = fopen(\"%s\", \"rb\");\n", pos->name, filename);
+			panwrap_log("fread(%s, 1, %d, f_%s);\n", pos->name, pos->length, pos->name);
+			panwrap_log("fclose(f_%s);\n", pos->name);
+		} else {
+			/* Fill it with dumped memory, skipping zeroes */
+			uint32_t *array = (uint32_t *) pos->addr;
+
+			for (uint32_t i = 0; i < pos->length / sizeof(uint32_t); ++i) {
+				if (array[i])
+					panwrap_log("%s%s[%d] = %s;\n", pos->touched[i] ? "// " : "", pos->name, i, pointer_as_memory_reference(array[i]));
+			}
 		}
 
 		panwrap_log("\n");
