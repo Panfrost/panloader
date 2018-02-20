@@ -692,7 +692,9 @@ static void emit_atoms(void *ptr) {
 		panwrap_indent--;
 		panwrap_log("},\n");
 
-		panwrap_prop("atom_number = %d", a->atom_number);
+		/* TODO: Compute atom numbers dynamically and correctly */
+		panwrap_prop("atom_number = %d + %d*%s", a->atom_number, 3, "i");
+
 		panwrap_prop("prio = %d", a->prio);
 		panwrap_prop("device_nr = %d", a->device_nr);
 
@@ -1312,6 +1314,8 @@ int ioctl(int fd, int request, ...)
 		number = ioctl_count++;
 
 		if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_JOB_SUBMIT)) {
+			panwrap_log("for (int i = 0; i < 30; ++i) {\n");
+			panwrap_indent++;
 			emit_atoms(ptr);
 			replay_memory();
 		}
@@ -1377,9 +1381,9 @@ int ioctl(int fd, int request, ...)
 
 			panwrap_log("uint8_t kernel_events[128];\n");
 			panwrap_log("read(fd, kernel_events, 128);\n");
-			panwrap_log("FILE *fp = fopen(\"/dev/shm/framebuffer.bin\", \"wb\");\n");
-			panwrap_log("fwrite(framebuffer, 1, 4096*4096*4, fp);\n");
-			panwrap_log("fclose(fp);\n");
+
+			panwrap_indent--;
+			panwrap_log("}\n");
 		}
 
 		free(lname);
