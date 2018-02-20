@@ -289,7 +289,7 @@ ioctl_get_job_type_from_jd_core_req(mali_jd_core_req req)
 		panwrap_log_cont("MALI_JD_REQ_%s", "SOFT_" #flag); \
 		break
 /* Decodes the actual jd_core_req flags, but not their meanings */
-static inline void
+void
 ioctl_log_decoded_jd_core_req(mali_jd_core_req req)
 {
 	if (req & MALI_JD_REQ_SOFT_JOB) {

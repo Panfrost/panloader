@@ -865,6 +865,46 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 	} while ((jc_gpu_va = ((u64) (uintptr_t) h->next_job) & (((u64)1<<55) - 1)));
 }
 
+void panwrap_replay_soft_replay_payload(mali_ptr jc_gpu_va, int job_no)
+{
+	struct mali_jd_replay_payload *v;
+
+	struct panwrap_mapped_memory *mem =
+		panwrap_find_mapped_gpu_mem_containing(jc_gpu_va);
+
+	v = PANWRAP_PTR(mem, jc_gpu_va, typeof(*v));
+
+	panwrap_log("struct mali_jd_replay_payload soft_replay_payload_%d = {\n", job_no);
+	panwrap_indent++;
+
+	MEMORY_PROP(tiler_jc_list);
+	MEMORY_PROP(fragment_jc);
+	MEMORY_PROP(tiler_heap_free);
+
+	panwrap_prop("fragment_hierarchy_mask = 0x%" PRIx32, v->fragment_hierarchy_mask);
+	panwrap_prop("tiler_hierarchy_mask = 0x%" PRIx32, v->tiler_hierarchy_mask);
+	panwrap_prop("hierarchy_default_weight = 0x%" PRIx32, v->hierarchy_default_weight);
+
+	panwrap_log(".tiler_core_req = ");
+	if (v->tiler_core_req)
+		ioctl_log_decoded_jd_core_req(v->tiler_core_req);
+	else
+		panwrap_log_cont("0");
+	panwrap_log_cont(",\n");
+
+	panwrap_log(".fragment_core_req = ");
+	if (v->fragment_core_req)
+		ioctl_log_decoded_jd_core_req(v->fragment_core_req);
+	else
+		panwrap_log_cont("0");
+	panwrap_log_cont(",\n");
+
+	panwrap_indent--;
+	panwrap_log("};\n");
+
+	TOUCH(mem, jc_gpu_va, *v, "soft_replay_payload", job_no);
+}
+
 void panwrap_replay_soft_replay(mali_ptr jc_gpu_va)
 {
 	struct mali_jd_replay_jc *v;
@@ -884,6 +924,8 @@ void panwrap_replay_soft_replay(mali_ptr jc_gpu_va)
 
 		panwrap_indent--;
 		panwrap_log("};\n");
+
+		panwrap_replay_soft_replay_payload(jc_gpu_va + sizeof(struct mali_jd_replay_jc), job_no);
 
 		TOUCH(mem, jc_gpu_va, *v, "soft_replay", job_no);
 	} while ((jc_gpu_va = v->next));

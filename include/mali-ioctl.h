@@ -465,8 +465,6 @@ struct mali_jd_replay_payload {
 	 * Core requirements for the fragment job chain
 	 */
 	mali_jd_core_req fragment_core_req;
-
-	u8 padding[4];
 };
 
 /**
