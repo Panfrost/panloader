@@ -317,8 +317,7 @@ void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
 	size_t vertex_count;
 	size_t component_count;
 
-
-	int human_attr_number = varying ? job_no : ((job_no * 100) + attr_no);
+	int human_attr_number = (job_no * 100) + attr_no;
 	char *prefix = varying ? "varying" : "attr";
 
 	panwrap_log("struct mali_attr %s_%d = {\n", prefix, human_attr_number);
@@ -515,7 +514,11 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 	if (v->varyings) {
 		attr_mem = panwrap_find_mapped_gpu_mem_containing(v->varyings);
+
+		/* TODO: How many varyings? Is there a meta descriptor for them somewhere? */
+
 		panwrap_replay_attributes(attr_mem, v->varyings, job_no, 0, true);
+		panwrap_replay_attributes(attr_mem, v->varyings + sizeof(struct mali_attr), job_no, 1, true);
 	}
 
 	/* XXX: This entire block is such a hack... where are uniforms configured exactly? */
