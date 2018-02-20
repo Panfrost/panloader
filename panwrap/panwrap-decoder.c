@@ -134,7 +134,7 @@ static void panwrap_replay_sfbd(uint64_t gpu_va, int job_no)
 	panwrap_prop("unknown8 = 0x%" PRIx32, s->unknown8);
 	panwrap_prop("unknown9 = 0x%" PRIx32, s->unknown9);
 
-	panwrap_prop("unknown_address_3 = 0x%" PRIx64, s->unknown_address_3);
+	panwrap_prop("tiler_jc_list = 0x%" PRIx64, s->tiler_jc_list);
 	panwrap_prop("unknown_address_4 = 0x%" PRIx64, s->unknown_address_4);
 
 	panwrap_indent--;

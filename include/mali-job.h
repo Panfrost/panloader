@@ -248,7 +248,9 @@ struct mali_tentative_sfbd {
 	u64 unknown_address_1; /* Pointing towards... a zero buffer? */
 	u64 unknown_address_2;
 
-	u64 unknown_address_3;
+	/* Determined by symmetry with the replay soft job, documented in the kernel */
+	u64 tiler_jc_list;
+
 	u64 unknwon_address_4;
 
 	/* More below this, maybe */
