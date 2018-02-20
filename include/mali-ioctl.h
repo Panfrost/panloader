@@ -419,6 +419,73 @@ typedef u32 mali_jd_core_req;
 	((core_req & MALI_JD_REQ_SOFT_JOB) || \
 	(core_req & MALI_JD_REQ_ATOM_TYPE) == MALI_JD_REQ_DEP)
 
+/**
+ * @brief The payload for a replay job. This must be in GPU memory.
+ */
+struct mali_jd_replay_payload {
+	/**
+	 * Pointer to the first entry in the mali_jd_replay_jc list.  These
+	 * will be replayed in @b reverse order (so that extra ones can be added
+	 * to the head in future soft jobs without affecting this soft job)
+	 */
+	u64 tiler_jc_list;
+
+	/**
+	 * Pointer to the fragment job chain.
+	 */
+	u64 fragment_jc;
+
+	/**
+	 * Pointer to the tiler heap free FBD field to be modified.
+	 */
+	u64 tiler_heap_free;
+
+	/**
+	 * Hierarchy mask for the replayed fragment jobs. May be zero.
+	 */
+	u16 fragment_hierarchy_mask;
+
+	/**
+	 * Hierarchy mask for the replayed tiler jobs. May be zero.
+	 */
+	u16 tiler_hierarchy_mask;
+
+	/**
+	 * Default weight to be used for hierarchy levels not in the original
+	 * mask.
+	 */
+	u32 hierarchy_default_weight;
+
+	/**
+	 * Core requirements for the tiler job chain
+	 */
+	mali_jd_core_req tiler_core_req;
+
+	/**
+	 * Core requirements for the fragment job chain
+	 */
+	mali_jd_core_req fragment_core_req;
+
+	u8 padding[4];
+};
+
+/**
+ * @brief An entry in the linked list of job chains to be replayed. This must
+ *        be in GPU memory.
+ */
+struct mali_jd_replay_jc {
+	/**
+	 * Pointer to next entry in the list. A setting of NULL indicates the
+	 * end of the list.
+	 */
+	u64 next;
+
+	/**
+	 * Pointer to the job chain.
+	 */
+	u64 jc;
+};
+
 /* Capabilities of a job slot as reported by JS_FEATURES registers */
 
 #define JS_FEATURE_NULL_JOB              (1u << 1)
