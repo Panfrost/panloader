@@ -161,6 +161,32 @@ pandev_allocate(int fd, int va_pages, int commit_pages, int extent, int flags, u
 }
 
 int
+pandev_general_allocate(int fd, int va_pages, int commit_pages, int extent, int flags, u64 *out)
+{
+	struct mali_ioctl_mem_alloc args = {
+		.va_pages = va_pages,
+		.commit_pages = commit_pages,
+		.extent = extent,
+		.flags = flags
+	};
+
+	int rc = pandev_ioctl(fd, MALI_IOCTL_MEM_ALLOC, &args);
+
+	if (rc)
+		return rc;
+
+	*out = args.gpu_va;
+
+	return 0;
+}
+
+int
+pandev_standard_allocate(int fd, int va_pages, int flags, u64 *out)
+{
+	return pandev_general_allocate(fd, va_pages, va_pages, 0, flags, out);
+}
+
+int
 pandev_query_mem(int fd, mali_ptr addr, enum mali_ioctl_mem_query_type attr,
 		 u64 *out)
 {

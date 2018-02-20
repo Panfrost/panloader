@@ -1330,6 +1330,23 @@ int ioctl(int fd, int request, ...)
 			panwrap_log("struct mali_mem_import_user_buffer framebuffer_handle = { .ptr = (uint64_t) (uintptr_t) framebuffer, .length = 4096*4096*4 };\n");
 		}
 
+		/* For certain special cases of ioctls, we can use our own functions */
+		if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_ALLOC)) {
+			const struct mali_ioctl_mem_alloc *args = ptr;
+
+			panwrap_log("u64 alloc_gpu_va_%d;\n", number);
+
+			if (args->va_pages == args->commit_pages && !args->extent)
+				panwrap_log("pandev_standard_allocate(fd, %" PRId64 ", ", args->va_pages);
+			else
+				panwrap_log("pandev_general_allocate(fd, %" PRId64 ", %" PRId64", %" PRId64, args->va_pages, args->commit_pages, args->extent);
+
+			panwrap_log_decoded_flags(mem_flag_info, args->flags & ~MALI_MEM_CACHED_CPU);
+			panwrap_log_cont(", &alloc_gpu_va_%d);\n", number);
+
+			ignore = true;
+		}
+
 		if (!ignore)
 			panwrap_log("struct mali_ioctl_%s %s_%d = {\n", lname, lname, number);
 	} else {

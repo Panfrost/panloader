@@ -64,7 +64,7 @@ char* pointer_as_memory_reference(mali_ptr ptr)
 	char *out = malloc(128);
 
 	if (ptr == (uintptr_t) ptr && (mapped = panwrap_find_mapped_mem_containing((void*) (uintptr_t) ptr)))
-		snprintf(out, 128, "mem_alloc_%d.gpu_va + %d", mapped->allocation_number, (int) (ptr - mapped->gpu_va));
+		snprintf(out, 128, "alloc_gpu_va_%d + %d", mapped->allocation_number, (int) (ptr - mapped->gpu_va));
 	else 
 		snprintf(out, 128, MALI_PTR_FMT, ptr);
 
@@ -182,7 +182,7 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 
 		/* Map region itself */
 
-		panwrap_log("uint32_t *%s = mmap64(NULL, %d, %d, %d, fd, mem_alloc_%d.gpu_va);\n\n",
+		panwrap_log("uint32_t *%s = mmap64(NULL, %d, %d, %d, fd, alloc_gpu_va_%d);\n\n",
 			    mapped_mem->name, length, prot, flags, mapped_mem->allocation_number);
 
 		panwrap_log("if (%s == MAP_FAILED) printf(\"Error mapping %s\\n\");\n\n",
