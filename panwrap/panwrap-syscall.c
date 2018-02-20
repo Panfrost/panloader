@@ -1370,6 +1370,13 @@ int ioctl(int fd, int request, ...)
 		/* Dump the framebuffer :D */
 		if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_JOB_SUBMIT)) {
 			panwrap_log("slowfb_update(framebuffer, 400, 320);\n");
+			
+			/* We have to acknowledge events from the kernel for
+			 * atoms to be released correctly, or else we'll hang
+			 * after a few seconds of drawing (255 atom max) */
+
+			panwrap_log("uint8_t kernel_events[128];\n");
+			panwrap_log("read(fd, kernel_events, 128);\n");
 			panwrap_log("FILE *fp = fopen(\"/dev/shm/framebuffer.bin\", \"wb\");\n");
 			panwrap_log("fwrite(framebuffer, 1, 4096*4096*4, fp);\n");
 			panwrap_log("fclose(fp);\n");
