@@ -132,10 +132,17 @@ struct mali_payload_vertex_tiler {
 /* TODO: What is this? In practice, it looks like { -inf, -inf, inf, inf, 0.0,
  * 1.0, }, followed by a hex thingy, and then zeroes, which suggests some kind
  * of bounds, perhaps mapping coordinate systems. But why only for tiler jobs?
- * */
+ *
+ * unknown0 is experimentally equal to 0xef018f, but I'm having a hard time
+ * making sense of that. It reminds of the tiler coordinates, I suppose.
+ *
+ * Might the two combine together into a single u64?
+ */
 
 struct nullForVertex {
 	float floats[6];
+	u32 zero0;
+	u32 unknown0;
 };
 
 /* From presentations, 16x16 tiles externally. Use shift for fast computation

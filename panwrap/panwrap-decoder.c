@@ -447,14 +447,23 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		struct panwrap_mapped_memory *fmem = panwrap_find_mapped_gpu_mem_containing(v->nullForVertex);
 		struct nullForVertex *PANWRAP_PTR_VAR(f, fmem, v->nullForVertex);
 
-		panwrap_log("struct nullForVertex nullForVertex_%d = { .floats = {\n", job_no);
+		if (f->zero0)
+			panwrap_msg("zero tripped (%X)\n", f->zero0);
+
+		panwrap_log("struct nullForVertex nullForVertex_%d = {\n", job_no);
+		panwrap_indent++;
+		panwrap_log(".floats = {\n", job_no);
 		panwrap_indent++;
 
 		for (int i = 0; i < sizeof(f->floats) / sizeof(f->floats[0]); i += 2)
 			panwrap_log("%ff, %ff,\n", f->floats[i], f->floats[i + 1]);
 
 		panwrap_indent--;
-		panwrap_log("}};\n");
+		panwrap_log("},\n");
+		panwrap_prop("unknown0 = 0x%" PRIx32, f->unknown0);
+		panwrap_indent--;
+		panwrap_log("};\n");
+
 		TOUCH(fmem, v->nullForVertex, *f, "nullForVertex", job_no);
 	}
 
