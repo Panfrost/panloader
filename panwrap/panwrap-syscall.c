@@ -1324,7 +1324,7 @@ int ioctl(int fd, int request, ...)
 		if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_IMPORT)) {
 			panwrap_log("uint32_t *framebuffer;\n");
 			panwrap_log("posix_memalign((void **) &framebuffer, CACHE_LINE_SIZE, 4096*4096*4);\n");
-			panwrap_log("slowfb_init(framebuffer, 400, 320);\n");
+			panwrap_log("slowfb_init(framebuffer + %d, 400, 320);\n", 148); /* XXX: Magic experimentally determined offset */
 			panwrap_log("struct mali_mem_import_user_buffer framebuffer_handle = { .ptr = (uint64_t) (uintptr_t) framebuffer, .length = 4096*4096*4 };\n");
 		}
 
