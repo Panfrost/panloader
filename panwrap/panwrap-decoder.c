@@ -830,7 +830,8 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 				panwrap_prop("unknown = 0x%" PRIX64, s->unknown);
 				panwrap_indent--;
 				panwrap_log("};\n");
-				//TOUCH(mem, payload_ptr, *s);
+
+				TOUCH(mem, payload_ptr, *s, "set_value", job_no);
 
 				break;
 			}
