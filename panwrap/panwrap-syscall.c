@@ -1339,7 +1339,7 @@ int ioctl(int fd, int request, ...)
 			if (args->va_pages == args->commit_pages && !args->extent)
 				panwrap_log("pandev_standard_allocate(fd, %" PRId64 ", ", args->va_pages);
 			else
-				panwrap_log("pandev_general_allocate(fd, %" PRId64 ", %" PRId64", %" PRId64, args->va_pages, args->commit_pages, args->extent);
+				panwrap_log("pandev_general_allocate(fd, %" PRId64 ", %" PRId64", %" PRId64 ", ", args->va_pages, args->commit_pages, args->extent);
 
 			panwrap_log_decoded_flags(mem_flag_info, args->flags & ~MALI_MEM_CACHED_CPU);
 			panwrap_log_cont(", &alloc_gpu_va_%d);\n", number);
