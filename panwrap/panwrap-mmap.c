@@ -119,8 +119,10 @@ void panwrap_track_allocation(mali_ptr addr, int flags, int number)
 {
 	struct panwrap_allocated_memory *mem = malloc(sizeof(*mem));
 
-	panwrap_msg("GPU memory allocated at GPU VA " MALI_PTR_FMT "\n",
-		    addr);
+	if (!do_replay)
+		panwrap_msg("GPU memory allocated at GPU VA " MALI_PTR_FMT "\n",
+			    addr);
+
 	list_init(&mem->node);
 	mem->gpu_va = addr;
 	mem->flags = flags;
