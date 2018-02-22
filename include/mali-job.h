@@ -37,13 +37,13 @@ enum mali_job_type {
 };
 
 enum mali_gl_mode {
-	MALI_GL_POINTS         = 0x01,
-	MALI_GL_LINES          = 0x02,
-	MALI_GL_TRIANGLES      = 0x08,
-	MALI_GL_TRIANGLE_STRIP = 0x0A,
-	MALI_GL_TRIANGLE_FAN   = 0x0C,
-	MALI_GL_LINE_STRIP     = 0x18038004,
-	MALI_GL_LINE_LOOP      = 0x18038006
+	MALI_GL_POINTS         = 0x1,
+	MALI_GL_LINES          = 0x2,
+	MALI_GL_LINE_STRIP     = 0x4,
+	MALI_GL_LINE_LOOP      = 0x6,
+	MALI_GL_TRIANGLES      = 0x8,
+	MALI_GL_TRIANGLE_STRIP = 0xA,
+	MALI_GL_TRIANGLE_FAN   = 0xC,
 };
 
 struct mali_shader_meta {
