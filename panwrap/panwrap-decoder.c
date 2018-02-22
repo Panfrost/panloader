@@ -935,7 +935,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		default:
 			break;
 		}
-	} while ((jc_gpu_va = (u32) h->next_job));
+	} while ((jc_gpu_va = h->job_descriptor_size ? h->next_job : (u32) h->next_job));
 }
 
 void panwrap_replay_soft_replay_payload(mali_ptr jc_gpu_va, int job_no)
