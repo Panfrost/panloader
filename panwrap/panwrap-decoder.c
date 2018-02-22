@@ -386,7 +386,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_prop("unk1 = 0x%" PRIx32, v->unk1);
 
 	if (h->job_type == JOB_TYPE_TILER) {
-		panwrap_prop("draw_mode = %s", panwrap_gl_mode_name(v->draw_mode));
+		panwrap_prop("draw_mode = 0x%" PRIx32 " | %s", v->draw_mode & ~(0xF), panwrap_gl_mode_name(v->draw_mode & 0xF));
 	} else {
 		panwrap_prop("draw_mode = 0x%" PRIx32, v->draw_mode);
 	}
