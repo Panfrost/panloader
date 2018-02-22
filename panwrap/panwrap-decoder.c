@@ -535,6 +535,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	/* XXX: This entire block is such a hack... where are uniforms configured exactly? */
 
 	if (v->uniforms) {
+#if 0
 		int rows = 2, width = 4;
 		size_t sz = rows * width * sizeof(float);
 
@@ -559,6 +560,9 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_log("};\n");
 
 		TOUCH_LEN(mem, v->uniforms, sz, "uniforms", job_no);
+#else
+		panwrap_msg("TODO: Handle uniforms appropriately\n");
+#endif
 	}
 
 	if (v->unknown1) {
