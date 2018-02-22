@@ -95,17 +95,21 @@ enum mali_fbd_type {
 #define FBD_TYPE (1)
 #define FBD_MASK (~0x3f)
 
-/* TODO: using 32 bit datatypes is kind of awkward when you're just dealing
- * with binary data. Eventually remove all of them and replace them with proper
- * unsigned char types
- */
 struct mali_payload_vertex_tiler {
-	u32 unk0; // 0x2
+	/* Edge/vertex count is a little funky. For purposes of this struct,
+	 * define edge count as the number of edges rendered if the draw mode
+	 * were GL_LINE_STRIP. A single triangle is 2, a quad is 3, etc. For
+	 * tiler jobs, both edge_count fields are equal; weird behaviour occurs
+	 * if they differ. For vertex jobs, edge_count_tiler is zeroed but
+	 * edge_count_generic behaves as mentioned.
+	 * */
+
+	u32 edge_count_generic; 
 	u32 unk1; // 0x28000000
 	u32 draw_mode; 
 	u32 zero0;
 	u32 zero1;
-	u32 unk5; // 0x2
+	u32 edge_count_tiler;
 	u32 zero2;
 	u32 zero3;
 	u32 unk8; // 0x5

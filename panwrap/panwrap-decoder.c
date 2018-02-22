@@ -382,7 +382,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_indent++;
 
 
-	panwrap_prop("unk0 = 0x%" PRIx32, v->unk0);
+	panwrap_prop("edge_count_generic = %" PRId32, v->edge_count_generic);
 	panwrap_prop("unk1 = 0x%" PRIx32, v->unk1);
 
 	if (h->job_type == JOB_TYPE_TILER) {
@@ -391,8 +391,16 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_prop("draw_mode = 0x%" PRIx32, v->draw_mode);
 	}
 
-	panwrap_prop("unk5 = 0x%" PRIx32, v->unk5);
+	panwrap_prop("edge_count_tiler = %" PRId32, v->edge_count_tiler);
 	panwrap_prop("unk8 = 0x%" PRIx32, v->unk8);
+
+	if (h->job_type == JOB_TYPE_TILER) {
+		if (v->edge_count_generic != v->edge_count_tiler)
+			panwrap_msg("Warning: edge counts differ in tiler job\n");
+	} else {
+		if (v->edge_count_tiler)
+			panwrap_msg("Warning: tiler edge count set in vertex job\n");
+	}
 
 	if (v->zero0 | v->zero1 | v->zero2 | v->zero3 | v->zero4 | v->zero5 | v->zero6) {
 		panwrap_msg("Zero tripped, replay may be wrong\n");
