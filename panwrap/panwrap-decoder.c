@@ -894,15 +894,20 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 			panwrap_prop("job_dependency_index_2 = %d", h->job_dependency_index_2);
 		} 
 
-		char *a = pointer_as_memory_reference(((u64) (uintptr_t) h->next_job) & ((u64) (1 << JOB_POINTER_BITS) - 1));
+		u64 ptr = h->next_job;
+
+		if (!h->job_descriptor_size)
+			ptr = (u64) (u32) h->next_job; 
+
+		char *a = pointer_as_memory_reference(ptr);
 		panwrap_prop("next_job = %s", a);
 		free(a);
 
 		panwrap_indent--;
 		panwrap_log("};\n");
 
-		/* Touch the fields */
-		TOUCH(mem, jc_gpu_va, *h, "job", job_no);
+		/* Touch the fields, careful about 32/64-bit */
+		TOUCH_OLEN(mem, jc_gpu_va, sizeof(*h), h->job_descriptor_size ? 0 : 1, "job", job_no);
 
 		switch (h->job_type) {
 		case JOB_TYPE_SET_VALUE:
@@ -930,7 +935,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		default:
 			break;
 		}
-	} while ((jc_gpu_va = ((u64) (uintptr_t) h->next_job) & ((u64) (1 << JOB_POINTER_BITS) - 1)));
+	} while ((jc_gpu_va = (u32) h->next_job));
 }
 
 void panwrap_replay_soft_replay_payload(mali_ptr jc_gpu_va, int job_no)

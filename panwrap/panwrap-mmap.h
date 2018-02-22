@@ -45,13 +45,19 @@ struct panwrap_mapped_memory {
 	struct list node;
 };
 
-#define TOUCH_LEN(mem, addr, sz, ename, number) \
-	memset(mem->touched + ((addr - mem->gpu_va) / sizeof(uint32_t)), 1, sz / sizeof(uint32_t)); \
+#define TOUCH_OLEN(mem, addr, sz, offset, ename, number) \
+	memset(mem->touched + ((addr - mem->gpu_va) / sizeof(uint32_t)), 1, (sz - offset) / sizeof(uint32_t)); \
 	panwrap_log("\n"); \
-	panwrap_log("memcpy(%s + %d, &%s_%d, sizeof(%s_%d));\n\n", mem->name, (int) ((addr - mem->gpu_va) / sizeof(uint32_t)), ename, number, ename, number);
+	if (offset) \
+		panwrap_log("memcpy(%s + %d, &%s_%d, sizeof(%s_%d) - %d);\n\n", mem->name, (int) ((addr - mem->gpu_va) / sizeof(uint32_t)), ename, number, ename, number, offset); \
+	else \
+		panwrap_log("memcpy(%s + %d, &%s_%d, sizeof(%s_%d));\n\n", mem->name, (int) ((addr - mem->gpu_va) / sizeof(uint32_t)), ename, number, ename, number); \
+
+#define TOUCH_LEN(mem, addr, sz, ename, number) \
+	TOUCH_OLEN(mem, addr, sz, 0, ename, number)
 
 #define TOUCH(mem, addr, obj, ename, number) \
-	TOUCH_LEN(mem, addr, sizeof(obj), ename, number)
+	TOUCH_LEN(mem, addr, sizeof(typeof(obj)), ename, number)
 
 void replay_memory();
 char *pointer_as_memory_reference(mali_ptr ptr);
