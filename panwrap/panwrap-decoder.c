@@ -18,6 +18,9 @@
 #include <stdio.h>
 #include <memory.h>
 
+/* TODO: Correctly handle job size like the kernel */
+#define JOB_POINTER_BITS 32
+
 #define MEMORY_PROP(p) {\
 	char *a = pointer_as_memory_reference(v->p); \
 	panwrap_prop("%s = %s", #p, a); \
@@ -391,8 +394,16 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_prop("unk5 = 0x%" PRIx32, v->unk5);
 	panwrap_prop("unk8 = 0x%" PRIx32, v->unk8);
 
-	if (v->zero0 | v->zero1 | v->zero2 | v->zero3 | v->zero4 | v->zero5 | v->zero6)
+	if (v->zero0 | v->zero1 | v->zero2 | v->zero3 | v->zero4 | v->zero5 | v->zero6) {
 		panwrap_msg("Zero tripped, replay may be wrong\n");
+		panwrap_prop("zero0 = 0x%" PRIx32, v->zero0);
+		panwrap_prop("zero1 = 0x%" PRIx32, v->zero1);
+		panwrap_prop("zero2 = 0x%" PRIx32, v->zero2);
+		panwrap_prop("zero3 = 0x%" PRIx32, v->zero3);
+		panwrap_prop("zero4 = 0x%" PRIx32, v->zero4);
+		panwrap_prop("zero5 = 0x%" PRIx32, v->zero5);
+		panwrap_prop("zero6 = 0x%" PRIx32, v->zero6);
+	}
 
 	MEMORY_PROP(unknown0);
 	MEMORY_PROP(unknown1); /* pointer */
@@ -879,7 +890,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 			panwrap_prop("job_dependency_index_2 = %d", h->job_dependency_index_2);
 		} 
 
-		char *a = pointer_as_memory_reference(h->next_job);
+		char *a = pointer_as_memory_reference(((u64) (uintptr_t) h->next_job) & ((u64) (1 << JOB_POINTER_BITS) - 1));
 		panwrap_prop("next_job = %s", a);
 		free(a);
 
@@ -915,7 +926,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		default:
 			break;
 		}
-	} while ((jc_gpu_va = ((u64) (uintptr_t) h->next_job) & (((u64)1<<55) - 1)));
+	} while ((jc_gpu_va = ((u64) (uintptr_t) h->next_job) & ((u64) (1 << JOB_POINTER_BITS) - 1)));
 }
 
 void panwrap_replay_soft_replay_payload(mali_ptr jc_gpu_va, int job_no)
