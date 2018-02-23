@@ -915,7 +915,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		panwrap_log("};\n");
 
 		/* Touch the fields, careful about 32/64-bit */
-		TOUCH_OLEN(mem, jc_gpu_va, sizeof(*h), h->job_descriptor_size ? 0 : 1, "job", job_no);
+		TOUCH_OLEN(mem, jc_gpu_va, sizeof(*h), h->job_descriptor_size ? 0 : 4, "job", job_no);
 
 		switch (h->job_type) {
 		case JOB_TYPE_SET_VALUE:
