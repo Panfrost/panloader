@@ -67,6 +67,8 @@ panwrap_log_decoded_flags(const struct panwrap_flag_info *flag_info,
 
 		if (!do_replay)
 			panwrap_log_cont(")");
+	} else if (do_replay) {
+		panwrap_log_cont("0x%" PRIx64, flags);
 	}
 }
 

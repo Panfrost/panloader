@@ -27,6 +27,13 @@
 	free(a); \
 }
 
+#define FLAG_INFO(flag) { MALI_GL_##flag, "MALI_GL_" #flag }
+static const struct panwrap_flag_info gl_enable_flag_info[] = {
+	FLAG_INFO(CULL_FACE),
+	{}
+};
+#undef FLAG_INFO
+
 extern char* replace_fragment;
 extern char* replace_vertex;
 
@@ -392,7 +399,10 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	}
 
 	panwrap_prop("edge_count_tiler = %" PRId32, v->edge_count_tiler);
-	panwrap_prop("gl_enables = 0x%" PRIx32, v->gl_enables);
+
+	panwrap_log(".gl_enables = ");
+	panwrap_log_decoded_flags(gl_enable_flag_info, v->gl_enables);
+	panwrap_log_cont(",\n");
 
 	if (h->job_type == JOB_TYPE_TILER) {
 		if (v->edge_count_generic != v->edge_count_tiler)
