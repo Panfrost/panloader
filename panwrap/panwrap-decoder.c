@@ -392,7 +392,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	}
 
 	panwrap_prop("edge_count_tiler = %" PRId32, v->edge_count_tiler);
-	panwrap_prop("unk8 = 0x%" PRIx32, v->unk8);
+	panwrap_prop("gl_enables = 0x%" PRIx32, v->gl_enables);
 
 	if (h->job_type == JOB_TYPE_TILER) {
 		if (v->edge_count_generic != v->edge_count_tiler)

@@ -46,6 +46,8 @@ enum mali_gl_mode {
 	MALI_GL_TRIANGLE_FAN   = 0xC,
 };
 
+#define MALI_GL_CULL_FACE 0x80
+
 struct mali_shader_meta {
 	mali_ptr shader;
 	u32 zero;
@@ -112,7 +114,7 @@ struct mali_payload_vertex_tiler {
 	u32 edge_count_tiler;
 	u32 zero2;
 	u32 zero3;
-	u32 unk8; // 0x5
+	u32 gl_enables; // 0x5
 	u32 zero4;
 
 	u32 zero5;
