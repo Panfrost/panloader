@@ -457,7 +457,9 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_indent++;
 
 		/* TODO: Decode flags */
-		char *a = pointer_as_memory_reference(s->shader & ~7);
+		mali_ptr shader_ptr = s->shader & ~7;
+
+		char *a = pointer_as_memory_reference(shader_ptr);
 		panwrap_prop("shader = (%s) | %d", a, (int) (s->shader & 7));
 		free(a);
 
@@ -468,6 +470,37 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_indent--;
 		panwrap_log("};\n");
 		TOUCH(smem, shader_meta_ptr, *meta, "shader_meta", job_no);
+
+		/* Disassemble the shader itself. This implies doing file I/O
+		 * for the moment, which is rather than gross, but it keeps
+		 * everything Midgard/Bifrost agnostic for now, and avoids a
+		 * dependency nightmare.
+		 * 
+		 * At the moment this is only tested on Midgard.
+		 */
+
+		struct panwrap_mapped_memory *shaders = panwrap_find_mapped_gpu_mem_containing(shader_ptr);
+
+		FILE *tmpfp = fopen("/dev/shm/shader.bin", "wb");
+		fwrite(shaders->addr + (shader_ptr - shaders->gpu_va), 1, shaders->length - (shader_ptr - shaders->gpu_va), tmpfp);
+		fclose(tmpfp);
+
+		system("/dev/shm/disassemble /dev/shm/shader.bin 2>/dev/null > /dev/shm/shader.c");
+
+		/*
+		FILE *disfp = popen("/dev/shm/disassemble /dev/shm/shader.bin", "r");
+
+		panwrap_log("#if 0\n");
+
+		char buffer[512];
+		while (fgets(buffer, sizeof(buffer), disfp) != NULL) {
+			panwrap_log_cont("%s\n", buffer);
+			break;
+		}
+
+		panwrap_log("#endif\n");
+		pclose(disfp);*/
+
 	} else
 		panwrap_msg("<no shader>\n");
 	
