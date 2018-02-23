@@ -337,7 +337,7 @@ void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
 
 	TOUCH(mem, addr, *attr, prefix, human_attr_number);
 
-	if (!varying) {
+	if (!varying && attr->size < 0x40) {
 		/* TODO: Attributes are not necessarily float32 vectors in general;
 		 * decoding like this is unsafe all things considered */
 
