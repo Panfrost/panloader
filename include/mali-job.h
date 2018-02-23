@@ -46,7 +46,17 @@ enum mali_gl_mode {
 	MALI_GL_TRIANGLE_FAN   = 0xC,
 };
 
+/* TODO: Where are the other values? Goes with glState */
 #define MALI_GL_CULL_FACE 0x80
+
+/* TODO: Might this actually be a finer bitfield? */
+#define MALI_DEPTH_STENCIL_ENABLE 0x6400
+
+#define DS_ENABLE(field) \
+	(field == MALI_DEPTH_STENCIL_ENABLE) \
+	? "MALI_DEPTH_STENCIL_ENABLE" \
+	: (field == 0) ? "0" \
+	: "0 /* XXX: Unknown, check hexdump */"
 
 struct mali_shader_meta {
 	mali_ptr shader;
@@ -232,13 +242,15 @@ struct mali_tentative_sfbd {
 
 	/* Depth and stencil buffers are interleaved, it appears, as they are
 	 * set to the same address in captures. Both fields set to zero if the
-	 * buffer is not being cleared. */
+	 * buffer is not being cleared. Depending on GL_ENABLE magic, you might
+	 * get a zero enable despite the buffer being present; that still is
+	 * disabled. */
 
 	mali_ptr depth_buffer; // not SAME_VA
-	u64 depth_buffer_unknown; // =0x6400?
+	u64 depth_buffer_enable; 
 
 	mali_ptr stencil_buffer; // not SAME_VA
-	u64 stencil_buffer_unknown; // =0x6400?
+	u64 stencil_buffer_enable; 
 
 	u32 clear_color_1; // RGBA8888 from glClear, actually used by hardware
 	u32 clear_color_2; // always equal, but unclear function?

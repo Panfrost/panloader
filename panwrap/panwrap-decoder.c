@@ -114,10 +114,10 @@ static void panwrap_replay_sfbd(uint64_t gpu_va, int job_no)
 	panwrap_property_u32_list("weights", s->weights, MALI_FBD_HIERARCHY_WEIGHTS);
 
 	panwrap_prop("depth_buffer = " MALI_PTR_FMT, s->depth_buffer);
-	panwrap_prop("depth_buffer_unknown = 0x%" PRIx64, s->depth_buffer_unknown);
+	panwrap_prop("depth_buffer_enable = %s", DS_ENABLE(s->depth_buffer_enable));
 
 	panwrap_prop("stencil_buffer = " MALI_PTR_FMT, s->depth_buffer);
-	panwrap_prop("stencil_buffer_unknown = 0x%" PRIx64, s->stencil_buffer_unknown);
+	panwrap_prop("stencil_buffer_enable = %s", DS_ENABLE(s->stencil_buffer_enable));
 
 	panwrap_prop("clear_color_1 = 0x%" PRIx32, s->clear_color_1);
 	panwrap_prop("clear_color_2 = 0x%" PRIx32, s->clear_color_2);
