@@ -1326,7 +1326,7 @@ int ioctl(int fd, int request, ...)
 		if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_IMPORT)) {
 			panwrap_log("uint32_t *framebuffer;\n");
 			panwrap_log("posix_memalign((void **) &framebuffer, CACHE_LINE_SIZE, 4096*4096*4);\n");
-			panwrap_log("slowfb_init(framebuffer + %d, 400, 320);\n", 144); /* XXX: Magic experimentally determined offset */
+			panwrap_log("slowfb_init((uint8_t*) (framebuffer + %d), 400, 320);\n", 144); /* XXX: Magic experimentally determined offset */
 			panwrap_log("struct mali_mem_import_user_buffer framebuffer_handle = { .ptr = (uint64_t) (uintptr_t) framebuffer, .length = 4096*4096*4 };\n");
 		}
 
@@ -1392,7 +1392,7 @@ int ioctl(int fd, int request, ...)
 
 		/* Dump the framebuffer :D */
 		if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_JOB_SUBMIT)) {
-			panwrap_log("slowfb_update(framebuffer, 400, 320);\n");
+			panwrap_log("slowfb_update((uint8_t*) framebuffer, 400, 320);\n");
 			
 			/* We have to acknowledge events from the kernel for
 			 * atoms to be released correctly, or else we'll hang
