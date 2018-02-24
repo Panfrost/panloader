@@ -728,7 +728,7 @@ static void ioctl_pretty_print_job_submit(const struct mali_ioctl_job_submit *ar
 
 		panwrap_msg("Decoding job chain:\n");
 		panwrap_indent++;
-		panwrap_trace_hw_chain(a->jc);
+		panwrap_replay_jc(a->jc);
 		panwrap_indent--;
 
 		panwrap_prop("udata = [0x%" PRIx64 ", 0x%" PRIx64 "]",
