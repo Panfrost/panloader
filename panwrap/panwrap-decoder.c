@@ -353,7 +353,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 		panwrap_log("struct nullForVertex nullForVertex_%d = {\n", job_no);
 		panwrap_indent++;
-		panwrap_log(".floats = {\n", job_no);
+		panwrap_log(".floats = {\n");
 		panwrap_indent++;
 
 		for (int i = 0; i < sizeof(f->floats) / sizeof(f->floats[0]); i += 2)
