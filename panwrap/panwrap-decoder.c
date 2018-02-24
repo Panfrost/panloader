@@ -18,8 +18,8 @@
 #include <stdio.h>
 #include <memory.h>
 
-#define MEMORY_PROP(p) {\
-	char *a = pointer_as_memory_reference(v->p); \
+#define MEMORY_PROP(obj, p) {\
+	char *a = pointer_as_memory_reference(obj->p); \
 	panwrap_prop("%s = %s", #p, a); \
 	free(a); \
 }
@@ -126,21 +126,16 @@ static void panwrap_replay_sfbd(uint64_t gpu_va, int job_no)
 
 	panwrap_prop("clear_stencil = 0x%x", s->clear_stencil);
 
-	char *a = pointer_as_memory_reference(s->unknown_address_1);
-	panwrap_prop("unknown_address_1 = %s", a);
-	free(a);
-	
-	a = pointer_as_memory_reference(s->unknown_address_2);
-	panwrap_prop("unknown_address_2 = %s", a);
-	free(a);
-
-	panwrap_prop("unknown_address_0 = 0x%" PRIx64, s->unknown_address_0);
+	MEMORY_PROP(s, unknown_address_0);
+	MEMORY_PROP(s, unknown_address_1);
+	MEMORY_PROP(s, unknown_address_2);
 
 	panwrap_prop("unknown8 = 0x%" PRIx32, s->unknown8);
 	panwrap_prop("unknown9 = 0x%" PRIx32, s->unknown9);
 
 	panwrap_prop("tiler_jc_list = 0x%" PRIx64, s->tiler_jc_list);
-	panwrap_prop("unknown_address_4 = 0x%" PRIx64, s->unknown_address_4);
+
+	MEMORY_PROP(s, unknown_address_4);
 
 	panwrap_indent--;
 	panwrap_log("};\n");
@@ -263,17 +258,17 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_prop("zero6 = 0x%" PRIx32, v->zero6);
 	}
 
-	MEMORY_PROP(unknown0);
-	MEMORY_PROP(unknown1); /* pointer */
-	MEMORY_PROP(texture_meta_address);
-	MEMORY_PROP(texture_unknown);
-	MEMORY_PROP(uniforms);
-	MEMORY_PROP(attributes); /* struct attribute_buffer[] */
-	MEMORY_PROP(attribute_meta); /* attribute_meta[] */
-	MEMORY_PROP(varyings); /* pointer */
-	MEMORY_PROP(unknown6); /* pointer */
-	MEMORY_PROP(nullForVertex);
-	MEMORY_PROP(fbd);
+	MEMORY_PROP(v, unknown0);
+	MEMORY_PROP(v, unknown1); /* pointer */
+	MEMORY_PROP(v, texture_meta_address);
+	MEMORY_PROP(v, texture_unknown);
+	MEMORY_PROP(v, uniforms);
+	MEMORY_PROP(v, attributes); /* struct attribute_buffer[] */
+	MEMORY_PROP(v, attribute_meta); /* attribute_meta[] */
+	MEMORY_PROP(v, varyings); /* pointer */
+	MEMORY_PROP(v, unknown6); /* pointer */
+	MEMORY_PROP(v, nullForVertex);
+	MEMORY_PROP(v, fbd);
 
 	char *a = pointer_as_memory_reference(shader_meta_ptr);
 	panwrap_prop("_shader_upper = (%s) >> 4", a);
@@ -579,6 +574,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		if (!h->job_descriptor_size)
 			ptr = (u64) (u32) h->next_job; 
 
+
 		char *a = pointer_as_memory_reference(ptr);
 		panwrap_prop("next_job = %s", a);
 		free(a);
@@ -630,9 +626,9 @@ void panwrap_replay_soft_replay_payload(mali_ptr jc_gpu_va, int job_no)
 	panwrap_log("struct mali_jd_replay_payload soft_replay_payload_%d = {\n", job_no);
 	panwrap_indent++;
 
-	MEMORY_PROP(tiler_jc_list);
-	MEMORY_PROP(fragment_jc);
-	MEMORY_PROP(tiler_heap_free);
+	MEMORY_PROP(v, tiler_jc_list);
+	MEMORY_PROP(v, fragment_jc);
+	MEMORY_PROP(v, tiler_heap_free);
 
 	panwrap_prop("fragment_hierarchy_mask = 0x%" PRIx32, v->fragment_hierarchy_mask);
 	panwrap_prop("tiler_hierarchy_mask = 0x%" PRIx32, v->tiler_hierarchy_mask);
@@ -672,8 +668,8 @@ void panwrap_replay_soft_replay(mali_ptr jc_gpu_va)
 		panwrap_log("struct mali_jd_replay_jc soft_replay_%d = {\n", job_no);
 		panwrap_indent++;
 
-		MEMORY_PROP(next);
-		MEMORY_PROP(jc);
+		MEMORY_PROP(v, next);
+		MEMORY_PROP(v, jc);
 
 		panwrap_indent--;
 		panwrap_log("};\n");
