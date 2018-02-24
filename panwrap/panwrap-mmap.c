@@ -337,8 +337,7 @@ __panwrap_fetch_mem_err(const struct panwrap_mapped_memory *mem,
 		if (!(mem->prot & MALI_MEM_PROT_CPU_RD))
 			panwrap_msg("Memory is only accessible from GPU\n");
 		else
-			panwrap_msg("Access length was %zu (%zu out of bounds)\n",
-				    size, ((gpu_va - mem->gpu_va) + size) - mem->length);
+			panwrap_msg("Access length was out of bounds\n");
 	} else {
 		panwrap_msg("GPU memory is not contained within known GPU VA mappings\n");
 

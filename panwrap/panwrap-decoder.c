@@ -200,7 +200,7 @@ void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
 
 		panwrap_indent++;
 		for (int row = 0; row < vertex_count; row++) {
-			panwrap_log("");
+			panwrap_log_empty();
 
 			for (int i = 0; i < component_count; i++)
 				panwrap_log_cont("%ff, ", buffer[i]);
@@ -441,7 +441,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 		panwrap_indent++;
 		for (int row = 0; row < rows; row++) {
-			panwrap_log("");
+			panwrap_log_empty();
 
 			for (int i = 0; i < width; i++)
 				panwrap_log_cont("%ff, ", uniforms[i]);

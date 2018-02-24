@@ -192,13 +192,11 @@ panwrap_timestamp(struct timespec *tp)
 }
 
 void
-panwrap_log_typed(enum panwrap_log_type type, const char *format, ...)
+panwrap_log_empty()
 {
-	struct timespec tp;
-	va_list ap;
-
 	if (!do_replay) {
 		if (enable_timestamps) {
+			struct timespec tp;
 			panwrap_timestamp(&tp);
 			fprintf(log_output,
 				"panwrap [%ld.%ld]: ", tp.tv_sec, tp.tv_nsec);
@@ -210,6 +208,15 @@ panwrap_log_typed(enum panwrap_log_type type, const char *format, ...)
 	for (int i = 0; i < panwrap_indent; i++) {
 		fputs("  ", log_output);
 	}
+}
+
+
+void
+panwrap_log_typed(enum panwrap_log_type type, const char *format, ...)
+{
+	va_list ap;
+
+	panwrap_log_empty();
 
 	if (do_replay) {
 		if (type == PANWRAP_MESSAGE)
