@@ -485,9 +485,9 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		fwrite(shaders->addr + (shader_ptr - shaders->gpu_va), 1, shaders->length - (shader_ptr - shaders->gpu_va), tmpfp);
 		fclose(tmpfp);
 
-		system("/dev/shm/disassemble /dev/shm/shader.bin 2>/dev/null > /dev/shm/shader.c");
 
 		/*
+		system("/dev/shm/disassemble /dev/shm/shader.bin 2>/dev/null > /dev/shm/shader.c");
 		FILE *disfp = popen("/dev/shm/disassemble /dev/shm/shader.bin", "r");
 
 		panwrap_log("#if 0\n");
