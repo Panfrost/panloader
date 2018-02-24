@@ -67,6 +67,11 @@ struct mali_shader_meta {
 
 /* This only concerns hardware jobs */
 
+/* Possible values for job_descriptor_size */
+
+#define MALI_JOB_64 1
+#define MALI_JOB_32 1
+
 struct mali_job_descriptor_header {
 	u32 exception_status;
 	u32 first_incomplete_task;

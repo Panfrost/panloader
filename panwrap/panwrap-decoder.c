@@ -223,10 +223,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	struct mali_payload_vertex_tiler *PANWRAP_PTR_VAR(v, mem, payload);
 	struct mali_shader_meta *meta;
 	struct panwrap_mapped_memory *attr_mem;
-	struct mali_attr_meta *attr_meta;
-	u8 *shader;
 	mali_ptr shader_meta_ptr = (u64) (uintptr_t) (v->_shader_upper << 4);
-	mali_ptr p;
 
 	panwrap_log("struct mali_payload_vertex_tiler vertex_tiler_%d = {\n", job_no);
 	panwrap_indent++;
@@ -389,7 +386,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 							  sizeof(*attr_mem));
 
 			panwrap_log("{ .index = %d, .flags = 0x%" PRIx64 "},\n",
-					attr_meta->index, attr_meta->flags);
+					attr_meta->index, (u64) attr_meta->flags);
 		}
 
 		panwrap_indent--;
@@ -504,7 +501,6 @@ static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 	const struct mali_payload_fragment *PANWRAP_PTR_VAR(s, mem, payload);
 
 	uintptr_t p = (uintptr_t) s->fbd & FBD_MASK;
-	struct panwrap_mapped_memory *fbd_map = panwrap_find_mapped_mem_containing((void *) p);
 
 	panwrap_log("struct mali_payload_fragment fragment_%d = {\n", job_no);
 	panwrap_indent++;
@@ -591,7 +587,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		panwrap_log("};\n");
 
 		/* Touch the fields, careful about 32/64-bit */
-		TOUCH_OLEN(mem, jc_gpu_va, sizeof(*h), h->job_descriptor_size ? 0 : 4, "job", job_no);
+		TOUCH_OLEN(mem, jc_gpu_va, sizeof(*h), h->job_descriptor_size == MALI_JOB_32 ? 4 : 0, "job", job_no);
 
 		switch (h->job_type) {
 		case JOB_TYPE_SET_VALUE:
