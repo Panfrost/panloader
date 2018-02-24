@@ -669,7 +669,6 @@ static void emit_atoms(void *ptr) {
 		panwrap_log("{\n");
 		panwrap_indent++;
 
-		struct panwrap_mapped_memory *mapped = panwrap_find_mapped_mem_containing((void *) (uintptr_t) a->jc);
 		char *jc_name = pointer_as_memory_reference(a->jc);
 		panwrap_prop("jc = %s", jc_name);
 		free(jc_name);
