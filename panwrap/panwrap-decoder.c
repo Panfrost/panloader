@@ -18,6 +18,8 @@
 #include <stdio.h>
 #include <memory.h>
 
+#include "panwrap-shader.h"
+
 #define MEMORY_PROP(obj, p) {\
 	char *a = pointer_as_memory_reference(obj->p); \
 	panwrap_prop("%s = %s", #p, a); \
@@ -305,6 +307,8 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_indent--;
 		panwrap_log("};\n");
 		TOUCH(smem, shader_meta_ptr, *meta, "shader_meta", job_no);
+
+		panwrap_shader_disassemble(shader_ptr);
 
 	} else
 		panwrap_msg("<no shader>\n");
