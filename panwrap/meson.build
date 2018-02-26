@@ -3,6 +3,7 @@ srcs = [
     'panwrap-util.c',
     'panwrap-mmap.c',
     'panwrap-decoder.c',
+    'panwrap-shader.c'
 ]
 
 shared_library(
