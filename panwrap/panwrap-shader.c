@@ -47,7 +47,7 @@ panwrap_shader_disassemble(mali_ptr shader_ptr)
 				  shaders->addr + offset,
 				  shaders->length - offset,
 				  NULL,
-				  ogt_asm_type_fragment, ogy_asm_syntax_explicit, 0)) {
+				  ogt_asm_type_fragment, ogt_asm_syntax_explicit, 0)) {
 		panwrap_msg("Error disassembling shader\n");
 		return;
 	}

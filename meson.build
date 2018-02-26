@@ -13,7 +13,9 @@ test_cc_flags = [
     '-Werror-incompatible-pointer-types-discards-qualifiers',
     '-Werror-int-conversion',
     '-mfp16-format=ieee',
-    '-U_FILE_OFFSET_BITS'
+    '-U_FILE_OFFSET_BITS',
+
+    '-I../../cwabbotts-open-gpu-tools/common/include',
 ]
 foreach flag: test_cc_flags
     if cc.has_argument(flag)
@@ -34,7 +36,8 @@ pthread_dep = cc.find_library('pthread', required: false)
 common_dep = [
     m_dep,
     dl_dep,
-    pthread_dep
+    pthread_dep,
+    '-l../../cwabbotts-open-gpu-tools/common/libcommon.so'
 ]
 
 if not cc.has_argument('-Werror=attributes')
