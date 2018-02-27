@@ -19,6 +19,6 @@
 #include <mali-job.h>
 #include "panwrap.h"
 
-void panwrap_shader_disassemble(mali_ptr shader_ptr);
+void panwrap_shader_disassemble(mali_ptr shader_ptr, int shader_no);
 
 #endif /* !PANWRAP_SHADER_H */

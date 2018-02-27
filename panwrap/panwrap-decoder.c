@@ -308,8 +308,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_log("};\n");
 		TOUCH(smem, shader_meta_ptr, *meta, "shader_meta", job_no);
 
-		panwrap_msg("Shader...\n");
-		panwrap_shader_disassemble(shader_ptr);
+		panwrap_shader_disassemble(shader_ptr, job_no);
 
 	} else
 		panwrap_msg("<no shader>\n");

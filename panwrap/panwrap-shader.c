@@ -37,52 +37,30 @@
 /* Disassemble the shader itself. */
 
 void
-panwrap_shader_disassemble(mali_ptr shader_ptr)
+panwrap_shader_disassemble(mali_ptr shader_ptr, int shader_no)
 {
 	struct panwrap_mapped_memory *shaders = panwrap_find_mapped_gpu_mem_containing(shader_ptr);
 
 	int offset = shader_ptr - shaders->gpu_va;
 
-	panwrap_log("#if 0");
+	panwrap_log("const char shader_%d[] = R\"(\n", shader_no);
 
 	if (!ogt_arch_disassemble(ogt_arch_lima_t600,
 				  shaders->addr + offset,
 				  shaders->length - offset,
 				  NULL,
-				  ogt_asm_type_fragment, ogt_asm_syntax_explicit, 0)) {
+				  ogt_asm_type_fragment, ogt_asm_syntax_explicit, 1)) {
 		panwrap_msg("Error disassembling shader\n");
 		return;
 	}
 
-	panwrap_log("#endif");
-
-
-#if 0
-	FILE *tmpfp = fopen("/dev/shm/shader.bin", "wb");
-	fwrite(shaders->addr + (shader_ptr - shaders->gpu_va), 1, shaders->length - (shader_ptr - shaders->gpu_va), tmpfp);
-	fclose(tmpfp);
-#endif
-
-	/*
-	system("/dev/shm/disassemble /dev/shm/shader.bin 2>/dev/null > /dev/shm/shader.c");
-	FILE *disfp = popen("/dev/shm/disassemble /dev/shm/shader.bin", "r");
-
-	panwrap_log("#if 0\n");
-
-	char buffer[512];
-	while (fgets(buffer, sizeof(buffer), disfp) != NULL) {
-		panwrap_log_cont("%s\n", buffer);
-		break;
-	}
-
-	panwrap_log("#endif\n");
-	pclose(disfp);*/
+	panwrap_log("\");\n\n");
 }
 
 #else
 
 void
-panwrap_shader_disassemble(mali_ptr shader_ptr)
+panwrap_shader_disassemble(mali_ptr shader_ptr, int shader_no)
 {
 	panwrap_msg("Shader decoding is not yet supported on non-Midgard platforms\n");
 	panwrap_msg("No disassembly performed for shader at " MALI_PTR_FMT, shader_ptr);
