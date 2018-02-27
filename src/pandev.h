@@ -35,4 +35,6 @@ int pandev_general_allocate(int fd, int va_pages, int commit_pages, int extent, 
 #include <math.h>
 #define inff INFINITY
 
+#define R(...) #__VA_ARGS__
+
 #endif /* __PANDEV_H__ */
