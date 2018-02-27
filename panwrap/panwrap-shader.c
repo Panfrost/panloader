@@ -43,7 +43,9 @@ panwrap_shader_disassemble(mali_ptr shader_ptr, int shader_no)
 
 	int offset = shader_ptr - shaders->gpu_va;
 
-	panwrap_log("const char shader_%d[] = R\"(\n", shader_no);
+	/* Disassemble it at trace time... */
+
+	panwrap_log("const char shader_src_%d[] = R\"(\n", shader_no);
 
 	if (!ogt_arch_disassemble(ogt_arch_lima_t600,
 				  shaders->addr + offset,
@@ -55,6 +57,13 @@ panwrap_shader_disassemble(mali_ptr shader_ptr, int shader_no)
 	}
 
 	panwrap_log("\");\n\n");
+
+	/* ...but reassemble at runtime! */
+
+	panwrap_log("pandev_shader_assemble(%s + %d, shader_src_%d);",
+			shaders->name,
+			offset / sizeof(uint32_t),
+			shader_no);
 }
 
 #else
