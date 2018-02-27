@@ -43,6 +43,8 @@ panwrap_shader_disassemble(mali_ptr shader_ptr)
 
 	int offset = shader_ptr - shaders->gpu_va;
 
+	panwrap_log("#if 0");
+
 	if (!ogt_arch_disassemble(ogt_arch_lima_t600,
 				  shaders->addr + offset,
 				  shaders->length - offset,
@@ -51,6 +53,8 @@ panwrap_shader_disassemble(mali_ptr shader_ptr)
 		panwrap_msg("Error disassembling shader\n");
 		return;
 	}
+
+	panwrap_log("#endif");
 
 
 #if 0
