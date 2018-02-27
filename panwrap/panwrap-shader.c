@@ -56,7 +56,7 @@ panwrap_shader_disassemble(mali_ptr shader_ptr, int shader_no)
 		return;
 	}
 
-	panwrap_log("\");\n\n");
+	panwrap_log(")\";\n\n");
 
 	/* ...but reassemble at runtime! */
 

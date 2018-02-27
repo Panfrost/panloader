@@ -12,6 +12,9 @@
  *
  */
 
+#include <stdio.h>
+#include "pandev.h"
+
 /* TODO: Bifrost */
 
 /* Takes shader source code in *src, calls out to the shader assembler, and
@@ -26,7 +29,7 @@ pandev_shader_assemble(uint32_t *dst, const char *src)
 	fwrite(src, 1, strlen(src), fp0);
 	fclose(fp0);
 
-	system("python3 ~/midgard-assembler/assembly.py /dev/shm/shader.asm /dev/shm/shader.bin > /dev/null");
+	system("python3 /home/guest/midgard-assembler/assemble.py /dev/shm/shader.asm /dev/shm/shader.bin > /dev/null");
 
 	FILE *fp1 = fopen("/dev/shm/shader.bin", "rb");
 

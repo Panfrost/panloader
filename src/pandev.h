@@ -32,6 +32,8 @@ int pandev_ioctl(int fd, unsigned long request, void *args);
 int pandev_standard_allocate(int fd, int va_pages, int flags, u64 *out);
 int pandev_general_allocate(int fd, int va_pages, int commit_pages, int extent, int flags, u64 *out);
 
+void pandev_shader_assemble(uint32_t *dst, const char *src);
+
 #include <math.h>
 #define inff INFINITY
 
