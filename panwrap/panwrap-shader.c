@@ -60,7 +60,7 @@ panwrap_shader_disassemble(mali_ptr shader_ptr, int shader_no)
 
 	/* ...but reassemble at runtime! */
 
-	panwrap_log("pandev_shader_assemble(%s + %d, shader_src_%d);",
+	panwrap_log("pandev_shader_assemble(%s + %d, shader_src_%d);\n\n",
 			shaders->name,
 			offset / sizeof(uint32_t),
 			shader_no);
