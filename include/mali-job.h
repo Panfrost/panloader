@@ -69,8 +69,8 @@ struct mali_shader_meta {
 
 /* Possible values for job_descriptor_size */
 
+#define MALI_JOB_32 0
 #define MALI_JOB_64 1
-#define MALI_JOB_32 1
 
 struct mali_job_descriptor_header {
 	u32 exception_status;
