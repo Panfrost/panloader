@@ -253,7 +253,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_msg("Zero tripped, replay may be wrong\n");
 		panwrap_prop("zero0 = 0x%" PRIx32, v->zero0);
 		panwrap_prop("zero1 = 0x%" PRIx32, v->zero1);
-		panwrap_prop("zero2 = 0x%" PRIx32, v->zero2);
+		MEMORY_PROP(v, zero2);
 		panwrap_prop("zero3 = 0x%" PRIx32, v->zero3);
 		panwrap_prop("zero4 = 0x%" PRIx32, v->zero4);
 		panwrap_prop("zero5 = 0x%" PRIx32, v->zero5);
@@ -337,6 +337,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		TOUCH(fmem, v->nullForVertex, *f, "nullForVertex", job_no);
 	}
 
+#if 0
 	if (v->attribute_meta) {
 		panwrap_log("struct mali_attr_meta attributes_%d[] = {\n", job_no);
 		panwrap_indent++;
@@ -378,6 +379,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			    job_no, attr_meta->index, false);
 		}
 	}
+#endif
 
 	/* Varyings are encoded like attributes but not actually sent; we just
 	 * pass a zero buffer with the right stride/size set, (or whatever)
