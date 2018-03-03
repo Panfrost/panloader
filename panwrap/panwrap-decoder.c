@@ -465,6 +465,8 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		}
 	}
 
+	/* Just a pointer to... another pointer >_< */
+
 	if (v->texture_meta_trampoline) {
 		struct panwrap_mapped_memory *mmem = panwrap_find_mapped_gpu_mem_containing(v->texture_meta_trampoline);
 
@@ -476,6 +478,34 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			free(a);
 
 			TOUCH(mmem, v->texture_meta_trampoline, *u, "texture_meta_trampoline", job_no);
+
+			/* Now, finally, descend down into the texture descriptor */
+			struct panwrap_mapped_memory *tmem = panwrap_find_mapped_gpu_mem_containing(*u);
+
+			if (tmem) {
+				struct mali_texture_descriptor *PANWRAP_PTR_VAR(t, tmem, *u);
+
+				panwrap_log("struct mali_texture_descriptor texture_descriptor_%d = {\n", job_no);
+				panwrap_indent++;
+
+				panwrap_prop("unknown0 = 0x%" PRIx32, t->unknown0);
+				panwrap_prop("unknown1 = 0x%" PRIx32, t->unknown1);
+				panwrap_prop("unknown2 = 0x%" PRIx32, t->unknown2);
+				panwrap_prop("unknown3 = 0x%" PRIx32, t->unknown3);
+				panwrap_prop("unknown4 = 0x%" PRIx32, t->unknown4);
+				panwrap_prop("unknown5 = 0x%" PRIx32, t->unknown5);
+				panwrap_prop("unknown6 = 0x%" PRIx32, t->unknown6);
+				panwrap_prop("unknown7 = 0x%" PRIx32, t->unknown7);
+				panwrap_prop("unknown8 = 0x%" PRIx32, t->unknown8);
+				panwrap_prop("unknown9 = 0x%" PRIx32, t->unknown9);
+				panwrap_prop("unknown10 = 0x%" PRIx32, t->unknown10);
+				panwrap_prop("unknown11 = 0x%" PRIx32, t->unknown11);
+
+				panwrap_indent--;
+				panwrap_log("};\n");
+
+				TOUCH(tmem, *u, *t, "texture_descriptor", job_no);
+			}
 		}
 	}
 

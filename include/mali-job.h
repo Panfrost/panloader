@@ -156,6 +156,26 @@ struct mali_payload_vertex_tiler {
 } __attribute__((packed));
 //ASSERT_SIZEOF_TYPE(struct mali_payload_vertex_tiler, 256, 256);
 
+/* Pointed to from texture_meta_trampoline, mostly unknown still, haven't
+ * managed to replay successfully */
+
+struct mali_texture_descriptor {
+	uint32_t unknown0;
+	uint32_t unknown1;
+	uint32_t unknown2;
+	uint32_t unknown3;
+
+	uint32_t unknown4;
+	uint32_t unknown5;
+	uint32_t unknown6;
+	uint32_t unknown7;
+
+	uint32_t unknown8;
+	uint32_t unknown9;
+	uint32_t unknown10;
+	uint32_t unknown11;
+} __attribute__((packed));
+
 /* TODO: What is this? In practice, it looks like { -inf, -inf, inf, inf, 0.0,
  * 1.0, }, followed by a hex thingy, and then zeroes, which suggests some kind
  * of bounds, perhaps mapping coordinate systems. But why only for tiler jobs?
