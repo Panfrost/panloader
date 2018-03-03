@@ -170,9 +170,13 @@ enum mali_tex_format {
 	MALI_RGB24 = 0xA,
 };
 
-
 struct mali_texture_descriptor {
-	uint32_t unknown0;
+	/* Purposeful off-by-one: (64, 64) texture stored as (63, 63) in these
+	 * fields -- adjust for that */
+
+	uint16_t width;
+	uint16_t height;
+
 	uint32_t unknown1;
 
 	/* Unknown base: 0x118b3000
