@@ -517,8 +517,11 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			panwrap_log("struct mali_sampler_descriptor sampler_descriptor_%d = {\n", job_no);
 			panwrap_indent++;
 
-			/* TODO: Decode filter mode (but I have bits of it understood in my notes) */
-			panwrap_prop("filter_mode = 0x%" PRIx32, s->filter_mode);
+			/* Only the lower two bits are understood right now; the rest we display as hex */
+			panwrap_log(".filter_mode = MALI_GL_TEXTURE_MIN(%s) | MALI_GL_TEXTURE_MAG(%s) | 0x%" PRIx32",\n",
+				       	MALI_FILTER_NAME(s->filter_mode & MALI_GL_TEX_MIN_MASK),
+				       	MALI_FILTER_NAME(s->filter_mode & MALI_GL_TEX_MAG_MASK),
+					s->filter_mode & ~3);
 
 			panwrap_prop("unknown1 = 0x%" PRIx32, s->unknown1);
 			panwrap_prop("unknown2 = 0x%" PRIx32, s->unknown2);

@@ -170,6 +170,7 @@ enum mali_tex_format {
 	MALI_RGB24 = 0xA,
 };
 
+
 struct mali_texture_descriptor {
 	uint32_t unknown0;
 	uint32_t unknown1;
@@ -193,6 +194,21 @@ struct mali_texture_descriptor {
 	mali_ptr swizzled_bitmap_0;
 	mali_ptr swizzled_bitmap_1;
 } __attribute__((packed));
+
+/* Used as part of filter_mode */
+
+#define MALI_GL_LINEAR 0
+#define MALI_GL_NEAREST 1
+
+/* Used to construct low bits of filter_mode */
+
+#define MALI_GL_TEX_MAG(mode) (((mode) & 1) << 0)
+#define MALI_GL_TEX_MIN(mode) (((mode) & 1) << 1)
+
+#define MALI_GL_TEX_MAG_MASK (1)
+#define MALI_GL_TEX_MIN_MASK (2)
+
+#define MALI_FILTER_NAME(filter) (filter ? "MALI_GL_NEAREST" : "MALI_GL_LINEAR")
 
 struct mali_sampler_descriptor {
 	uint32_t filter_mode;
