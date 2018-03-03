@@ -539,6 +539,30 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			TOUCH(smem, v->sampler_descriptor, *s, "sampler_descriptor", job_no);
 		}
 	}
+
+	if (v->indices) {
+		struct panwrap_mapped_memory *imem = panwrap_find_mapped_gpu_mem_containing(v->indices);
+
+		if (imem) {
+			/* Indices are literally just a u32 array :) */
+
+			uint32_t *PANWRAP_PTR_VAR(indices, imem, v->indices);
+
+			panwrap_log("uint32_t indices_%d[] = {\n", job_no);
+			panwrap_indent++;
+
+			for(int i = 0; i < (v->index_count + 1); i += 3)
+				panwrap_log("%d, %d, %d,\n",
+						indices[i],
+						indices[i + 1],
+						indices[i + 2]);
+
+			panwrap_indent--;
+			panwrap_log("};\n");
+
+			TOUCH_LEN(imem, v->indices, sizeof(uint32_t) * (v->index_count + 1), "indices", job_no);
+		}
+	}
 }
 
 static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
