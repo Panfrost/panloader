@@ -170,10 +170,8 @@ struct mali_texture_descriptor {
 	uint32_t unknown6;
 	uint32_t unknown7;
 
-	uint32_t unknown8;
-	uint32_t unknown9;
-	uint32_t unknown10;
-	uint32_t unknown11;
+	mali_ptr swizzled_bitmap_0;
+	mali_ptr swizzled_bitmap_1;
 } __attribute__((packed));
 
 /* TODO: What is this? In practice, it looks like { -inf, -inf, inf, inf, 0.0,

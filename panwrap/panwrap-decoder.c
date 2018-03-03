@@ -496,10 +496,9 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 				panwrap_prop("unknown5 = 0x%" PRIx32, t->unknown5);
 				panwrap_prop("unknown6 = 0x%" PRIx32, t->unknown6);
 				panwrap_prop("unknown7 = 0x%" PRIx32, t->unknown7);
-				panwrap_prop("unknown8 = 0x%" PRIx32, t->unknown8);
-				panwrap_prop("unknown9 = 0x%" PRIx32, t->unknown9);
-				panwrap_prop("unknown10 = 0x%" PRIx32, t->unknown10);
-				panwrap_prop("unknown11 = 0x%" PRIx32, t->unknown11);
+
+				MEMORY_PROP(t, swizzled_bitmap_0);
+				MEMORY_PROP(t, swizzled_bitmap_1);
 
 				panwrap_indent--;
 				panwrap_log("};\n");
