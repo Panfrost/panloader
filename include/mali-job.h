@@ -124,6 +124,9 @@ enum mali_fbd_type {
 #define FBD_MASK (~0x3f)
 
 struct mali_payload_vertex_tiler {
+	/* Exactly as passed to glLineWidth */
+	float line_width;
+
 	/* Off by one */
 	u32 vertex_count; 
 
@@ -301,6 +304,9 @@ struct mali_unknown6 {
 #define MALI_COORDINATE_TO_TILE_MAX(W, H, flag) MALI_COORDINATE_TO_TILE(W, H, flag, 1)
 
 struct mali_payload_fragment {
+	/* XXX: WTF? */
+	u32 zero;
+
 	/* XXX: we might be able to translate these into bitfields someday, but
 	 * that will only be sensible if the mask of flags is limited to
 	 * 0xF0000000 or 0x0000F000. If it's 0xF000F000, feel free to just

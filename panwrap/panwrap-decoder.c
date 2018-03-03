@@ -228,6 +228,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_indent++;
 
 
+	panwrap_prop("line_width = %ff", v->line_width);
 	panwrap_prop("vertex_count = MALI_POSITIVE(%" PRId32 ")", v->vertex_count + 1);
 	panwrap_prop("unk1 = 0x%" PRIx32, v->unk1);
 
@@ -575,6 +576,9 @@ static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 	panwrap_log("struct mali_payload_fragment fragment_%d = {\n", job_no);
 	panwrap_indent++;
 
+	if (s->zero)
+		panwrap_msg("ZT\n");
+
 	/* See the comments by the macro definitions for mathematical context
 	 * on why this is so weird */
 
@@ -607,10 +611,13 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		struct panwrap_mapped_memory *mem =
 			panwrap_find_mapped_gpu_mem_containing(jc_gpu_va);
 
-		mali_ptr payload_ptr = jc_gpu_va + sizeof(*h);
 		void *payload;
 
 		h = PANWRAP_PTR(mem, jc_gpu_va, typeof(*h));
+
+		int offset = h->job_descriptor_size == MALI_JOB_32 ? 4 : 0;
+		mali_ptr payload_ptr = jc_gpu_va + sizeof(*h) - offset;
+
 		payload = panwrap_fetch_gpu_mem(mem, payload_ptr,
 						MALI_PAYLOAD_SIZE);
 
@@ -658,7 +665,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		panwrap_log("};\n");
 
 		/* Touch the fields, careful about 32/64-bit */
-		TOUCH_OLEN(mem, jc_gpu_va, sizeof(*h), h->job_descriptor_size == MALI_JOB_32 ? 4 : 0, "job", job_no);
+		TOUCH_OLEN(mem, jc_gpu_va, sizeof(*h), offset, "job", job_no);
 
 		switch (h->job_type) {
 		case JOB_TYPE_SET_VALUE:
