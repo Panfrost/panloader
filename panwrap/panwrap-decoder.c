@@ -106,7 +106,9 @@ static void panwrap_replay_sfbd(uint64_t gpu_va, int job_no)
 	panwrap_prop("heap_free_address = 0x%" PRIx64, s->heap_free_address);
 	panwrap_prop("unknown2 = 0x%" PRIx32, s->unknown2);
 	panwrap_prop("unknown3 = 0x%" PRIx32, s->unknown3);
-	panwrap_prop("unknown4 = 0x%" PRIx32, s->unknown4);
+
+	panwrap_prop("width = MALI_DIMENSION(%" PRId16 ")", s->width + 1);
+	panwrap_prop("height = MALI_DIMENSION(%" PRId16 ")", s->height + 1);
 
 	panwrap_property_u32_list("weights", s->weights, MALI_FBD_HIERARCHY_WEIGHTS);
 
@@ -330,7 +332,8 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 		panwrap_indent--;
 		panwrap_log("},\n");
-		panwrap_prop("unknown0 = 0x%" PRIx32, f->unknown0);
+		panwrap_prop("width = MALI_DIMENSION(%" PRId16 ")", f->width + 1);
+		panwrap_prop("height = MALI_DIMENSION(%" PRId16 ")", f->height + 1);
 		panwrap_indent--;
 		panwrap_log("};\n");
 

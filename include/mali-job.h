@@ -162,9 +162,10 @@ struct mali_payload_vertex_tiler {
  * managed to replay successfully */
 
 /* Purposeful off-by-one in width, height fields. For example, a (64, 64)
- * texture is stored as (63, 63) in these fields. This adjusts for that */
+ * texture is stored as (63, 63) in these fields. This adjusts for that.
+ * There's an identical pattern in the framebuffer descriptor. */
 
-#define MALI_TEX_DIMENSION(dim) (dim - 1)
+#define MALI_DIMENSION(dim) (dim - 1)
 
 struct mali_texture_descriptor {
 	uint16_t width;
@@ -217,16 +218,18 @@ struct mali_sampler_descriptor {
  * 1.0, }, followed by a hex thingy, and then zeroes, which suggests some kind
  * of bounds, perhaps mapping coordinate systems. But why only for tiler jobs?
  *
- * unknown0 is experimentally equal to 0xef018f, but I'm having a hard time
- * making sense of that. It reminds of the tiler coordinates, I suppose.
- *
  * Might the two combine together into a single u64?
+ *
+ * width and height fields are equal to those in the associated framebuffer
+ * descriptor, for some reason.
  */
 
 struct nullForVertex {
 	float floats[6];
 	u32 zero0;
-	u32 unknown0;
+
+	u16 width;
+	u16 height;
 };
 
 /* TODO: I have no idea what this could possibly be, whatsoever. */
@@ -303,7 +306,13 @@ struct mali_tentative_sfbd {
 	u32 unknown2; // 0xB8..
 	u32 unknown3; // 0x10..
 	u32 zero2;
-	u32 unknown4; // 0x00EF...
+
+	/* Purposeful off-by-one in these fields should be accounted for by the
+	 * MALI_DIMENSION macro */
+
+	u16 width;
+	u16 height;
+
 	u32 zero3[4];
 
 	u32 weights[8];
