@@ -166,8 +166,8 @@ struct mali_payload_vertex_tiler {
 
 /* Appears in both format1 and format2 */
 enum mali_tex_format {
-	MALI_RGBA32 = 0x6,
-	MALI_RGB24 = 0xA,
+	MALI_RGBA = 0x6,
+	MALI_RGB = 0xA,
 };
 
 /* Purposeful off-by-one in width, height fields. For example, a (64, 64)
