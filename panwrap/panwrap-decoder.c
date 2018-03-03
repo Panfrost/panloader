@@ -262,7 +262,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 	MEMORY_PROP(v, unknown0);
 	MEMORY_PROP(v, unknown1); /* pointer */
-	MEMORY_PROP(v, texture_meta_address);
+	MEMORY_PROP(v, texture_meta_trampoline);
 	MEMORY_PROP(v, texture_unknown);
 	MEMORY_PROP(v, uniforms);
 	MEMORY_PROP(v, attributes); /* struct attribute_buffer[] */
@@ -464,6 +464,21 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			TOUCH(umem, v->unknown6, *u, "unknown6", job_no);
 		}
 	}
+
+	if (v->texture_meta_trampoline) {
+		struct panwrap_mapped_memory *mmem = panwrap_find_mapped_gpu_mem_containing(v->texture_meta_trampoline);
+
+		if (mmem) {
+			mali_ptr *PANWRAP_PTR_VAR(u, mmem, v->texture_meta_trampoline);
+
+			char *a = pointer_as_memory_reference(*u);
+			panwrap_log("uint64_t texture_meta_trampoline_%d = %s;", job_no, a);
+			free(a);
+
+			TOUCH(mmem, v->texture_meta_trampoline, *u, "texture_meta_trampoline", job_no);
+		}
+	}
+
 }
 
 static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,

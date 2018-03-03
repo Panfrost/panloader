@@ -135,8 +135,14 @@ struct mali_payload_vertex_tiler {
 	u32 zero5;
 	uintptr_t unknown0;
 	uintptr_t unknown1; /* pointer */
-	uintptr_t texture_meta_address;
+
+	/* For reasons I don't quite understand this is a pointer to a pointer.
+	 * That second pointer points to the actual texture descriptor. */
+	uintptr_t texture_meta_trampoline;
+
+	/* Speculation: points to sampler descriptor? */
 	uintptr_t texture_unknown;
+
 	uintptr_t uniforms;
 	u8 flags : 4;
 	uintptr_t _shader_upper : MALI_SHORT_PTR_BITS - 4; /* struct shader_meta */
