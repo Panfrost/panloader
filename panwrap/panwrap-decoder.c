@@ -521,7 +521,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			panwrap_indent++;
 
 			/* Only the lower two bits are understood right now; the rest we display as hex */
-			panwrap_log(".filter_mode = MALI_GL_TEXTURE_MIN(%s) | MALI_GL_TEXTURE_MAG(%s) | 0x%" PRIx32",\n",
+			panwrap_log(".filter_mode = MALI_GL_TEX_MIN(%s) | MALI_GL_TEX_MAG(%s) | 0x%" PRIx32",\n",
 				       	MALI_FILTER_NAME(s->filter_mode & MALI_GL_TEX_MIN_MASK),
 				       	MALI_FILTER_NAME(s->filter_mode & MALI_GL_TEX_MAG_MASK),
 					s->filter_mode & ~3);
