@@ -161,6 +161,9 @@ struct mali_payload_vertex_tiler {
 /* Pointed to from texture_meta_trampoline, mostly unknown still, haven't
  * managed to replay successfully */
 
+/* XXX format1 and format2 don't behave like I thought; ignore this incorrect
+ * code */
+
 /* set/clear in format1 */
 #define MALI_TEX_HAS_ALPHA (0x8 << 12)
 
