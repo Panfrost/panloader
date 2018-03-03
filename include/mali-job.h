@@ -62,7 +62,13 @@ struct mali_shader_meta {
 	mali_ptr shader;
 	u32 zero;
 	u32 unknown1;
-	u32 unknown2;
+
+	/* Format here is very weird and only partially understood, but in a 32-bit hex word:
+	 * .XX..... is the known format, where X is the whole number of uniform
+	 * registers used, times two. The other bits are unknown but nonzero.
+	 */
+
+	u32 uniform_registers;
 };
 
 /* This only concerns hardware jobs */

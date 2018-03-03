@@ -304,7 +304,9 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 		panwrap_prop("zero = 0x%" PRIx32, s->zero);
 		panwrap_prop("unknown1 = 0x%" PRIx32, s->unknown1);
-		panwrap_prop("unknown2 = 0x%" PRIx32, s->unknown2);
+
+		/* Structure is still mostly unknown, unfortunately */
+		panwrap_prop("uniform_registers = (%d << 20) | 0x%" PRIx32, (s->uniform_registers >> 20) & 0xFF, s->uniform_registers & ~0x0FF00000);
 
 		panwrap_indent--;
 		panwrap_log("};\n");
