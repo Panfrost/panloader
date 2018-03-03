@@ -140,8 +140,10 @@ struct mali_payload_vertex_tiler {
 	 * That second pointer points to the actual texture descriptor. */
 	uintptr_t texture_meta_trampoline;
 
-	/* Speculation: points to sampler descriptor? */
-	uintptr_t texture_unknown;
+	/* For OpenGL, from what I've seen, this is intimately connected to
+	 * texture_meta. cwabbott says this is not the case under Vulkan, hence
+	 * why this field is seperate (Midgard is Vulkan capable) */
+	uintptr_t sampler_descriptor;
 
 	uintptr_t uniforms;
 	u8 flags : 4;
@@ -166,7 +168,7 @@ struct mali_payload_vertex_tiler {
 enum mali_tex_format {
 	MALI_RGBA32 = 0x6,
 	MALI_RGB24 = 0xA,
-}
+};
 
 struct mali_texture_descriptor {
 	uint32_t unknown0;
@@ -190,6 +192,16 @@ struct mali_texture_descriptor {
 
 	mali_ptr swizzled_bitmap_0;
 	mali_ptr swizzled_bitmap_1;
+} __attribute__((packed));
+
+struct mali_sampler_descriptor {
+	uint32_t filter_mode;
+	
+	/* Apparently the same as one of the fields in texture_descriptor, so
+	 * maybe it's how linkage is specified */
+	uint32_t unknown1;
+
+	uint32_t unknown2;
 } __attribute__((packed));
 
 /* TODO: What is this? In practice, it looks like { -inf, -inf, inf, inf, 0.0,

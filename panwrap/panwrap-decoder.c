@@ -263,7 +263,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	MEMORY_PROP(v, unknown0);
 	MEMORY_PROP(v, unknown1); /* pointer */
 	MEMORY_PROP(v, texture_meta_trampoline);
-	MEMORY_PROP(v, texture_unknown);
+	MEMORY_PROP(v, sampler_descriptor);
 	MEMORY_PROP(v, uniforms);
 	MEMORY_PROP(v, attributes); /* struct attribute_buffer[] */
 	MEMORY_PROP(v, attribute_meta); /* attribute_meta[] */
@@ -508,6 +508,27 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		}
 	}
 
+	if (v->sampler_descriptor) {
+		struct panwrap_mapped_memory *smem = panwrap_find_mapped_gpu_mem_containing(v->sampler_descriptor);
+
+		if (smem) {
+			struct mali_sampler_descriptor *PANWRAP_PTR_VAR(s, smem, v->sampler_descriptor);
+
+			panwrap_log("struct mali_sampler_descriptor sampler_descriptor_%d = {\n", job_no);
+			panwrap_indent++;
+
+			/* TODO: Decode filter mode (but I have bits of it understood in my notes) */
+			panwrap_prop("filter_mode = 0x%" PRIx32, s->filter_mode);
+
+			panwrap_prop("unknown1 = 0x%" PRIx32, s->unknown1);
+			panwrap_prop("unknown2 = 0x%" PRIx32, s->unknown2);
+
+			panwrap_indent--;
+			panwrap_log("};\n");
+
+			TOUCH(smem, v->sampler_descriptor, *s, "sampler_descriptor", job_no);
+		}
+	}
 }
 
 static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
