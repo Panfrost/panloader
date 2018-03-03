@@ -13,6 +13,8 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pandev.h"
 
 /* TODO: Bifrost */
