@@ -77,9 +77,9 @@ static char *panwrap_tex_fmt_name(enum mali_tex_format mode)
 {
 #define DEFINE_CASE(name) case MALI_ ## name: return "MALI_" #name
 	switch(mode) {
-	DEFINE_CASE(RGBA32);
-	DEFINE_CASE(RGB24);
-	default: return "MALI_RGBA32 /* XXX: Unknown texture format, check dump */";
+	DEFINE_CASE(RGBA);
+	DEFINE_CASE(RGB);
+	default: return "MALI_RGBA /* XXX: Unknown texture format, check dump */";
 	}
 #undef DEFINE_CASE
 }
