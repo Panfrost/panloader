@@ -107,8 +107,8 @@ static void panwrap_replay_sfbd(uint64_t gpu_va, int job_no)
 	panwrap_prop("unknown2 = 0x%" PRIx32, s->unknown2);
 	panwrap_prop("unknown3 = 0x%" PRIx32, s->unknown3);
 
-	panwrap_prop("width = MALI_DIMENSION(%" PRId16 ")", s->width + 1);
-	panwrap_prop("height = MALI_DIMENSION(%" PRId16 ")", s->height + 1);
+	panwrap_prop("width = MALI_POSITIVE(%" PRId16 ")", s->width + 1);
+	panwrap_prop("height = MALI_POSITIVE(%" PRId16 ")", s->height + 1);
 
 	panwrap_property_u32_list("weights", s->weights, MALI_FBD_HIERARCHY_WEIGHTS);
 
@@ -228,7 +228,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_indent++;
 
 
-	panwrap_prop("vertex_count = %" PRId32 " - 1", v->vertex_count + 1);
+	panwrap_prop("vertex_count = MALI_POSITIVE(%" PRId32 ")", v->vertex_count + 1);
 	panwrap_prop("unk1 = 0x%" PRIx32, v->unk1);
 
 	if (h->job_type == JOB_TYPE_TILER) {
@@ -237,7 +237,10 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_prop("draw_mode = 0x%" PRIx32, v->draw_mode);
 	}
 
-	panwrap_prop("index_count = %" PRId32 " - 1", v->index_count);
+	/* Index count only exists for tiler jobs anyway */ 
+
+	if (v->index_count)
+		panwrap_prop("index_count = MALI_POSITIVE(%" PRId32 ")", v->index_count + 1);
 
 	panwrap_log(".gl_enables = ");
 	panwrap_log_decoded_flags(gl_enable_flag_info, v->gl_enables);
@@ -330,8 +333,8 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 		panwrap_indent--;
 		panwrap_log("},\n");
-		panwrap_prop("width = MALI_DIMENSION(%" PRId16 ")", f->width + 1);
-		panwrap_prop("height = MALI_DIMENSION(%" PRId16 ")", f->height + 1);
+		panwrap_prop("width = MALI_POSITIVE(%" PRId16 ")", f->width + 1);
+		panwrap_prop("height = MALI_POSITIVE(%" PRId16 ")", f->height + 1);
 		panwrap_indent--;
 		panwrap_log("};\n");
 
@@ -486,9 +489,8 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 				panwrap_log("struct mali_texture_descriptor texture_descriptor_%d = {\n", job_no);
 				panwrap_indent++;
 
-				/* Purposeful off-by-one; MALI_TEX_DIMENSION is just a minus one */
-				panwrap_prop("width = MALI_TEX_DIMENSION(%" PRId16 ")", t->width + 1);
-				panwrap_prop("height = MALI_TEX_DIMENSION(%" PRId16 ")", t->height + 1);
+				panwrap_prop("width = MALI_POSITIVE(%" PRId16 ")", t->width + 1);
+				panwrap_prop("height = MALI_POSITIVE(%" PRId16 ")", t->height + 1);
 
 				panwrap_prop("unknown1 = 0x%" PRIx32, t->unknown1);
 				

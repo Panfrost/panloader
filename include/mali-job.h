@@ -180,9 +180,11 @@ struct mali_payload_vertex_tiler {
 
 /* Purposeful off-by-one in width, height fields. For example, a (64, 64)
  * texture is stored as (63, 63) in these fields. This adjusts for that.
- * There's an identical pattern in the framebuffer descriptor. */
+ * There's an identical pattern in the framebuffer descriptor. Even vertex
+ * count fields work this way, hence the generic name -- integral fields that
+ * are strictly positive generally need this adjustment. */
 
-#define MALI_DIMENSION(dim) (dim - 1)
+#define MALI_POSITIVE(dim) (dim - 1)
 
 struct mali_texture_descriptor {
 	uint16_t width;
