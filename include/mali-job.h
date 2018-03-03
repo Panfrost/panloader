@@ -124,21 +124,27 @@ enum mali_fbd_type {
 #define FBD_MASK (~0x3f)
 
 struct mali_payload_vertex_tiler {
-	/* Edge/vertex count is a little funky. For purposes of this struct,
-	 * define edge count as the number of edges rendered if the draw mode
-	 * were GL_LINE_STRIP. A single triangle is 2, a quad is 3, etc. For
-	 * tiler jobs, both edge_count fields are equal; weird behaviour occurs
-	 * if they differ. For vertex jobs, edge_count_tiler is zeroed but
-	 * edge_count_generic behaves as mentioned.
-	 * */
+	/* Off by one */
+	u32 vertex_count; 
 
-	u32 edge_count_generic; 
 	u32 unk1; // 0x28000000
 	u32 draw_mode; 
 	u32 zero0;
 	u32 zero1;
-	u32 edge_count_tiler;
-	u32 zero2;
+
+	/* Like many other strictly nonzero quantities, index_count is
+	 * subtracted by one. For an indexed cube, this is equal to 35 = 6
+	 * faces * 2 triangles/per face * 3 vertices/per triangle - 1. For
+	 * non-indexed draws, equal to vertex_count. */
+
+	u32 index_count;
+
+	/* No hidden structure; literally just a pointer to an array of
+	 * uint32_t indeices. Thanks, guys, for not making my life insane for
+	 * once! NULL for non-indexed draws. */
+
+	uintptr_t indices;
+
 	u32 zero3;
 	u32 gl_enables; // 0x5
 	u32 zero4;

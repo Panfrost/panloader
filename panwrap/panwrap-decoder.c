@@ -228,7 +228,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_indent++;
 
 
-	panwrap_prop("edge_count_generic = %" PRId32, v->edge_count_generic);
+	panwrap_prop("vertex_count = %" PRId32 " - 1", v->vertex_count + 1);
 	panwrap_prop("unk1 = 0x%" PRIx32, v->unk1);
 
 	if (h->job_type == JOB_TYPE_TILER) {
@@ -237,31 +237,26 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_prop("draw_mode = 0x%" PRIx32, v->draw_mode);
 	}
 
-	panwrap_prop("edge_count_tiler = %" PRId32, v->edge_count_tiler);
+	panwrap_prop("index_count = %" PRId32 " - 1", v->index_count);
 
 	panwrap_log(".gl_enables = ");
 	panwrap_log_decoded_flags(gl_enable_flag_info, v->gl_enables);
 	panwrap_log_cont(",\n");
 
-	if (h->job_type == JOB_TYPE_TILER) {
-		if (v->edge_count_generic != v->edge_count_tiler)
-			panwrap_msg("Warning: edge counts differ in tiler job\n");
-	} else {
-		if (v->edge_count_tiler)
-			panwrap_msg("Warning: tiler edge count set in vertex job\n");
-	}
+	if (h->job_type == JOB_TYPE_VERTEX && v->index_count)
+		panwrap_msg("Warning: index count set in vertex job\n");
 
-	if (v->zero0 | v->zero1 | v->zero2 | v->zero3 | v->zero4 | v->zero5 | v->zero6) {
+	if (v->zero0 | v->zero1 | v->zero3 | v->zero4 | v->zero5 | v->zero6) {
 		panwrap_msg("Zero tripped, replay may be wrong\n");
 		panwrap_prop("zero0 = 0x%" PRIx32, v->zero0);
 		panwrap_prop("zero1 = 0x%" PRIx32, v->zero1);
-		MEMORY_PROP(v, zero2);
 		panwrap_prop("zero3 = 0x%" PRIx32, v->zero3);
 		panwrap_prop("zero4 = 0x%" PRIx32, v->zero4);
 		panwrap_prop("zero5 = 0x%" PRIx32, v->zero5);
 		panwrap_prop("zero6 = 0x%" PRIx32, v->zero6);
 	}
 
+	MEMORY_PROP(v, indices);
 	MEMORY_PROP(v, unknown0);
 	MEMORY_PROP(v, unknown1); /* pointer */
 	MEMORY_PROP(v, texture_meta_trampoline);
