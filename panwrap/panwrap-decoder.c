@@ -456,7 +456,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 			panwrap_prop("unknown0 = 0x%" PRIx64, u->unknown0);
 			panwrap_prop("unknown1 = 0x%" PRIx64, u->unknown1);
-			panwrap_prop("unknown2 = 0x%" PRIx64, u->unknown2);
 
 
 			panwrap_indent--;
