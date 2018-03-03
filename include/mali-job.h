@@ -61,7 +61,12 @@ enum mali_gl_mode {
 struct mali_shader_meta {
 	mali_ptr shader;
 	u32 zero;
-	u32 unknown1;
+
+	/* TODO: Does this consider size? */
+	u16 attribute_count;
+
+	/* Zero for no attributes, small non-zero for attributes, it appears */
+	u16 unknown1;
 
 	/* Format here is very weird and only partially understood, but in a 32-bit hex word:
 	 * .XX..... is the known format, where X is the whole number of uniform
