@@ -159,13 +159,31 @@ struct mali_payload_vertex_tiler {
 /* Pointed to from texture_meta_trampoline, mostly unknown still, haven't
  * managed to replay successfully */
 
+/* set/clear in format1 */
+#define MALI_TEX_HAS_ALPHA (0x8 << 12)
+
+/* Appears in both format1 and format2 */
+enum mali_tex_format {
+	MALI_RGBA32 = 0x6,
+	MALI_RGB24 = 0xA,
+}
+
 struct mali_texture_descriptor {
 	uint32_t unknown0;
 	uint32_t unknown1;
-	uint32_t unknown2;
+
+	/* Unknown base: 0x118b3000
+	 * ORed with MALI_TEX_HAS_ALPHA (or not)
+	 * and with the value of format2 */
+
+	uint32_t format1;
+
 	uint32_t unknown3;
 
-	uint32_t unknown4;
+	/* First byte is always 0x88 from what I've seen (unknown meaning).
+	 * Second is the mali_tex_format */
+	uint32_t format2;
+
 	uint32_t unknown5;
 	uint32_t unknown6;
 	uint32_t unknown7;

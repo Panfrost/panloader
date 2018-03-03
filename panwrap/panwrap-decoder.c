@@ -490,9 +490,9 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 				panwrap_prop("unknown0 = 0x%" PRIx32, t->unknown0);
 				panwrap_prop("unknown1 = 0x%" PRIx32, t->unknown1);
-				panwrap_prop("unknown2 = 0x%" PRIx32, t->unknown2);
+				panwrap_prop("format1 = 0x%" PRIx32, t->format1);
 				panwrap_prop("unknown3 = 0x%" PRIx32, t->unknown3);
-				panwrap_prop("unknown4 = 0x%" PRIx32, t->unknown4);
+				panwrap_prop("format2 = 0x%" PRIx32, t->format2);
 				panwrap_prop("unknown5 = 0x%" PRIx32, t->unknown5);
 				panwrap_prop("unknown6 = 0x%" PRIx32, t->unknown6);
 				panwrap_prop("unknown7 = 0x%" PRIx32, t->unknown7);
