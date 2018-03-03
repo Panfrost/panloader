@@ -340,7 +340,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		TOUCH(fmem, v->nullForVertex, *f, "nullForVertex", job_no);
 	}
 
-#if 0
 	if (v->attribute_meta) {
 		panwrap_log("struct mali_attr_meta attributes_%d[] = {\n", job_no);
 		panwrap_indent++;
@@ -382,7 +381,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			    job_no, attr_meta->index, false);
 		}
 	}
-#endif
 
 	/* Varyings are encoded like attributes but not actually sent; we just
 	 * pass a zero buffer with the right stride/size set, (or whatever)
