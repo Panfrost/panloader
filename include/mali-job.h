@@ -170,10 +170,12 @@ enum mali_tex_format {
 	MALI_RGB24 = 0xA,
 };
 
-struct mali_texture_descriptor {
-	/* Purposeful off-by-one: (64, 64) texture stored as (63, 63) in these
-	 * fields -- adjust for that */
+/* Purposeful off-by-one in width, height fields. For example, a (64, 64)
+ * texture is stored as (63, 63) in these fields. This adjusts for that */
 
+#define MALI_TEX_DIMENSION(dim) (dim - 1)
+
+struct mali_texture_descriptor {
 	uint16_t width;
 	uint16_t height;
 

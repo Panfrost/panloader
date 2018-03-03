@@ -488,8 +488,9 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 				panwrap_log("struct mali_texture_descriptor texture_descriptor_%d = {\n", job_no);
 				panwrap_indent++;
 
-				panwrap_prop("width = 0x%" PRIx16 " - 1", t->width + 1);
-				panwrap_prop("height = 0x%" PRIx16 " - 1", t->height + 1);
+				/* Purposeful off-by-one; MALI_TEX_DIMENSION is just a minus one */
+				panwrap_prop("width = MALI_TEX_DIMENSION(%" PRId16 ")", t->width + 1);
+				panwrap_prop("height = MALI_TEX_DIMENSION(%" PRId16 ")", t->height + 1);
 
 				panwrap_prop("unknown1 = 0x%" PRIx32, t->unknown1);
 				panwrap_prop("format1 = 0x%" PRIx32, t->format1);
