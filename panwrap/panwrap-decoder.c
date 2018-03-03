@@ -73,17 +73,6 @@ static char *panwrap_gl_mode_name(enum mali_gl_mode mode)
 #undef DEFINE_CASE
 }
 
-static char *panwrap_tex_fmt_name(enum mali_tex_format mode)
-{
-#define DEFINE_CASE(name) case MALI_ ## name: return "MALI_" #name
-	switch(mode) {
-	DEFINE_CASE(RGBA);
-	DEFINE_CASE(RGB);
-	default: return "MALI_RGBA /* XXX: Unknown texture format, check dump */";
-	}
-#undef DEFINE_CASE
-}
-
 static void panwrap_property_u32_list(const char *name, const u32 *lst, size_t c)
 {
 	panwrap_log(".%s = { ", name);
@@ -505,16 +494,11 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 				panwrap_prop("unknown1 = 0x%" PRIx32, t->unknown1);
 				
-				panwrap_prop("format1 = %s%s | 0x%" PRIx32,
-						(t->format1 & MALI_TEX_HAS_ALPHA) ? "MALI_TEX_HAS_ALPHA | " : "",
-						panwrap_tex_fmt_name((t->format1 >> 8) & 0xF),
-						t->format1 & ~MALI_TEX_HAS_ALPHA & ~0xF00);
+				/* TODO: I don't understand how these work at all yet */
+				panwrap_prop("format1 = 0x%" PRIx32, t->format1);
+				panwrap_prop("format2 = 0x%" PRIx32, t->format2);
 
 				panwrap_prop("unknown3 = 0x%" PRIx32, t->unknown3);
-
-				panwrap_prop("format2 = %s | 0x%" PRIx32,
-						panwrap_tex_fmt_name((t->format2 >> 8) & 0xF),
-						t->format2 & ~0xF00);
 
 				panwrap_prop("unknown5 = 0x%" PRIx32, t->unknown5);
 				panwrap_prop("unknown6 = 0x%" PRIx32, t->unknown6);

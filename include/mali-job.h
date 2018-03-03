@@ -161,18 +161,6 @@ struct mali_payload_vertex_tiler {
 /* Pointed to from texture_meta_trampoline, mostly unknown still, haven't
  * managed to replay successfully */
 
-/* XXX format1 and format2 don't behave like I thought; ignore this incorrect
- * code */
-
-/* set/clear in format1 */
-#define MALI_TEX_HAS_ALPHA (0x8 << 12)
-
-/* Appears in both format1 and format2 */
-enum mali_tex_format {
-	MALI_RGBA = 0x6,
-	MALI_RGB = 0xA,
-};
-
 /* Purposeful off-by-one in width, height fields. For example, a (64, 64)
  * texture is stored as (63, 63) in these fields. This adjusts for that */
 
@@ -184,16 +172,12 @@ struct mali_texture_descriptor {
 
 	uint32_t unknown1;
 
-	/* Unknown base: 0x118b3000
-	 * ORed with MALI_TEX_HAS_ALPHA (or not)
-	 * and with the value of format2 */
+	/* No idea on format1 and format2 */
 
 	uint32_t format1;
 
 	uint32_t unknown3;
 
-	/* First byte is always 0x88 from what I've seen (unknown meaning).
-	 * Second is the mali_tex_format */
 	uint32_t format2;
 
 	uint32_t unknown5;
