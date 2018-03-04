@@ -46,8 +46,12 @@ enum mali_gl_mode {
 	MALI_GL_TRIANGLE_FAN   = 0xC,
 };
 
-/* TODO: Where are the other values? Goes with glState */
+/* TODO: Where are the other values? Goes with gl_enables */
 #define MALI_GL_CULL_FACE 0x80
+
+#define MALI_GL_FRONT_FACE(v) (v << 5)
+#define MALI_GL_CCW (0)
+#define MALI_GL_CW  (1)
 
 /* TODO: Might this actually be a finer bitfield? */
 #define MALI_DEPTH_STENCIL_ENABLE 0x6400

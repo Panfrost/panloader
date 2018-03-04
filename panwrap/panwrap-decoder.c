@@ -243,8 +243,19 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	if (v->index_count)
 		panwrap_prop("index_count = MALI_POSITIVE(%" PRId32 ")", v->index_count + 1);
 
+	uint32_t remaining_gl_enables = v->gl_enables;
+
 	panwrap_log(".gl_enables = ");
-	panwrap_log_decoded_flags(gl_enable_flag_info, v->gl_enables);
+	
+	if (h->job_type == JOB_TYPE_TILER) {
+		panwrap_log_cont("MALI_GL_FRONT_FACE(MALI_GL_%s) | ",
+		    v->gl_enables & MALI_GL_FRONT_FACE(MALI_GL_CW) ? "CW" : "CCW");
+
+		remaining_gl_enables &= ~(MALI_GL_FRONT_FACE(1));
+	}
+
+	panwrap_log_decoded_flags(gl_enable_flag_info, remaining_gl_enables);
+
 	panwrap_log_cont(",\n");
 
 	if (h->job_type == JOB_TYPE_VERTEX && v->index_count)
