@@ -26,6 +26,11 @@
 	free(a); \
 }
 
+#define DYN_MEMORY_PROP(obj, no, p) { \
+	if (obj->p) \
+		panwrap_prop("%s = %s_%d_p", #p, #p, no); \
+}
+
 #define FLAG_INFO(flag) { MALI_GL_##flag, "MALI_GL_" #flag }
 static const struct panwrap_flag_info gl_enable_flag_info[] = {
 	FLAG_INFO(CULL_FACE),
@@ -170,7 +175,7 @@ void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
 	size_t component_count;
 
 	int human_attr_number = (job_no * 100) + attr_no;
-	char *prefix = varying ? "varying" : "attr";
+	char *prefix = varying ? "varyings" : "attribute";
 
 	panwrap_log("struct mali_attr %s_%d = {\n", prefix, human_attr_number);
 	panwrap_indent++;
@@ -283,7 +288,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	}
 
 	if (v->attribute_meta) {
-		panwrap_log("struct mali_attr_meta attributes_%d[] = {\n", job_no);
+		panwrap_log("struct mali_attr_meta attribute_meta_%d[] = {\n", job_no);
 		panwrap_indent++;
 
 		size_t count = 0;
@@ -306,7 +311,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_indent--;
 		panwrap_log("};\n");
 
-		TOUCH_LEN(attr_mem, v->attribute_meta, sizeof(struct mali_attr_meta) * count, "attributes", job_no);
+		TOUCH_LEN(attr_mem, v->attribute_meta, sizeof(struct mali_attr_meta) * count, "attribute_meta", job_no);
 
 		attr_mem = panwrap_find_mapped_gpu_mem_containing(v->attributes);
 
@@ -552,18 +557,22 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_prop("zero6 = 0x%" PRIx32, v->zero6);
 	}
 
-	MEMORY_PROP(v, indices);
-	MEMORY_PROP(v, unknown0);
-	MEMORY_PROP(v, unknown1); /* pointer */
-	MEMORY_PROP(v, texture_meta_trampoline);
-	MEMORY_PROP(v, sampler_descriptor);
+	DYN_MEMORY_PROP(v, job_no, indices);
+	DYN_MEMORY_PROP(v, job_no, unknown0);
+	DYN_MEMORY_PROP(v, job_no, unknown1); /* pointer */
+	DYN_MEMORY_PROP(v, job_no, texture_meta_trampoline);
+	DYN_MEMORY_PROP(v, job_no, sampler_descriptor);
+	//DYN_MEMORY_PROP(v, job_no, uniforms);
+	//DYN_MEMORY_PROP(v, job_no, attributes); /* struct attribute_buffer[] */
+	DYN_MEMORY_PROP(v, job_no, attribute_meta); /* attribute_meta[] */
+	//DYN_MEMORY_PROP(v, job_no, varyings); /* pointer */
+	DYN_MEMORY_PROP(v, job_no, unknown6); /* pointer */
+	DYN_MEMORY_PROP(v, job_no, nullForVertex);
+	DYN_MEMORY_PROP(v, job_no, fbd);
+
 	MEMORY_PROP(v, uniforms);
-	MEMORY_PROP(v, attributes); /* struct attribute_buffer[] */
-	MEMORY_PROP(v, attribute_meta); /* attribute_meta[] */
-	MEMORY_PROP(v, varyings); /* pointer */
-	MEMORY_PROP(v, unknown6); /* pointer */
-	MEMORY_PROP(v, nullForVertex);
-	MEMORY_PROP(v, fbd);
+	MEMORY_PROP(v, attributes);
+	MEMORY_PROP(v, varyings);
 
 	char *a = pointer_as_memory_reference(shader_meta_ptr);
 	panwrap_prop("_shader_upper = (%s) >> 4", a);
