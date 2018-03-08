@@ -85,11 +85,8 @@ void replay_memory()
 		if (!(pos->flags & MALI_MEM_PROT_CPU_WR)) continue;
 
 		if (pos->flags & MALI_MEM_PROT_GPU_EX) {
-			/* Shaders need to be dumped but, given that the disassembler
-			 * is out of tree and that compiled shaders are blobs of
-			 * unclear licensing, they should not be dumped as replay
-			 * memory. Thankfully, there is no fixup needed (or even
-			 * allowed), so we can just dump and load a file wholesale */
+			/* Shader memory get dumped but not replayed, as the
+			 * dis/assembler is setup in-tree as it is. */
 
 			char filename[128];
 			snprintf(filename, 128, "%s.bin", pos->name);
@@ -98,9 +95,9 @@ void replay_memory()
 			fwrite(pos->addr, 1, pos->length, fp);
 			fclose(fp);
 
-			panwrap_log("FILE *f_%s = fopen(\"%s\", \"rb\");\n", pos->name, filename);
-			panwrap_log("fread(%s, 1, %d, f_%s);\n", pos->name, pos->length, pos->name);
-			panwrap_log("fclose(f_%s);\n", pos->name);
+			panwrap_log("// FILE *f_%s = fopen(\"%s\", \"rb\");\n", pos->name, filename);
+			panwrap_log("// fread(%s, 1, %d, f_%s);\n", pos->name, pos->length, pos->name);
+			panwrap_log("// fclose(f_%s);\n", pos->name);
 		} else {
 			/* Fill it with dumped memory, skipping zeroes */
 			uint32_t *array = (uint32_t *) pos->addr;
