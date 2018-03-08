@@ -224,77 +224,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	struct panwrap_mapped_memory *attr_mem;
 	mali_ptr shader_meta_ptr = (u64) (uintptr_t) (v->_shader_upper << 4);
 
-	panwrap_log("struct mali_payload_vertex_tiler vertex_tiler_%d = {\n", job_no);
-	panwrap_indent++;
-
-
-	panwrap_prop("line_width = %ff", v->line_width);
-	panwrap_prop("vertex_count = MALI_POSITIVE(%" PRId32 ")", v->vertex_count + 1);
-	panwrap_prop("unk1 = 0x%" PRIx32, v->unk1);
-
-	if (h->job_type == JOB_TYPE_TILER) {
-		panwrap_prop("draw_mode = 0x%" PRIx32 " | %s", v->draw_mode & ~(0xF), panwrap_gl_mode_name(v->draw_mode & 0xF));
-	} else {
-		panwrap_prop("draw_mode = 0x%" PRIx32, v->draw_mode);
-	}
-
-	/* Index count only exists for tiler jobs anyway */ 
-
-	if (v->index_count)
-		panwrap_prop("index_count = MALI_POSITIVE(%" PRId32 ")", v->index_count + 1);
-
-	uint32_t remaining_gl_enables = v->gl_enables;
-
-	panwrap_log(".gl_enables = ");
-	
-	if (h->job_type == JOB_TYPE_TILER) {
-		panwrap_log_cont("MALI_GL_FRONT_FACE(MALI_GL_%s) | ",
-		    v->gl_enables & MALI_GL_FRONT_FACE(MALI_GL_CW) ? "CW" : "CCW");
-
-		remaining_gl_enables &= ~(MALI_GL_FRONT_FACE(1));
-	}
-
-	panwrap_log_decoded_flags(gl_enable_flag_info, remaining_gl_enables);
-
-	panwrap_log_cont(",\n");
-
-	if (h->job_type == JOB_TYPE_VERTEX && v->index_count)
-		panwrap_msg("Warning: index count set in vertex job\n");
-
-	if (v->zero0 | v->zero1 | v->zero3 | v->zero4 | v->zero5 | v->zero6) {
-		panwrap_msg("Zero tripped, replay may be wrong\n");
-		panwrap_prop("zero0 = 0x%" PRIx32, v->zero0);
-		panwrap_prop("zero1 = 0x%" PRIx32, v->zero1);
-		panwrap_prop("zero3 = 0x%" PRIx32, v->zero3);
-		panwrap_prop("zero4 = 0x%" PRIx32, v->zero4);
-		panwrap_prop("zero5 = 0x%" PRIx32, v->zero5);
-		panwrap_prop("zero6 = 0x%" PRIx32, v->zero6);
-	}
-
-	MEMORY_PROP(v, indices);
-	MEMORY_PROP(v, unknown0);
-	MEMORY_PROP(v, unknown1); /* pointer */
-	MEMORY_PROP(v, texture_meta_trampoline);
-	MEMORY_PROP(v, sampler_descriptor);
-	MEMORY_PROP(v, uniforms);
-	MEMORY_PROP(v, attributes); /* struct attribute_buffer[] */
-	MEMORY_PROP(v, attribute_meta); /* attribute_meta[] */
-	MEMORY_PROP(v, varyings); /* pointer */
-	MEMORY_PROP(v, unknown6); /* pointer */
-	MEMORY_PROP(v, nullForVertex);
-	MEMORY_PROP(v, fbd);
-
-	char *a = pointer_as_memory_reference(shader_meta_ptr);
-	panwrap_prop("_shader_upper = (%s) >> 4", a);
-	free(a);
-
-	panwrap_prop("flags = %d", v->flags); 
-
-	panwrap_indent--;
-	panwrap_log("};\n");
-
-	TOUCH(mem, payload, *v, "vertex_tiler", job_no);
-
 	/* TODO: Isn't this an -M-FBD? What's the difference? */
 	panwrap_replay_sfbd(v->fbd, job_no);
 
@@ -575,6 +504,78 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			TOUCH_LEN(imem, v->indices, sizeof(uint32_t) * (v->index_count + 1), "indices", job_no);
 		}
 	}
+
+
+	panwrap_log("struct mali_payload_vertex_tiler vertex_tiler_%d = {\n", job_no);
+	panwrap_indent++;
+
+	panwrap_prop("line_width = %ff", v->line_width);
+	panwrap_prop("vertex_count = MALI_POSITIVE(%" PRId32 ")", v->vertex_count + 1);
+	panwrap_prop("unk1 = 0x%" PRIx32, v->unk1);
+
+	if (h->job_type == JOB_TYPE_TILER) {
+		panwrap_prop("draw_mode = 0x%" PRIx32 " | %s", v->draw_mode & ~(0xF), panwrap_gl_mode_name(v->draw_mode & 0xF));
+	} else {
+		panwrap_prop("draw_mode = 0x%" PRIx32, v->draw_mode);
+	}
+
+	/* Index count only exists for tiler jobs anyway */ 
+
+	if (v->index_count)
+		panwrap_prop("index_count = MALI_POSITIVE(%" PRId32 ")", v->index_count + 1);
+
+	uint32_t remaining_gl_enables = v->gl_enables;
+
+	panwrap_log(".gl_enables = ");
+	
+	if (h->job_type == JOB_TYPE_TILER) {
+		panwrap_log_cont("MALI_GL_FRONT_FACE(MALI_GL_%s) | ",
+		    v->gl_enables & MALI_GL_FRONT_FACE(MALI_GL_CW) ? "CW" : "CCW");
+
+		remaining_gl_enables &= ~(MALI_GL_FRONT_FACE(1));
+	}
+
+	panwrap_log_decoded_flags(gl_enable_flag_info, remaining_gl_enables);
+
+	panwrap_log_cont(",\n");
+
+	if (h->job_type == JOB_TYPE_VERTEX && v->index_count)
+		panwrap_msg("Warning: index count set in vertex job\n");
+
+	if (v->zero0 | v->zero1 | v->zero3 | v->zero4 | v->zero5 | v->zero6) {
+		panwrap_msg("Zero tripped, replay may be wrong\n");
+		panwrap_prop("zero0 = 0x%" PRIx32, v->zero0);
+		panwrap_prop("zero1 = 0x%" PRIx32, v->zero1);
+		panwrap_prop("zero3 = 0x%" PRIx32, v->zero3);
+		panwrap_prop("zero4 = 0x%" PRIx32, v->zero4);
+		panwrap_prop("zero5 = 0x%" PRIx32, v->zero5);
+		panwrap_prop("zero6 = 0x%" PRIx32, v->zero6);
+	}
+
+	MEMORY_PROP(v, indices);
+	MEMORY_PROP(v, unknown0);
+	MEMORY_PROP(v, unknown1); /* pointer */
+	MEMORY_PROP(v, texture_meta_trampoline);
+	MEMORY_PROP(v, sampler_descriptor);
+	MEMORY_PROP(v, uniforms);
+	MEMORY_PROP(v, attributes); /* struct attribute_buffer[] */
+	MEMORY_PROP(v, attribute_meta); /* attribute_meta[] */
+	MEMORY_PROP(v, varyings); /* pointer */
+	MEMORY_PROP(v, unknown6); /* pointer */
+	MEMORY_PROP(v, nullForVertex);
+	MEMORY_PROP(v, fbd);
+
+	char *a = pointer_as_memory_reference(shader_meta_ptr);
+	panwrap_prop("_shader_upper = (%s) >> 4", a);
+	free(a);
+
+	panwrap_prop("flags = %d", v->flags); 
+
+	panwrap_indent--;
+	panwrap_log("};\n");
+
+	TOUCH(mem, payload, *v, "vertex_tiler", job_no);
+
 }
 
 static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
