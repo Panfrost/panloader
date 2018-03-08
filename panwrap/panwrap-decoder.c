@@ -101,7 +101,8 @@ static void panwrap_replay_sfbd(uint64_t gpu_va, int job_no)
 	const struct mali_tentative_sfbd *PANWRAP_PTR_VAR(s, mem, (mali_ptr) gpu_va);
 
 	/* FBDs are frequently duplicated, so watch for this */
-	if (mem->touched[(gpu_va - mem->gpu_va) / sizeof(uint32_t)]) return;
+	/* TODO: Re-enable FBD deduplication */
+	//if (mem->touched[(gpu_va - mem->gpu_va) / sizeof(uint32_t)]) return;
 
 	panwrap_log("struct mali_tentative_sfbd fbd_%d = {\n", job_no);
 	panwrap_indent++;
@@ -166,7 +167,8 @@ void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
 			       bool varying)
 {
 	/* Varyings in particlar get duplicated between parts of the job */
-	if (mem->touched[(addr - mem->gpu_va) / sizeof(uint32_t)]) return;
+	/* TODO: Deduplification */
+	//if (mem->touched[(addr - mem->gpu_va) / sizeof(uint32_t)]) return;
 
 	struct mali_attr *PANWRAP_PTR_VAR(attr, mem, addr);
 	mali_ptr raw_elements = attr->elements & ~3;
@@ -558,7 +560,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	}
 
 	DYN_MEMORY_PROP(v, job_no, indices);
-	DYN_MEMORY_PROP(v, job_no, unknown0);
+	//DYN_MEMORY_PROP(v, job_no, unknown0);
 	DYN_MEMORY_PROP(v, job_no, unknown1); /* pointer */
 	DYN_MEMORY_PROP(v, job_no, texture_meta_trampoline);
 	DYN_MEMORY_PROP(v, job_no, sampler_descriptor);
@@ -570,6 +572,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	DYN_MEMORY_PROP(v, job_no, nullForVertex);
 	DYN_MEMORY_PROP(v, job_no, fbd);
 
+	MEMORY_PROP(v, unknown0);
 	MEMORY_PROP(v, uniforms);
 	MEMORY_PROP(v, attributes);
 	MEMORY_PROP(v, varyings);
