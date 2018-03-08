@@ -34,6 +34,9 @@ int pandev_general_allocate(int fd, int va_pages, int commit_pages, int extent, 
 
 void pandev_shader_assemble(uint32_t *dst, const char *src);
 
+off_t pandev_allocate_offset(off_t *stack, size_t sz);
+void pandev_upload(int cheating_offset, mali_ptr base, void *base_map, void *data, size_t sz);
+
 #include <math.h>
 #define inff INFINITY
 

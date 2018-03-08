@@ -32,10 +32,11 @@ pandev_allocate_offset(off_t *stack, size_t sz)
 
 
 void
-pandev_upload(mali_ptr base, uint32_t *base_map, void *data, size_t sz)
+pandev_upload(int cheating_offset, mali_ptr base, void *base_map, void *data, size_t sz)
 {
 	/* Allocate space for the new GPU object */
-	off_t offset = pandev_allocate_offset(&stack_bottom, sz);
+	//off_t offset = pandev_allocate_offset(&stack_bottom, sz);
+	off_t offset = cheating_offset;
 
 	/* Upload it */
 	memcpy(base_map + offset, data, sz);
