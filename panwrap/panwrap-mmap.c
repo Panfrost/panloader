@@ -63,9 +63,13 @@ char* pointer_as_memory_reference(mali_ptr ptr)
 	struct panwrap_mapped_memory *mapped;
 	char *out = malloc(128);
 
-	if (ptr == (uintptr_t) ptr && (mapped = panwrap_find_mapped_mem_containing((void*) (uintptr_t) ptr)))
+	/* First check for SAME_VA mappings, then look for non-SAME_VA mappings */
+
+	if ((ptr == (uintptr_t) ptr && (mapped = panwrap_find_mapped_mem_containing((void*) (uintptr_t) ptr))) ||
+		(mapped = panwrap_find_mapped_gpu_mem_containing(ptr)))
+
 		snprintf(out, 128, "alloc_gpu_va_%d + %d", mapped->allocation_number, (int) (ptr - mapped->gpu_va));
-	else 
+	else
 		snprintf(out, 128, MALI_PTR_FMT, ptr);
 
 	return out;
