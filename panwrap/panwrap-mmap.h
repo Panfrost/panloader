@@ -48,8 +48,7 @@ struct panwrap_mapped_memory {
 #define TOUCH_OLEN(mem, addr, sz, offset, ename, number) \
 	memset(mem->touched + ((addr - mem->gpu_va) / sizeof(uint32_t)), 1, (sz - offset) / sizeof(uint32_t)); \
 	panwrap_log("\n"); \
-	panwrap_log("pandev_upload(%d, alloc_gpu_va_%d, %s, &%s_%d, sizeof(%s_%d) - %d);\n\n", (int) ((addr - mem->gpu_va)), mem->allocation_number, mem->name, ename, number, ename, number, offset);
-	//panwrap_log("memcpy(%s + %d, &%s_%d, sizeof(%s_%d) - %d);\n\n", mem->name, (int) ((addr - mem->gpu_va) / sizeof(uint32_t)), ename, number, ename, number, offset); \
+	panwrap_log("mali_ptr %s_%d_p = pandev_upload(%d, alloc_gpu_va_%d, %s, &%s_%d, sizeof(%s_%d) - %d);\n\n", ename, number, (int) ((addr - mem->gpu_va)), mem->allocation_number, mem->name, ename, number, ename, number, offset);
 
 #define TOUCH_LEN(mem, addr, sz, ename, number) \
 	TOUCH_OLEN(mem, addr, sz, 0, ename, number)
