@@ -256,7 +256,9 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_prop("shader = (%s) | %d", a, (int) (s->shader & 15));
 		free(a);
 
-		panwrap_prop("zero = 0x%" PRIx32, s->zero);
+		if (s->zero)
+			panwrap_msg("XXX shader zero tripped");
+
 		panwrap_prop("attribute_count = %" PRId16, s->attribute_count);
 		panwrap_prop("varying_count = %" PRId16, s->varying_count);
 
