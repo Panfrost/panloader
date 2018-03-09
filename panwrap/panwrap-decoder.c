@@ -163,71 +163,80 @@ static void panwrap_replay_sfbd(uint64_t gpu_va, int job_no)
 }
 
 void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
-			       mali_ptr addr, int job_no, int attr_no,
-			       bool varying)
+			       mali_ptr addr, int job_no, int count, bool varying)
 {
 	/* Varyings in particlar get duplicated between parts of the job */
 	/* TODO: Deduplification */
 	//if (mem->touched[(addr - mem->gpu_va) / sizeof(uint32_t)]) return;
 
-	struct mali_attr *PANWRAP_PTR_VAR(attr, mem, addr);
-	mali_ptr raw_elements = attr->elements & ~3;
-	int flags = attr->elements & 3;
-	size_t vertex_count;
-	size_t component_count;
+	struct mali_attr *attr = panwrap_fetch_gpu_mem(mem, addr, sizeof(struct mali_attr) * count); 
 
-	int human_attr_number = (job_no * 100) + attr_no;
-	char *prefix = varying ? "varyings" : "attribute";
+	char *prefix = varying ? "varying" : "attribute";
 
-	bool decoded = false;
+	char base[128];
+	snprintf(base, sizeof(base), "%s_data_%d", prefix, job_no);
 
-	if (!varying && attr->size < 0x40) {
-		decoded = true;
+	for (int i = 0; i < count; ++i) {
+		mali_ptr raw_elements = attr[i].elements & ~3;
 
-		/* TODO: Attributes are not necessarily float32 vectors in general;
-		 * decoding like this is unsafe all things considered */
+		size_t vertex_count;
+		size_t component_count;
 
-		float *buffer = panwrap_fetch_gpu_mem(mem, raw_elements, attr->size);
+		if (!varying) {
+			/* TODO: Attributes are not necessarily float32 vectors in general;
+			 * decoding like this without snarfing types from the shader is unsafe all things considered */
 
-		vertex_count = attr->size / attr->stride;
-		component_count = attr->stride / sizeof(float);
+			float *buffer = panwrap_fetch_gpu_mem(mem, raw_elements, attr[i].size);
 
-		panwrap_log("float attribute_data_%d[] = {\n", human_attr_number);
+			vertex_count = attr[i].size / attr[i].stride;
+			component_count = attr[i].stride / sizeof(float);
 
-		panwrap_indent++;
-		for (int row = 0; row < vertex_count; row++) {
-			panwrap_log_empty();
+			panwrap_log("float %s_%d[] = {\n", base, i);
 
-			for (int i = 0; i < component_count; i++)
-				panwrap_log_cont("%ff, ", buffer[i]);
+			panwrap_indent++;
+			for (int row = 0; row < vertex_count; row++) {
+				panwrap_log_empty();
 
-			panwrap_log_cont("\n");
+				for (int i = 0; i < component_count; i++)
+					panwrap_log_cont("%ff, ", buffer[i]);
 
-			buffer += component_count;
+				panwrap_log_cont("\n");
+
+				buffer += component_count;
+			}
+			panwrap_indent--;
+			panwrap_log("};\n");
+
+			TOUCH_LEN(mem, raw_elements, attr[i].size, base, i);
+		} else {
+			/* TODO: Allocate space for varyings dynamically? */
+
+			char *a = pointer_as_memory_reference(raw_elements);
+			panwrap_log("mali_ptr %s_%d_p = %s;\n", base, i, a);
+			free(a);
 		}
-		panwrap_indent--;
-		panwrap_log("};\n");
-
-		TOUCH_LEN(mem, raw_elements, attr->size, "attribute_data", human_attr_number);
 	}
 
-	panwrap_log("struct mali_attr %s_%d = {\n", prefix, human_attr_number);
+	panwrap_log("struct mali_attr %s_%d[] = {\n", prefix, job_no);
 	panwrap_indent++;
 
-	if (decoded) {
-		panwrap_prop("elements = (attribute_data_%d_p) | %d", human_attr_number, flags);
-	} else {
-		char *a = pointer_as_memory_reference(raw_elements);
-		panwrap_prop("elements = (%s) | %d", a, flags);
-		free(a);
+	for (int i = 0; i < count; ++i) {
+		panwrap_log("{\n");
+		panwrap_indent++;
+
+		int flags = attr[i].elements & 3;
+		panwrap_prop("elements = (%s_%d_p) | %d", base, i, attr[i].elements & 3);
+
+		panwrap_prop("stride = 0x%" PRIx32, attr[i].stride);
+		panwrap_prop("size = 0x%" PRIx32, attr[i].size);
+		panwrap_indent--;
+		panwrap_log("}, \n");
 	}
 
-	panwrap_prop("stride = 0x%" PRIx32, attr->stride);
-	panwrap_prop("size = 0x%" PRIx32, attr->size);
 	panwrap_indent--;
 	panwrap_log("};\n");
 
-	TOUCH(mem, addr, *attr, prefix, human_attr_number);
+	TOUCH(mem, addr, *attr, prefix, job_no);
 }
 
 void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
@@ -242,7 +251,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	/* TODO: Isn't this an -M-FBD? What's the difference? */
 	panwrap_replay_sfbd(v->fbd, job_no);
 
-	int varying_count;
+	int varying_count, attribute_count;
 
 	if (shader_meta_ptr) {
 		struct panwrap_mapped_memory *smem = panwrap_find_mapped_gpu_mem_containing(shader_meta_ptr);
@@ -264,7 +273,8 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_prop("attribute_count = %" PRId16, s->attribute_count);
 		panwrap_prop("varying_count = %" PRId16, s->varying_count);
 
-		/* Save for when varyings are dumped */
+		/* Save for dumps */
+		attribute_count = s->attribute_count;
 		varying_count = s->varying_count;
 
 		/* Structure is still mostly unknown, unfortunately */
@@ -332,18 +342,13 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 		attr_mem = panwrap_find_mapped_gpu_mem_containing(v->attributes);
 
+#if 0
 		for (p = v->attribute_meta;
 		     *PANWRAP_PTR(attr_mem, p, u64) != 0;
-		     p += sizeof(struct mali_attr_meta), count++) {
-			attr_meta = panwrap_fetch_gpu_mem(attr_mem, p,
-							  sizeof(*attr_mem));
+		     p += sizeof(struct mali_attr_meta), count++);
+#endif
 
-			panwrap_replay_attributes(
-			    attr_mem,
-			    v->attributes + (attr_meta->index *
-					     sizeof(struct mali_attr)),
-			    job_no, attr_meta->index, false);
-		}
+		panwrap_replay_attributes( attr_mem, v->attributes, job_no, attribute_count, false);
 	}
 
 	/* Varyings are encoded like attributes but not actually sent; we just
@@ -356,10 +361,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		/* Number of descriptors depends on whether there are
 		 * non-internal varyings */
 
-		panwrap_replay_attributes(attr_mem, v->varyings, job_no, 0, true);
-
-		if (varying_count > 1)
-			panwrap_replay_attributes(attr_mem, v->varyings + sizeof(struct mali_attr), job_no, 1, true);
+		panwrap_replay_attributes(attr_mem, v->varyings, job_no, varying_count > 1 ? 2 : 1, true);
 	}
 
 	/* XXX: This entire block is such a hack... where are uniforms configured exactly? */
