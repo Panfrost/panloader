@@ -98,7 +98,11 @@ struct mali_job_descriptor_header {
 	u16 job_index;
 	u16 job_dependency_index_1;
 	u16 job_dependency_index_2;
-	mali_ptr next_job;
+	
+	union {
+		u64 next_job_64;
+		u32 next_job_32;
+	};
 } __attribute__((packed));
 
 struct mali_payload_set_value {

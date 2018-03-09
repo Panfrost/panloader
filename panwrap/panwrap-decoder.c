@@ -640,6 +640,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 	struct mali_job_descriptor_header *h;
 
 	bool first = true;
+	bool last_size;
 
 	do {
 		struct panwrap_mapped_memory *mem =
@@ -662,6 +663,9 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 
 		panwrap_prop("job_type = %s", panwrap_job_type_name(h->job_type));
 		panwrap_prop("job_descriptor_size = %d", h->job_descriptor_size);
+
+		/* Save for next job fixing */
+		last_size = h->job_descriptor_size;
 
 		if (h->exception_status)
 			panwrap_prop("exception_status = %d", h->exception_status);
@@ -694,8 +698,14 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 
 		/* Handle linkage */
 
-		if (!first)
-			panwrap_log("((struct mali_job_descriptor_header *) (uintptr_t) job_%d_p)->next_job = job_%d_p;\n\n", job_no - 1, job_no);
+		if (!first) {
+			panwrap_log("((struct mali_job_descriptor_header *) (uintptr_t) job_%d_p)->", job_no - 1);
+
+			if (last_size)
+				panwrap_log_cont("next_job_64 = job_%d_p;\n\n", job_no);
+			else
+				panwrap_log_cont("next_job_32 = (u32) (uintptr_t) job_%d_p;\n\n", job_no);
+		}
 
 		first = false;
 
@@ -725,7 +735,7 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 		default:
 			break;
 		}
-	} while ((jc_gpu_va = h->job_descriptor_size ? h->next_job : (u32) h->next_job));
+	} while ((jc_gpu_va = h->job_descriptor_size ? h->next_job_64 : h->next_job_32));
 }
 
 void panwrap_replay_soft_replay_payload(mali_ptr jc_gpu_va, int job_no)
