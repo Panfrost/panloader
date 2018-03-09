@@ -171,7 +171,7 @@ void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
 
 	struct mali_attr *attr = panwrap_fetch_gpu_mem(mem, addr, sizeof(struct mali_attr) * count); 
 
-	char *prefix = varying ? "varying" : "attribute";
+	char *prefix = varying ? "varyings" : "attributes";
 
 	char base[128];
 	snprintf(base, sizeof(base), "%s_data_%d", prefix, job_no);
@@ -585,17 +585,15 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	DYN_MEMORY_PROP(v, job_no, texture_meta_trampoline);
 	DYN_MEMORY_PROP(v, job_no, sampler_descriptor);
 	//DYN_MEMORY_PROP(v, job_no, uniforms);
-	//DYN_MEMORY_PROP(v, job_no, attributes); /* struct attribute_buffer[] */
+	DYN_MEMORY_PROP(v, job_no, attributes); /* struct attribute_buffer[] */
 	DYN_MEMORY_PROP(v, job_no, attribute_meta); /* attribute_meta[] */
-	//DYN_MEMORY_PROP(v, job_no, varyings); /* pointer */
+	DYN_MEMORY_PROP(v, job_no, varyings); /* pointer */
 	DYN_MEMORY_PROP(v, job_no, unknown6); /* pointer */
 	DYN_MEMORY_PROP(v, job_no, nullForVertex);
 	DYN_MEMORY_PROP(v, job_no, fbd);
 
 	MEMORY_PROP(v, unknown0);
 	MEMORY_PROP(v, uniforms);
-	MEMORY_PROP(v, attributes);
-	MEMORY_PROP(v, varyings);
 
 	char *a = pointer_as_memory_reference(shader_meta_ptr);
 	panwrap_prop("_shader_upper = (%s) >> 4", a);
