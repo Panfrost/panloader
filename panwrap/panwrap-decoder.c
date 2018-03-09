@@ -179,21 +179,11 @@ void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
 	int human_attr_number = (job_no * 100) + attr_no;
 	char *prefix = varying ? "varyings" : "attribute";
 
-	panwrap_log("struct mali_attr %s_%d = {\n", prefix, human_attr_number);
-	panwrap_indent++;
-
-	char *a = pointer_as_memory_reference(raw_elements);
-	panwrap_prop("elements = (%s) | %d", a, flags);
-	free(a);
-
-	panwrap_prop("stride = 0x%" PRIx32, attr->stride);
-	panwrap_prop("size = 0x%" PRIx32, attr->size);
-	panwrap_indent--;
-	panwrap_log("};\n");
-
-	TOUCH(mem, addr, *attr, prefix, human_attr_number);
+	bool decoded = false;
 
 	if (!varying && attr->size < 0x40) {
+		decoded = true;
+
 		/* TODO: Attributes are not necessarily float32 vectors in general;
 		 * decoding like this is unsafe all things considered */
 
@@ -202,7 +192,7 @@ void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
 		vertex_count = attr->size / attr->stride;
 		component_count = attr->stride / sizeof(float);
 
-		panwrap_log("float attributes_%d[] = {\n", human_attr_number);
+		panwrap_log("float attribute_data_%d[] = {\n", human_attr_number);
 
 		panwrap_indent++;
 		for (int row = 0; row < vertex_count; row++) {
@@ -218,8 +208,26 @@ void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
 		panwrap_indent--;
 		panwrap_log("};\n");
 
-		TOUCH_LEN(mem, raw_elements, attr->size, "attributes", human_attr_number);
+		TOUCH_LEN(mem, raw_elements, attr->size, "attribute_data", human_attr_number);
 	}
+
+	panwrap_log("struct mali_attr %s_%d = {\n", prefix, human_attr_number);
+	panwrap_indent++;
+
+	if (decoded) {
+		panwrap_prop("elements = (attribute_data_%d_p) | %d", human_attr_number, flags);
+	} else {
+		char *a = pointer_as_memory_reference(raw_elements);
+		panwrap_prop("elements = (%s) | %d", a, flags);
+		free(a);
+	}
+
+	panwrap_prop("stride = 0x%" PRIx32, attr->stride);
+	panwrap_prop("size = 0x%" PRIx32, attr->size);
+	panwrap_indent--;
+	panwrap_log("};\n");
+
+	TOUCH(mem, addr, *attr, prefix, human_attr_number);
 }
 
 void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
