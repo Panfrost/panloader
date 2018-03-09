@@ -591,10 +591,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 	MEMORY_PROP(v, unknown0);
 
-	char *a = pointer_as_memory_reference(shader_meta_ptr);
-	panwrap_prop("_shader_upper = (%s) >> 4", a);
-	free(a);
-
+	panwrap_prop("_shader_upper = (shader_meta_%d) >> 4", job_no);
 	panwrap_prop("flags = %d", v->flags); 
 
 	panwrap_indent--;
