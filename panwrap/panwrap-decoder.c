@@ -368,7 +368,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	/* XXX: This entire block is such a hack... where are uniforms configured exactly? */
 
 	if (v->uniforms) {
-		int rows = uniform_count, width = 4;
+		int rows = uniform_count >> 1, width = 4;
 		size_t sz = rows * width * sizeof(float);
 
 		struct panwrap_mapped_memory *uniform_mem = panwrap_find_mapped_gpu_mem_containing(v->uniforms);
@@ -591,7 +591,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 	MEMORY_PROP(v, unknown0);
 
-	panwrap_prop("_shader_upper = (shader_meta_%d) >> 4", job_no);
+	panwrap_prop("_shader_upper = (shader_meta_%d_p) >> 4", job_no);
 	panwrap_prop("flags = %d", v->flags); 
 
 	panwrap_indent--;
