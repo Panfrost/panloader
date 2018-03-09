@@ -635,9 +635,11 @@ static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 
 static int job_descriptor_number = 0;
 
-void panwrap_replay_jc(mali_ptr jc_gpu_va)
+int panwrap_replay_jc(mali_ptr jc_gpu_va)
 {
 	struct mali_job_descriptor_header *h;
+
+	int start_number;
 
 	bool first = true;
 	bool last_size;
@@ -657,6 +659,9 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 						MALI_PAYLOAD_SIZE);
 
 		int job_no = job_descriptor_number++;
+
+		if (first)
+			start_number = job_no;
 
 		panwrap_log("struct mali_job_descriptor_header job_%d = {\n", job_no);
 		panwrap_indent++;
@@ -736,6 +741,8 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 			break;
 		}
 	} while ((jc_gpu_va = h->job_descriptor_size ? h->next_job_64 : h->next_job_32));
+
+	return start_number;
 }
 
 void panwrap_replay_soft_replay_payload(mali_ptr jc_gpu_va, int job_no)
@@ -778,9 +785,11 @@ void panwrap_replay_soft_replay_payload(mali_ptr jc_gpu_va, int job_no)
 	TOUCH(mem, jc_gpu_va, *v, "soft_replay_payload", job_no);
 }
 
-void panwrap_replay_soft_replay(mali_ptr jc_gpu_va)
+int panwrap_replay_soft_replay(mali_ptr jc_gpu_va)
 {
 	struct mali_jd_replay_jc *v;
+	int start_no;
+	bool first = true;
 
 	do {
 		struct panwrap_mapped_memory *mem =
@@ -789,7 +798,13 @@ void panwrap_replay_soft_replay(mali_ptr jc_gpu_va)
 		v = PANWRAP_PTR(mem, jc_gpu_va, typeof(*v));
 
 		int job_no = job_descriptor_number++;
-		panwrap_log("struct mali_jd_replay_jc soft_replay_%d = {\n", job_no);
+
+		if (first)
+			start_no = job_no;
+
+		first = false;
+
+		panwrap_log("struct mali_jd_replay_jc job_%d = {\n", job_no);
 		panwrap_indent++;
 
 		MEMORY_PROP(v, next);
@@ -800,6 +815,8 @@ void panwrap_replay_soft_replay(mali_ptr jc_gpu_va)
 
 		panwrap_replay_soft_replay_payload(jc_gpu_va + sizeof(struct mali_jd_replay_jc), job_no);
 
-		TOUCH(mem, jc_gpu_va, *v, "soft_replay", job_no);
+		TOUCH(mem, jc_gpu_va, *v, "job", job_no);
 	} while ((jc_gpu_va = v->next));
+
+	return start_no;
 }

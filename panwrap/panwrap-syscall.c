@@ -629,16 +629,17 @@ static void emit_atoms(void *ptr) {
 
 	int job_no = job_count++;
 
+	int job_numbers[256] = { 0 };
+	//assert(args->nr_atoms < 256); /* XXX */
+
 	for (int i = 0; i < args->nr_atoms; i++) {
 		const struct mali_jd_atom_v2 *a = &atoms[i];
 
 		if (a->jc) {
-			/* We don't care about soft jobs, at least not yet */
-
 			if (!(a->core_req & MALI_JD_REQ_SOFT_JOB))
-				panwrap_replay_jc(a->jc);
+				job_numbers[i] = panwrap_replay_jc(a->jc);
 			else if (a->core_req & MALI_JD_REQ_SOFT_REPLAY)
-				panwrap_replay_soft_replay(a->jc);
+				job_numbers[i] = panwrap_replay_soft_replay(a->jc);
 		}
 	}
 
@@ -669,9 +670,7 @@ static void emit_atoms(void *ptr) {
 		panwrap_log("{\n");
 		panwrap_indent++;
 
-		char *jc_name = pointer_as_memory_reference(a->jc);
-		panwrap_prop("jc = %s", jc_name);
-		free(jc_name);
+		panwrap_prop("jc = job_%d_p", job_numbers[i]);
 
 		/* Don't passthrough udata; it's nondeterministic and for userspace use only */
 
