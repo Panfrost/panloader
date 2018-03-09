@@ -251,7 +251,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	/* TODO: Isn't this an -M-FBD? What's the difference? */
 	panwrap_replay_sfbd(v->fbd, job_no);
 
-	int varying_count, attribute_count;
+	int varying_count, attribute_count, uniform_count;
 
 	if (shader_meta_ptr) {
 		struct panwrap_mapped_memory *smem = panwrap_find_mapped_gpu_mem_containing(shader_meta_ptr);
@@ -276,9 +276,10 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		/* Save for dumps */
 		attribute_count = s->attribute_count;
 		varying_count = s->varying_count;
+		uniform_count = (s->uniform_registers >> 20) & 0xFF;
 
 		/* Structure is still mostly unknown, unfortunately */
-		panwrap_prop("uniform_registers = (%d << 20) | 0x%" PRIx32, (s->uniform_registers >> 20) & 0xFF, s->uniform_registers & ~0x0FF00000);
+		panwrap_prop("uniform_registers = (%d << 20) | 0x%" PRIx32, uniform_count, s->uniform_registers & ~0x0FF00000);
 
 		panwrap_indent--;
 		panwrap_log("};\n");
@@ -367,8 +368,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	/* XXX: This entire block is such a hack... where are uniforms configured exactly? */
 
 	if (v->uniforms) {
-#if 0
-		int rows = 2, width = 4;
+		int rows = uniform_count, width = 4;
 		size_t sz = rows * width * sizeof(float);
 
 		struct panwrap_mapped_memory *uniform_mem = panwrap_find_mapped_gpu_mem_containing(v->uniforms);
@@ -392,9 +392,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_log("};\n");
 
 		TOUCH_LEN(mem, v->uniforms, sz, "uniforms", job_no);
-#else
-		panwrap_msg("TODO: Handle uniforms appropriately\n");
-#endif
 	}
 
 	if (v->unknown1) {
@@ -581,19 +578,18 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 	DYN_MEMORY_PROP(v, job_no, indices);
 	//DYN_MEMORY_PROP(v, job_no, unknown0);
-	DYN_MEMORY_PROP(v, job_no, unknown1); /* pointer */
+	DYN_MEMORY_PROP(v, job_no, unknown1); 
 	DYN_MEMORY_PROP(v, job_no, texture_meta_trampoline);
 	DYN_MEMORY_PROP(v, job_no, sampler_descriptor);
-	//DYN_MEMORY_PROP(v, job_no, uniforms);
-	DYN_MEMORY_PROP(v, job_no, attributes); /* struct attribute_buffer[] */
-	DYN_MEMORY_PROP(v, job_no, attribute_meta); /* attribute_meta[] */
-	DYN_MEMORY_PROP(v, job_no, varyings); /* pointer */
-	DYN_MEMORY_PROP(v, job_no, unknown6); /* pointer */
+	DYN_MEMORY_PROP(v, job_no, uniforms);
+	DYN_MEMORY_PROP(v, job_no, attributes); 
+	DYN_MEMORY_PROP(v, job_no, attribute_meta); 
+	DYN_MEMORY_PROP(v, job_no, varyings); 
+	DYN_MEMORY_PROP(v, job_no, unknown6);
 	DYN_MEMORY_PROP(v, job_no, nullForVertex);
 	DYN_MEMORY_PROP(v, job_no, fbd);
 
 	MEMORY_PROP(v, unknown0);
-	MEMORY_PROP(v, uniforms);
 
 	char *a = pointer_as_memory_reference(shader_meta_ptr);
 	panwrap_prop("_shader_upper = (%s) >> 4", a);
