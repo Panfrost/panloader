@@ -31,7 +31,7 @@ pandev_shader_assemble(uint32_t *dst, const char *src)
 	fwrite(src, 1, strlen(src), fp0);
 	fclose(fp0);
 
-	system("python3 /home/guest/midgard-assembler/assemble.py /dev/shm/shader.asm /dev/shm/shader.bin");
+	system("python3 ../tools/midgard-assemble.py /dev/shm/shader.asm /dev/shm/shader.bin");
 
 	FILE *fp1 = fopen("/dev/shm/shader.bin", "rb");
 
