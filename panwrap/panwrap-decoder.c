@@ -639,6 +639,8 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 {
 	struct mali_job_descriptor_header *h;
 
+	bool first = true;
+
 	do {
 		struct panwrap_mapped_memory *mem =
 			panwrap_find_mapped_gpu_mem_containing(jc_gpu_va);
@@ -683,21 +685,19 @@ void panwrap_replay_jc(mali_ptr jc_gpu_va)
 			panwrap_prop("job_dependency_index_2 = %d", h->job_dependency_index_2);
 		} 
 
-		u64 ptr = h->next_job;
-
-		if (!h->job_descriptor_size)
-			ptr = (u64) (u32) h->next_job; 
-
-
-		char *a = pointer_as_memory_reference(ptr);
-		panwrap_prop("next_job = %s", a);
-		free(a);
 
 		panwrap_indent--;
 		panwrap_log("};\n");
 
 		/* Touch the fields, careful about 32/64-bit */
 		TOUCH_OLEN(mem, jc_gpu_va, sizeof(*h), offset, "job", job_no);
+
+		/* Handle linkage */
+
+		if (!first)
+			panwrap_log("((struct mali_job_descriptor_header *) (uintptr_t) job_%d_p)->next_job = job_%d_p;\n\n", job_no - 1, job_no);
+
+		first = false;
 
 		switch (h->job_type) {
 		case JOB_TYPE_SET_VALUE:
