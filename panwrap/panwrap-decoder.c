@@ -242,6 +242,8 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	/* TODO: Isn't this an -M-FBD? What's the difference? */
 	panwrap_replay_sfbd(v->fbd, job_no);
 
+	int varying_count;
+
 	if (shader_meta_ptr) {
 		struct panwrap_mapped_memory *smem = panwrap_find_mapped_gpu_mem_containing(shader_meta_ptr);
 		struct mali_shader_meta *PANWRAP_PTR_VAR(s, smem, shader_meta_ptr);
@@ -261,6 +263,9 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 		panwrap_prop("attribute_count = %" PRId16, s->attribute_count);
 		panwrap_prop("varying_count = %" PRId16, s->varying_count);
+
+		/* Save for when varyings are dumped */
+		varying_count = s->varying_count;
 
 		/* Structure is still mostly unknown, unfortunately */
 		panwrap_prop("uniform_registers = (%d << 20) | 0x%" PRIx32, (s->uniform_registers >> 20) & 0xFF, s->uniform_registers & ~0x0FF00000);
@@ -348,10 +353,13 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	if (v->varyings) {
 		attr_mem = panwrap_find_mapped_gpu_mem_containing(v->varyings);
 
-		/* TODO: How many varyings? Is there a meta descriptor for them somewhere? */
+		/* Number of descriptors depends on whether there are
+		 * non-internal varyings */
 
 		panwrap_replay_attributes(attr_mem, v->varyings, job_no, 0, true);
-		panwrap_replay_attributes(attr_mem, v->varyings + sizeof(struct mali_attr), job_no, 1, true);
+
+		if (varying_count > 1)
+			panwrap_replay_attributes(attr_mem, v->varyings + sizeof(struct mali_attr), job_no, 1, true);
 	}
 
 	/* XXX: This entire block is such a hack... where are uniforms configured exactly? */
