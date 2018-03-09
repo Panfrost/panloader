@@ -160,8 +160,7 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 
 	mapped_mem = malloc(sizeof(*mapped_mem));
 	list_init(&mapped_mem->node);
-	mapped_mem->gpu_va =
-		mem->flags & MALI_MEM_SAME_VA ? (mali_ptr) (uintptr_t) addr : gpu_va;
+	mapped_mem->gpu_va = gpu_va;
 	mapped_mem->length = length;
 	mapped_mem->addr = addr;
 	mapped_mem->prot = prot;
@@ -341,7 +340,6 @@ __panwrap_fetch_mem_err(const struct panwrap_mapped_memory *mem,
 			panwrap_msg("Access length was out of bounds\n");
 	} else {
 		panwrap_msg("GPU memory is not contained within known GPU VA mappings\n");
-
 	}
 
 	panwrap_log_flush();
