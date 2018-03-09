@@ -340,6 +340,12 @@ __panwrap_fetch_mem_err(const struct panwrap_mapped_memory *mem,
 			panwrap_msg("Access length was out of bounds\n");
 	} else {
 		panwrap_msg("GPU memory is not contained within known GPU VA mappings\n");
+
+		struct panwrap_mapped_memory *pos;
+
+		list_for_each_entry(pos, &mmaps, node) {
+			panwrap_msg("%llx (%p)\n", pos->gpu_va, pos->addr);
+		}
 	}
 
 	panwrap_log_flush();
