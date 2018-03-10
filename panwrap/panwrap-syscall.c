@@ -1371,7 +1371,7 @@ int ioctl(int fd, int request, ...)
 	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_ALLOC)) {
 		const struct mali_ioctl_mem_alloc *args = ptr;
 
-		panwrap_track_allocation(args->gpu_va, args->flags, number);
+		panwrap_track_allocation(args->gpu_va, args->flags, number, args->va_pages * 4096);
 	}
 
 	panwrap_indent--;

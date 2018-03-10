@@ -59,7 +59,7 @@ struct panwrap_mapped_memory {
 void replay_memory();
 char *pointer_as_memory_reference(mali_ptr ptr);
 
-void panwrap_track_allocation(mali_ptr gpu_va, int flags, int number);
+void panwrap_track_allocation(mali_ptr gpu_va, int flags, int number, size_t length);
 void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
                         int prot, int flags);
 void panwrap_track_munmap(void *addr);

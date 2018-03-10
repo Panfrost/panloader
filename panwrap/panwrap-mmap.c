@@ -116,7 +116,7 @@ void replay_memory()
 	}
 }
 
-void panwrap_track_allocation(mali_ptr addr, int flags, int number)
+void panwrap_track_allocation(mali_ptr addr, int flags, int number, size_t length)
 {
 	struct panwrap_allocated_memory *mem = malloc(sizeof(*mem));
 
@@ -130,6 +130,10 @@ void panwrap_track_allocation(mali_ptr addr, int flags, int number)
 	mem->allocation_number = number;
 
 	list_add(&mem->node, &allocations);
+
+	/* XXX: Hacky workaround for cz's board */
+	if (mem->gpu_va >> 28 == 0xb)
+		panwrap_track_mmap(addr, (void *) (uintptr_t) addr, length, PROT_READ | PROT_WRITE, MAP_SHARED);
 }
 
 void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
