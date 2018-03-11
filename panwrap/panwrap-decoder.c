@@ -409,10 +409,14 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			mali_ptr ptr = *u >> 8;
 			uint8_t flags = *u & 0xFF;
 
-			char *a = pointer_as_memory_reference(ptr);
-			panwrap_log("u64 unknown1_%d = ((%s) << 8) | %d;\n", job_no, a, flags);
-			free(a);
+			/* Points to... a buffer of zeroes in the same region?
+			 * *shrug* Deliberate 0 length so we don't memset
+			 * anything out */
+			
+			panwrap_log("u32 inner_unknown1_%d = 0; /* XXX */\n", job_no);
+			TOUCH_LEN(umem, ptr, 0, "inner_unknown1", job_no);
 
+			panwrap_log("u64 unknown1_%d = ((inner_unknown1_%d_p) << 8) | %d;\n", job_no, job_no, flags);
 			TOUCH(umem, v->unknown1, u64, "unknown1", job_no);
 		}
 	}
