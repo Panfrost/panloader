@@ -20,13 +20,13 @@
 // TODO: An actual allocator, perhaps
 // TODO: Multiple stacks for multiple bases?
 
-off_t stack_bottom = 8192; /* Don't interfere with constant offsets */
+off_t stack_bottom = 4096; /* Don't interfere with constant offsets */
 
 off_t
 pandev_allocate_offset(off_t *stack, size_t sz)
 {
 	off_t ret = *stack;
-	*stack += sz;
+	*stack += sz * 4;
 	return ret;
 }
 

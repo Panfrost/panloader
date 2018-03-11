@@ -397,7 +397,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_indent--;
 		panwrap_log("};\n");
 
-		TOUCH_LEN(mem, v->uniforms, sz, "uniforms", job_no, false);
+		TOUCH_LEN(mem, v->uniforms, sz, "uniforms", job_no, true);
 	}
 
 	if (v->unknown1) {
