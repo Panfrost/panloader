@@ -26,7 +26,7 @@ off_t
 pandev_allocate_offset(off_t *stack, size_t sz)
 {
 	off_t ret = *stack;
-	*stack += sz * 4;
+	*stack += sz;
 	return ret;
 }
 
@@ -36,16 +36,23 @@ pandev_upload(int cheating_offset, mali_ptr base, void *base_map, void *data, si
 {
 	off_t offset;
 
+	/* We're not positive about the sizes of all objects, but we don't want
+	 * them to crash against each other either */
+
+	size_t padded_size = sz * 2;
+
 	/* Allocate space for the new GPU object, if required */
 
 	if (cheating_offset == -1) {
-		offset = pandev_allocate_offset(&stack_bottom, sz);
+		offset = pandev_allocate_offset(&stack_bottom, padded_size);
 	} else {
 		offset = cheating_offset;
 	}
 
-	/* Upload it */
+	/* Upload it, with a canary for safety */
+	if (cheating_offset == -1) memset(base_map + offset, 0, padded_size);
 	memcpy(base_map + offset, data, sz);
+	if (cheating_offset == -1) memset(base_map + offset + padded_size, 0xFFFFFFFF, 32);
 
 	/* Return the GPU address */
 	return base + offset;
