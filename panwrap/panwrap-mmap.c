@@ -120,10 +120,6 @@ void panwrap_track_allocation(mali_ptr addr, int flags, int number, size_t lengt
 {
 	struct panwrap_allocated_memory *mem = malloc(sizeof(*mem));
 
-	if (!do_replay)
-		panwrap_msg("GPU memory allocated at GPU VA " MALI_PTR_FMT "\n",
-			    addr);
-
 	list_init(&mem->node);
 	mem->gpu_va = addr;
 	mem->flags = flags;
@@ -182,33 +178,26 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 	mapped_mem->prot = prot;
 	mapped_mem->flags = mem->flags;
 	mapped_mem->allocation_number = mem->allocation_number;
-
-	if (do_replay)
-		mapped_mem->touched = calloc(length, sizeof(bool));
+	mapped_mem->touched = calloc(length, sizeof(bool));
 
 	list_add(&mapped_mem->node, &mmaps);
 
 	list_del(&mem->node);
 	free(mem);
 
-	if (do_replay) {
-		/* Generate somewhat semantic name for the region */
-		snprintf(mapped_mem->name, sizeof(mapped_mem->name),
-				"%s_%d",
-				mem->flags & MALI_MEM_PROT_GPU_EX ? "shader" : "memory",
-				mapped_mem->allocation_number);
+	/* Generate somewhat semantic name for the region */
+	snprintf(mapped_mem->name, sizeof(mapped_mem->name),
+			"%s_%d",
+			mem->flags & MALI_MEM_PROT_GPU_EX ? "shader" : "memory",
+			mapped_mem->allocation_number);
 
-		/* Map region itself */
+	/* Map region itself */
 
-		panwrap_log("uint32_t *%s = mmap64(NULL, %d, %d, %d, fd, alloc_gpu_va_%d);\n\n",
-			    mapped_mem->name, length, prot, flags, mapped_mem->allocation_number);
+	panwrap_log("uint32_t *%s = mmap64(NULL, %d, %d, %d, fd, alloc_gpu_va_%d);\n\n",
+		    mapped_mem->name, length, prot, flags, mapped_mem->allocation_number);
 
-		panwrap_log("if (%s == MAP_FAILED) printf(\"Error mapping %s\\n\");\n\n",
-				mapped_mem->name, mapped_mem->name);
-	} else {
-		panwrap_msg("GPU VA " MALI_PTR_FMT " mapped to %p - %p (length == %zu)\n",
-			    mapped_mem->gpu_va, addr, addr + length - 1, length);
-	}
+	panwrap_log("if (%s == MAP_FAILED) printf(\"Error mapping %s\\n\");\n\n",
+			mapped_mem->name, mapped_mem->name);
 }
 
 void panwrap_track_munmap(void *addr)
@@ -222,15 +211,6 @@ void panwrap_track_munmap(void *addr)
 	}
 
 	list_del(&mapped_mem->node);
-
-	if (!do_replay) {
-		/* As the address is nondeterministic, don't send this message
-		 * for replays. It's not functionally important -- it will
-		 * become a comment anyway -- but source code reproducability
-		 * is important for debugging and understanding replays. */
-
-		panwrap_msg("Unmapped GPU memory at %p\n", addr);
-	}
 
 	free(mapped_mem);
 }

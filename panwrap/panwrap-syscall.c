@@ -1006,18 +1006,6 @@ int ioctl(int fd, int request, ...)
 	name = ioctl_get_info(request)->name ?: "???";
 	header = ptr;
 
-	if (!ptr) { /* All valid mali ioctl's should have a specified arg */
-		panwrap_msg("<%-20s> (%02d) (%08x), has no arguments? Cannot decode :(\n",
-			    name, _IOC_NR(request), request);
-
-		ret = orig_ioctl(fd, request, ptr);
-
-		panwrap_indent++;
-		panwrap_msg("= %02d\n", ret);
-		panwrap_indent--;
-		goto out;
-	}
-
 	bool ignore = false;
 
 	/* Race condition... */
@@ -1086,9 +1074,8 @@ int ioctl(int fd, int request, ...)
 		panwrap_track_allocation(args->gpu_va, args->flags, number, args->va_pages * 4096);
 	}
 
-	panwrap_indent--;
-
 	if (!ignore) {
+		panwrap_indent--;
 		panwrap_log("};\n\n");
 		panwrap_log("rc = pandev_ioctl(fd, MALI_IOCTL_%s, &%s_%d);\n", name, lname, number);
 		panwrap_log("if (rc) printf(\"Error %%d in %s_%d\\n\", rc);\n\n", name, number);

@@ -55,7 +55,6 @@ long panwrap_parse_env_long(const char *env, long def);
 const char * panwrap_parse_env_string(const char *env, const char *def);
 
 extern short panwrap_indent;
-extern bool do_replay;
 
 void * __rd_dlsym_helper(const char *name);
 
