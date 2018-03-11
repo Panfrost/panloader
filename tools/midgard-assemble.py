@@ -436,6 +436,7 @@ for p in program:
         has_offset = 0
 
         magic1 = 1 # IDEK
+        magic2 = 2 # Where did this even come from?!
 
         texture_handle = int(arguments[1][len("texture"):])
         
@@ -446,7 +447,7 @@ for p in program:
         (full0, select0, upper0, mask0) = decode_texture_out_reg(arguments[0])
         (full1, select1, upper1, swizzleR1, swizzleL1) = decode_texture_reg(arguments[3])
 
-        tex = (op << 0) | (shadow << 6) | (cont << 8) | (last << 9) | (fmt << 10) | (has_offset << 15) | (has_filter << 16) | (select1 << 17) | (upper1 << 18) | (full1 << 20) | (swizzleR1 << 21) | (swizzleL1 << 23) | (full0 << 29) | (magic1 << 30) | (select0 << 32) | (upper0 << 33) | (mask0 << 34) | (swizzle0 << 40) | (bias_lod << 72) | (texture_handle << 88) | (sampler_handle << 104)
+        tex = (op << 0) | (shadow << 6) | (cont << 8) | (last << 9) | (fmt << 10) | (has_offset << 15) | (has_filter << 16) | (select1 << 17) | (upper1 << 18) | (full1 << 20) | (swizzleR1 << 21) | (swizzleL1 << 23) | (magic2 << 25) | (full0 << 29) | (magic1 << 30) | (select0 << 32) | (upper0 << 33) | (mask0 << 34) | (swizzle0 << 40) | (bias_lod << 72) | (texture_handle << 88) | (sampler_handle << 104)
 
         instruction_stream += [(TEXTURE, tex)]
     elif family == "fb":
