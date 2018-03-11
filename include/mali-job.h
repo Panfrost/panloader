@@ -76,6 +76,18 @@ struct mali_shader_meta {
 	 */
 
 	u32 uniform_registers;
+
+	/* TODO: Is this a different data structure I don't yet know about? */
+	u32 unknown2_0;
+	u32 unknown2_1;
+	u32 unknown2_2;
+	u32 unknown2_3;
+	u32 unknown2_4;
+	u32 unknown2_5;
+	u32 unknown2_6;
+	u32 unknown2_7;
+	u32 unknown2_8;
+	u32 unknown2_9;
 };
 
 /* This only concerns hardware jobs */
@@ -164,7 +176,7 @@ struct mali_payload_vertex_tiler {
 
 	/* For reasons I don't quite understand this is a pointer to a pointer.
 	 * That second pointer points to the actual texture descriptor. */
-	uintptr_t texture_meta_trampoline;
+	uintptr_t texture_trampoline;
 
 	/* For OpenGL, from what I've seen, this is intimately connected to
 	 * texture_meta. cwabbott says this is not the case under Vulkan, hence
@@ -184,7 +196,7 @@ struct mali_payload_vertex_tiler {
 } __attribute__((packed));
 //ASSERT_SIZEOF_TYPE(struct mali_payload_vertex_tiler, 256, 256);
 
-/* Pointed to from texture_meta_trampoline, mostly unknown still, haven't
+/* Pointed to from texture_trampoline, mostly unknown still, haven't
  * managed to replay successfully */
 
 /* Purposeful off-by-one in width, height fields. For example, a (64, 64)

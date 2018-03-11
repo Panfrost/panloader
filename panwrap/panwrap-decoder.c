@@ -236,7 +236,7 @@ void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
 	panwrap_indent--;
 	panwrap_log("};\n");
 
-	TOUCH(mem, addr, *attr, prefix, job_no);
+	TOUCH_LEN(mem, addr, sizeof(*attr) * count, prefix, job_no);
 }
 
 void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
@@ -280,6 +280,18 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 		/* Structure is still mostly unknown, unfortunately */
 		panwrap_prop("uniform_registers = (%d << 20) | 0x%" PRIx32, uniform_count, s->uniform_registers & ~0x0FF00000);
+
+		/* WTF? */
+		panwrap_prop("unknown2_0 = 0x%" PRIx32, s->unknown2_0);
+		panwrap_prop("unknown2_1 = 0x%" PRIx32, s->unknown2_1);
+		panwrap_prop("unknown2_2 = 0x%" PRIx32, s->unknown2_2);
+		panwrap_prop("unknown2_3 = 0x%" PRIx32, s->unknown2_3);
+		panwrap_prop("unknown2_4 = 0x%" PRIx32, s->unknown2_4);
+		panwrap_prop("unknown2_5 = 0x%" PRIx32, s->unknown2_5);
+		panwrap_prop("unknown2_6 = 0x%" PRIx32, s->unknown2_6);
+		panwrap_prop("unknown2_7 = 0x%" PRIx32, s->unknown2_7);
+		panwrap_prop("unknown2_8 = 0x%" PRIx32, s->unknown2_8);
+		panwrap_prop("unknown2_9 = 0x%" PRIx32, s->unknown2_9);
 
 		panwrap_indent--;
 		panwrap_log("};\n");
@@ -342,12 +354,6 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		TOUCH_LEN(attr_mem, v->attribute_meta, sizeof(struct mali_attr_meta) * count, "attribute_meta", job_no);
 
 		attr_mem = panwrap_find_mapped_gpu_mem_containing(v->attributes);
-
-#if 0
-		for (p = v->attribute_meta;
-		     *PANWRAP_PTR(attr_mem, p, u64) != 0;
-		     p += sizeof(struct mali_attr_meta), count++);
-#endif
 
 		panwrap_replay_attributes( attr_mem, v->attributes, job_no, attribute_count, false);
 	}
@@ -415,7 +421,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		struct panwrap_mapped_memory *umem = panwrap_find_mapped_gpu_mem_containing(v->unknown6);
 
 		if (umem) {
-			struct mali_unknown6 *PANWRAP_PTR_VAR(u, umem, v->unknown6);
+			struct mali_unknown6 *PANWRAP_PTR_VAR(u, umem, v->unknown6 & ~0xF);
 
 			panwrap_log("struct mali_unknown6 unknown6_%d = {\n", job_no);
 			panwrap_indent++;
@@ -427,23 +433,23 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			panwrap_indent--;
 			panwrap_log("};\n");
 
-			TOUCH(umem, v->unknown6, *u, "unknown6", job_no);
+			TOUCH(umem, v->unknown6 & ~0xF, *u, "unknown6", job_no);
 		}
 	}
 
 	/* Just a pointer to... another pointer >_< */
 
-	if (v->texture_meta_trampoline) {
-		struct panwrap_mapped_memory *mmem = panwrap_find_mapped_gpu_mem_containing(v->texture_meta_trampoline);
+	if (v->texture_trampoline) {
+		struct panwrap_mapped_memory *mmem = panwrap_find_mapped_gpu_mem_containing(v->texture_trampoline);
 
 		if (mmem) {
-			mali_ptr *PANWRAP_PTR_VAR(u, mmem, v->texture_meta_trampoline);
+			mali_ptr *PANWRAP_PTR_VAR(u, mmem, v->texture_trampoline);
 
 			char *a = pointer_as_memory_reference(*u);
-			panwrap_log("uint64_t texture_meta_trampoline_%d = %s;", job_no, a);
+			panwrap_log("uint64_t texture_trampoline_%d = %s;", job_no, a);
 			free(a);
 
-			TOUCH(mmem, v->texture_meta_trampoline, *u, "texture_meta_trampoline", job_no);
+			TOUCH(mmem, v->texture_trampoline, *u, "texture_trampoline", job_no);
 
 			/* Now, finally, descend down into the texture descriptor */
 			struct panwrap_mapped_memory *tmem = panwrap_find_mapped_gpu_mem_containing(*u);
@@ -579,13 +585,13 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	DYN_MEMORY_PROP(v, job_no, indices);
 	//DYN_MEMORY_PROP(v, job_no, unknown0);
 	DYN_MEMORY_PROP(v, job_no, unknown1); 
-	DYN_MEMORY_PROP(v, job_no, texture_meta_trampoline);
+	DYN_MEMORY_PROP(v, job_no, texture_trampoline);
 	DYN_MEMORY_PROP(v, job_no, sampler_descriptor);
 	DYN_MEMORY_PROP(v, job_no, uniforms);
 	DYN_MEMORY_PROP(v, job_no, attributes); 
 	DYN_MEMORY_PROP(v, job_no, attribute_meta); 
 	DYN_MEMORY_PROP(v, job_no, varyings); 
-	DYN_MEMORY_PROP(v, job_no, unknown6);
+	//DYN_MEMORY_PROP(v, job_no, unknown6);
 	DYN_MEMORY_PROP(v, job_no, nullForVertex);
 	DYN_MEMORY_PROP(v, job_no, fbd);
 
@@ -593,6 +599,8 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 	panwrap_prop("_shader_upper = (shader_meta_%d_p) >> 4", job_no);
 	panwrap_prop("flags = %d", v->flags); 
+
+	panwrap_prop("unknown6 = (unknown6_%d_p) | 0x%X", job_no, v->unknown6 & 0xF);
 
 	panwrap_indent--;
 	panwrap_log("};\n");
@@ -716,8 +724,6 @@ int panwrap_replay_jc(mali_ptr jc_gpu_va)
 		}
 
 		first = false;
-
-		continue;
 
 		switch (h->job_type) {
 		case JOB_TYPE_SET_VALUE:
