@@ -159,7 +159,7 @@ static void panwrap_replay_sfbd(uint64_t gpu_va, int job_no)
 	if (zero_sum_pun)
 		panwrap_msg("Zero sum tripped (%d), replay may be wrong\n", zero_sum_pun);
 
-	TOUCH(mem, (mali_ptr) gpu_va, *s, "fbd", job_no);
+	TOUCH(mem, (mali_ptr) gpu_va, *s, "fbd", job_no, false);
 }
 
 void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
@@ -207,7 +207,7 @@ void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
 			panwrap_indent--;
 			panwrap_log("};\n");
 
-			TOUCH_LEN(mem, raw_elements, attr[i].size, base, i);
+			TOUCH_LEN(mem, raw_elements, attr[i].size, base, i, false);
 		} else {
 			/* TODO: Allocate space for varyings dynamically? */
 
@@ -236,7 +236,7 @@ void panwrap_replay_attributes(const struct panwrap_mapped_memory *mem,
 	panwrap_indent--;
 	panwrap_log("};\n");
 
-	TOUCH_LEN(mem, addr, sizeof(*attr) * count, prefix, job_no);
+	TOUCH_LEN(mem, addr, sizeof(*attr) * count, prefix, job_no, false);
 }
 
 void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header *h,
@@ -295,7 +295,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 
 		panwrap_indent--;
 		panwrap_log("};\n");
-		TOUCH(smem, shader_meta_ptr, *meta, "shader_meta", job_no);
+		TOUCH(smem, shader_meta_ptr, *meta, "shader_meta", job_no, false);
 
 		panwrap_shader_disassemble(shader_ptr, job_no);
 
@@ -324,7 +324,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_indent--;
 		panwrap_log("};\n");
 
-		TOUCH(fmem, v->nullForVertex, *f, "nullForVertex", job_no);
+		TOUCH(fmem, v->nullForVertex, *f, "nullForVertex", job_no, false);
 	}
 
 	if (v->attribute_meta) {
@@ -351,7 +351,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_indent--;
 		panwrap_log("};\n");
 
-		TOUCH_LEN(attr_mem, v->attribute_meta, sizeof(struct mali_attr_meta) * count, "attribute_meta", job_no);
+		TOUCH_LEN(attr_mem, v->attribute_meta, sizeof(struct mali_attr_meta) * count, "attribute_meta", job_no, false);
 
 		attr_mem = panwrap_find_mapped_gpu_mem_containing(v->attributes);
 
@@ -397,7 +397,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_indent--;
 		panwrap_log("};\n");
 
-		TOUCH_LEN(mem, v->uniforms, sz, "uniforms", job_no);
+		TOUCH_LEN(mem, v->uniforms, sz, "uniforms", job_no, false);
 	}
 
 	if (v->unknown1) {
@@ -414,10 +414,10 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			 * anything out */
 			
 			panwrap_log("u32 inner_unknown1_%d = 0; /* XXX */\n", job_no);
-			TOUCH_LEN(umem, ptr, 0, "inner_unknown1", job_no);
+			TOUCH_LEN(umem, ptr, 0, "inner_unknown1", job_no, false);
 
 			panwrap_log("u64 unknown1_%d = ((inner_unknown1_%d_p) << 8) | %d;\n", job_no, job_no, flags);
-			TOUCH(umem, v->unknown1, u64, "unknown1", job_no);
+			TOUCH(umem, v->unknown1, u64, "unknown1", job_no, false);
 		}
 	}
 
@@ -437,7 +437,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			panwrap_indent--;
 			panwrap_log("};\n");
 
-			TOUCH(umem, v->unknown6 & ~0xF, *u, "unknown6", job_no);
+			TOUCH(umem, v->unknown6 & ~0xF, *u, "unknown6", job_no, false);
 		}
 	}
 
@@ -453,7 +453,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			panwrap_log("uint64_t texture_trampoline_%d = %s;", job_no, a);
 			free(a);
 
-			TOUCH(mmem, v->texture_trampoline, *u, "texture_trampoline", job_no);
+			TOUCH(mmem, v->texture_trampoline, *u, "texture_trampoline", job_no, false);
 
 			/* Now, finally, descend down into the texture descriptor */
 			struct panwrap_mapped_memory *tmem = panwrap_find_mapped_gpu_mem_containing(*u);
@@ -485,7 +485,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 				panwrap_indent--;
 				panwrap_log("};\n");
 
-				TOUCH(tmem, *u, *t, "texture_descriptor", job_no);
+				TOUCH(tmem, *u, *t, "texture_descriptor", job_no, false);
 			}
 		}
 	}
@@ -511,7 +511,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			panwrap_indent--;
 			panwrap_log("};\n");
 
-			TOUCH(smem, v->sampler_descriptor, *s, "sampler_descriptor", job_no);
+			TOUCH(smem, v->sampler_descriptor, *s, "sampler_descriptor", job_no, false);
 		}
 	}
 
@@ -535,7 +535,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 			panwrap_indent--;
 			panwrap_log("};\n");
 
-			TOUCH_LEN(imem, v->indices, sizeof(uint32_t) * (v->index_count + 1), "indices", job_no);
+			TOUCH_LEN(imem, v->indices, sizeof(uint32_t) * (v->index_count + 1), "indices", job_no, false);
 		}
 	}
 
@@ -610,8 +610,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_indent--;
 	panwrap_log("};\n");
 
-	TOUCH(mem, payload, *v, "vertex_tiler", job_no);
-
+	TOUCH(mem, payload, *v, "vertex_tiler", job_no, false);
 }
 
 static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
@@ -643,7 +642,7 @@ static void panwrap_replay_fragment_job(const struct panwrap_mapped_memory *mem,
 	panwrap_prop("fbd = %s | MALI_%s", pointer_as_memory_reference(p), s->fbd & MALI_MFBD ? "MFBD" : "SFBD");
 	panwrap_indent--;
 	panwrap_log("};\n");
-	TOUCH(mem, payload, *s, "fragment", job_no);
+	TOUCH(mem, payload, *s, "fragment", job_no, false);
 
 	if ((s->fbd & FBD_TYPE) == MALI_SFBD)
 		panwrap_replay_sfbd(s->fbd & FBD_MASK, job_no);
@@ -715,7 +714,7 @@ int panwrap_replay_jc(mali_ptr jc_gpu_va)
 		panwrap_log("};\n");
 
 		/* Touch the fields, careful about 32/64-bit */
-		TOUCH_OLEN(mem, jc_gpu_va, sizeof(*h), offset, "job", job_no);
+		TOUCH_OLEN(mem, jc_gpu_va, sizeof(*h), offset, "job", job_no, false);
 
 		/* Handle linkage */
 
@@ -742,7 +741,7 @@ int panwrap_replay_jc(mali_ptr jc_gpu_va)
 				panwrap_indent--;
 				panwrap_log("};\n");
 
-				TOUCH(mem, payload_ptr, *s, "set_value", job_no);
+				TOUCH(mem, payload_ptr, *s, "set_value", job_no, false);
 
 				break;
 			}
@@ -798,7 +797,7 @@ void panwrap_replay_soft_replay_payload(mali_ptr jc_gpu_va, int job_no)
 	panwrap_indent--;
 	panwrap_log("};\n");
 
-	TOUCH(mem, jc_gpu_va, *v, "soft_replay_payload", job_no);
+	TOUCH(mem, jc_gpu_va, *v, "soft_replay_payload", job_no, false);
 }
 
 int panwrap_replay_soft_replay(mali_ptr jc_gpu_va)
@@ -831,7 +830,7 @@ int panwrap_replay_soft_replay(mali_ptr jc_gpu_va)
 
 		panwrap_replay_soft_replay_payload(jc_gpu_va + sizeof(struct mali_jd_replay_jc), job_no);
 
-		TOUCH(mem, jc_gpu_va, *v, "job", job_no);
+		TOUCH(mem, jc_gpu_va, *v, "job", job_no, false);
 	} while ((jc_gpu_va = v->next));
 
 	return start_no;
