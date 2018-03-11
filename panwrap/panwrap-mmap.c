@@ -164,7 +164,19 @@ void panwrap_track_mmap(mali_ptr gpu_va, void *addr, size_t length,
 
 	mapped_mem = malloc(sizeof(*mapped_mem));
 	list_init(&mapped_mem->node);
-	mapped_mem->gpu_va = gpu_va;
+	
+	/* Try not to break other systems... there are so many configurations
+	 * of userspaces/kernels/architectures and none of them are compatible,
+	 * ugh. */
+
+#define MEM_COOKIE_VA 0x41000
+
+	if (mem->flags & MALI_MEM_SAME_VA && gpu_va == MEM_COOKIE_VA) {
+		mapped_mem->gpu_va = (mali_ptr) (uintptr_t) addr;
+	} else { 
+		mapped_mem->gpu_va = gpu_va;
+	}
+
 	mapped_mem->length = length;
 	mapped_mem->addr = addr;
 	mapped_mem->prot = prot;

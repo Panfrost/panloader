@@ -249,7 +249,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	mali_ptr shader_meta_ptr = (u64) (uintptr_t) (v->_shader_upper << 4);
 
 	/* TODO: Isn't this an -M-FBD? What's the difference? */
-	panwrap_replay_sfbd(v->fbd, job_no);
+	panwrap_replay_sfbd((u64) (uintptr_t) v->fbd, job_no);
 
 	int varying_count, attribute_count, uniform_count;
 
