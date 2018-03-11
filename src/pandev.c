@@ -164,8 +164,8 @@ int
 pandev_general_allocate(int fd, int va_pages, int commit_pages, int extent, int flags, u64 *out)
 {
 	struct mali_ioctl_mem_alloc args = {
-		.va_pages = va_pages,
-		.commit_pages = commit_pages,
+		.va_pages = va_pages * 2,
+		.commit_pages = commit_pages * 2,
 		.extent = extent,
 		.flags = flags
 	};
