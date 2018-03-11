@@ -351,7 +351,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_indent--;
 		panwrap_log("};\n");
 
-		TOUCH_LEN(attr_mem, v->attribute_meta, sizeof(struct mali_attr_meta) * count, "attribute_meta", job_no, false);
+		TOUCH_LEN(attr_mem, v->attribute_meta, sizeof(struct mali_attr_meta) * count, "attribute_meta", job_no, true);
 
 		attr_mem = panwrap_find_mapped_gpu_mem_containing(v->attributes);
 
