@@ -600,7 +600,8 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 	panwrap_prop("_shader_upper = (shader_meta_%d_p) >> 4", job_no);
 	panwrap_prop("flags = %d", v->flags); 
 
-	panwrap_prop("unknown6 = (unknown6_%d_p) | 0x%X", job_no, v->unknown6 & 0xF);
+	if (v->unknown6)
+		panwrap_prop("unknown6 = (unknown6_%d_p) | 0x%X", job_no, v->unknown6 & 0xF);
 
 	panwrap_indent--;
 	panwrap_log("};\n");
