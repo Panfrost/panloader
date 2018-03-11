@@ -324,7 +324,7 @@ void panwrap_replay_vertex_or_tiler_job(const struct mali_job_descriptor_header 
 		panwrap_indent--;
 		panwrap_log("};\n");
 
-		TOUCH(fmem, v->nullForVertex, *f, "nullForVertex", job_no, false);
+		TOUCH(fmem, v->nullForVertex, *f, "nullForVertex", job_no, true);
 	}
 
 	if (v->attribute_meta) {
