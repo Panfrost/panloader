@@ -716,72 +716,6 @@ static void emit_atoms(void *ptr) {
 	panwrap_log("};\n\n");
 }
 
-static void ioctl_pretty_print_job_submit(const struct mali_ioctl_job_submit *args, const struct mali_jd_atom_v2 *atoms)
-{
-	panwrap_msg("Atoms:\n");
-	panwrap_indent++;
-	for (int i = 0; i < args->nr_atoms; i++) {
-		const struct mali_jd_atom_v2 *a = &atoms[i];
-
-		panwrap_prop("jc = " MALI_PTR_FMT, a->jc);
-		panwrap_indent++;
-
-		panwrap_msg("Decoding job chain:\n");
-		panwrap_indent++;
-		panwrap_replay_jc(a->jc);
-		panwrap_indent--;
-
-		panwrap_prop("udata = [0x%" PRIx64 ", 0x%" PRIx64 "]",
-			    a->udata.blob[0], a->udata.blob[1]);
-		panwrap_prop("nr_ext_res = %d", a->nr_ext_res);
-
-		if (a->ext_res_list) {
-			panwrap_msg("External resources:\n");
-
-			panwrap_indent++;
-			for (int j = 0; j < a->nr_ext_res; j++)
-			{
-				panwrap_log(" ");
-				panwrap_log_decoded_flags(
-					external_resources_access_flag_info,
-					a->ext_res_list[j]);
-				panwrap_log_cont("\n");
-			}
-			panwrap_indent--;
-		} else {
-			panwrap_prop("<no external resources>");
-		}
-
-		panwrap_prop("compat_core_req = 0x%x", a->compat_core_req);
-
-		panwrap_msg("Pre-dependencies:\n");
-		panwrap_indent++;
-		for (int j = 0; j < ARRAY_SIZE(a->pre_dep); j++) {
-			panwrap_log("atom_id = %d flags == ",
-				    a->pre_dep[i].atom_id);
-			panwrap_log_decoded_flags(
-			    mali_jd_dep_type_flag_info,
-			    a->pre_dep[i].dependency_type);
-			panwrap_log_cont("\n");
-		}
-		panwrap_indent--;
-
-		panwrap_prop("atom_number = %d", a->atom_number);
-		panwrap_prop("prio = %d (%s)",
-			    a->prio, ioctl_decode_jd_prio(a->prio));
-		panwrap_prop("device_nr = %d", a->device_nr);
-
-		panwrap_msg("Job type = %s\n",
-			    ioctl_get_job_type_from_jd_core_req(a->core_req));
-		panwrap_log("core_req = ");
-		ioctl_log_decoded_jd_core_req(a->core_req);
-		panwrap_log_cont("\n");
-
-		panwrap_indent--;
-	}
-	panwrap_indent--;
-}
-
 static inline void
 ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 {
@@ -808,9 +742,6 @@ ioctl_decode_pre_job_submit(unsigned long int request, void *ptr)
 		panwrap_msg("Cannot dump atoms :(, maybe it's a legacy job format?\n");
 		return;
 	}
-
-	if (!do_replay)
-		ioctl_pretty_print_job_submit(args, atoms);
 }
 
 static inline void
