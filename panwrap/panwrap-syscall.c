@@ -789,81 +789,6 @@ ioctl_decode_pre(unsigned long int request, void *ptr)
 	}
 }
 
-static inline void
-ioctl_decode_post_get_version(unsigned long int request, void *ptr)
-{
-	const struct mali_ioctl_get_version *args = ptr;
-
-	panwrap_prop("major = %3d", args->major);
-	panwrap_prop("minor = %3d", args->minor);
-}
-
-static inline void
-ioctl_decode_post_mem_alloc(unsigned long int request, void *ptr)
-{
-	const struct mali_ioctl_mem_alloc *args = ptr;
-
-	panwrap_log("flags = ");
-	panwrap_log_decoded_flags(
-	    mem_flag_info, args->flags & ~MALI_IOCTL_MEM_FLAGS_IN_MASK);
-	panwrap_log_cont("\n");
-
-	panwrap_prop("gpu_va = " MALI_PTR_FMT, args->gpu_va);
-	panwrap_prop("va_alignment = %d", args->va_alignment);
-}
-
-static inline void
-ioctl_decode_post_mem_import(unsigned long int request, void *ptr)
-{
-	const struct mali_ioctl_mem_import *args = ptr;
-
-	panwrap_prop("gpu_va = 0x%" PRIx64, args->gpu_va);
-	panwrap_prop("va_pages = %" PRId64, args->va_pages);
-	panwrap_log("flags = ");
-	panwrap_log_decoded_flags(mem_flag_info, args->flags);
-	panwrap_log_cont("\n");
-}
-
-static inline void
-ioctl_decode_post_mem_commit(unsigned long int request, void *ptr)
-{
-	const struct mali_ioctl_mem_commit *args = ptr;
-
-	panwrap_prop("result_subcode = %d", args->result_subcode);
-}
-
-static inline void
-ioctl_decode_post_mem_query(unsigned long int request, void *ptr)
-{
-	const struct mali_ioctl_mem_query *args = ptr;
-
-	panwrap_prop("value = 0x%" PRIx64, args->value);
-}
-
-static inline void
-ioctl_decode_post_mem_alias(unsigned long int request, void *ptr)
-{
-	const struct mali_ioctl_mem_alias *args = ptr;
-
-	panwrap_prop("gpu_va = " MALI_PTR_FMT, args->gpu_va);
-	panwrap_prop("va_pages = %" PRId64, args->va_pages);
-}
-
-static inline void
-ioctl_decode_post_sync(unsigned long int request, void *ptr)
-{
-	const struct mali_ioctl_sync *args = ptr;
-
-	if (args->type != MALI_SYNC_TO_CPU)
-		return;
-
-	dump_debugfs(request);
-	panwrap_prop("Dumping memory from device:");
-	panwrap_indent++;
-	panwrap_log_hexdump_trimmed(args->user_addr, args->size);
-	panwrap_indent--;
-}
-
 #define PRINT_IF_NO(text, value) if (!value) panwrap_log("%s present? No\n", text);
 
 static inline void
@@ -1014,79 +939,6 @@ ioctl_decode_post_gpu_props_reg_dump(unsigned long int request, void *ptr)
 	}
 	panwrap_indent--;
 	panwrap_indent--;
-}
-
-static inline void
-ioctl_decode_post_stream_create(unsigned long int request, void *ptr)
-{
-	const struct mali_ioctl_stream_create *args = ptr;
-
-	panwrap_prop("fd = %d", args->fd);
-}
-
-static inline void
-ioctl_decode_post_get_context_id(unsigned long int request, void *ptr)
-{
-	const struct mali_ioctl_get_context_id *args = ptr;
-
-	panwrap_prop("id = 0x%" PRIx64, args->id);
-
-	if (context_id != 0) {
-		panwrap_log("Oh no, there's more then one context! I can't handle this yet\n");
-		abort();
-	}
-
-	context_id = args->id;
-
-	/* this seems to be how the kdriver determines debugfs paths... */
-	snprintf(debugfs_ctx_path, sizeof(debugfs_ctx_path),
-		 "/sys/kernel/debug/mali0/ctx/%d_%" PRId64,
-		 getpid(), context_id & ~0x7f00000000);
-	debugfs_fd = open(debugfs_ctx_path, O_RDONLY | O_DIRECTORY);
-	if (debugfs_fd < 0) {
-		fprintf(stderr, "Failed to open debugfs dir %s: %s\n",
-			debugfs_ctx_path, strerror(errno));
-	}
-}
-
-static inline void
-ioctl_decode_post(unsigned long int request, void *ptr)
-{
-	switch (IOCTL_CASE(request)) {
-	case IOCTL_CASE(MALI_IOCTL_GET_VERSION):
-	case IOCTL_CASE(MALI_IOCTL_GET_VERSION_NEW):
-		ioctl_decode_post_get_version(request, ptr);
-		break;
-	case IOCTL_CASE(MALI_IOCTL_MEM_ALLOC):
-		ioctl_decode_post_mem_alloc(request, ptr);
-		break;
-	case IOCTL_CASE(MALI_IOCTL_MEM_IMPORT):
-		ioctl_decode_post_mem_import(request, ptr);
-		break;
-	case IOCTL_CASE(MALI_IOCTL_MEM_COMMIT):
-		ioctl_decode_post_mem_commit(request, ptr);
-		break;
-	case IOCTL_CASE(MALI_IOCTL_MEM_QUERY):
-		ioctl_decode_post_mem_query(request, ptr);
-		break;
-	case IOCTL_CASE(MALI_IOCTL_MEM_ALIAS):
-		ioctl_decode_post_mem_alias(request, ptr);
-		break;
-	case IOCTL_CASE(MALI_IOCTL_SYNC):
-		ioctl_decode_post_sync(request, ptr);
-		break;
-	case IOCTL_CASE(MALI_IOCTL_GPU_PROPS_REG_DUMP):
-		ioctl_decode_post_gpu_props_reg_dump(request, ptr);
-		break;
-	case IOCTL_CASE(MALI_IOCTL_STREAM_CREATE):
-		ioctl_decode_post_stream_create(request, ptr);
-		break;
-	case IOCTL_CASE(MALI_IOCTL_GET_CONTEXT_ID):
-		ioctl_decode_post_get_context_id(request, ptr);
-		break;
-	default:
-		break;
-	}
 }
 
 /**
@@ -1292,13 +1144,10 @@ int ioctl(int fd, int request, ...)
 	ret = orig_ioctl(fd, request, ptr);
 
 	/* If we're building up a replay, we don't care about the result; we
-	 * have to assume it's correct! It can be seperately viewed for
-	 * debugging, of course, in a seperate wrap. */
+	 * have to assume it's correct! */
 
-	if (!do_replay) {
+	if (!do_replay)
 		panwrap_msg("= %02d, %02d\n", ret, header->rc);
-		ioctl_decode_post(request, ptr);
-	}
 
 	/* Track memory allocation if needed  */
 	if (IOCTL_CASE(request) == IOCTL_CASE(MALI_IOCTL_MEM_ALLOC)) {
