@@ -636,9 +636,11 @@ static void emit_atoms(void *ptr) {
 		const struct mali_jd_atom_v2 *a = &atoms[i];
 
 		if (a->jc) {
-			if (!(a->core_req & MALI_JD_REQ_SOFT_JOB))
+			int req = a->core_req | a->compat_core_req;
+
+			if (!(req & MALI_JD_REQ_SOFT_JOB))
 				job_numbers[i] = panwrap_replay_jc(a->jc);
-			else if (a->core_req & MALI_JD_REQ_SOFT_REPLAY)
+			else if (req & MALI_JD_REQ_SOFT_REPLAY)
 				job_numbers[i] = panwrap_replay_soft_replay(a->jc);
 		}
 	}

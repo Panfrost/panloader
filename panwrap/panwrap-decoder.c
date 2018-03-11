@@ -717,6 +717,8 @@ int panwrap_replay_jc(mali_ptr jc_gpu_va)
 
 		first = false;
 
+		continue;
+
 		switch (h->job_type) {
 		case JOB_TYPE_SET_VALUE:
 			{
